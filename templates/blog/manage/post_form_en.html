@@ -1,0 +1,254 @@
+{% extends 'management/base_admin_en.html' %}
+{% load static humanize %}
+{% block title %}{% if form.instance.pk %}Edit Post{% else %}Add New Post{% endif %} - Mia Analyst{% endblock %}
+
+{% block admin_content %}
+<div class="max-w-5xl mx-auto py-8">
+    <div class="bg-white rounded-2xl shadow border border-gray-100 overflow-hidden">
+        <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+            <h1 class="text-2xl font-bold text-gray-900">
+                {% if form.instance.pk %}Edit Post: {{ form.instance.title }}{% else %}Add New Post{% endif %}
+            </h1>
+            <a href="{% url 'blog:manage_post_list' %}" class="text-sm text-gray-500 hover:text-primary">&larr; Back to List</a>
+        </div>
+
+        <div class="p-6">
+            <form method="post" enctype="multipart/form-data" class="space-y-8">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="bg-red-50 p-4 rounded-xl border border-red-100 mb-6">
+                    <h3 class="text-red-800 text-sm font-bold">Invalid Process:</h3>
+                    {{ form.errors }}
+                </div>
+                {% endif %}
+
+                <!-- Basic Info Segment -->
+                <div class="bg-gray-50 p-6 rounded-xl border border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="col-span-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Title <span class="text-red-500">*</span></label>
+                        {{ form.title }}
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Tags <span class="text-xs font-normal text-gray-400 italic">(Enter comma-separated values)</span></label>
+                        {{ form.tags_str }}
+                        <datalist id="existing-tags-list">
+                            {% for tag in all_tags %}
+                            <option value="{{ tag.name }}">
+                            {% endfor %}
+                        </datalist>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">URL Slug (Auto-generated)</label>
+                        {{ form.slug }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Category <span class="text-red-500">*</span></label>
+                        {{ form.category }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Author Pseudonym</label>
+                        {{ form.author_pseudonym }}
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Post Cover Image</label>
+                        {{ form.cover_image }}
+                        {% if form.instance.cover_image %}
+                        <div class="mt-2">
+                            <span class="text-xs text-gray-500">Current Image:</span> 
+                            <a href="{{ form.instance.cover_image.url }}" target="_blank" class="text-primary text-xs hover:underline">View Image</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Summary Segment -->
+                <div class="bg-blue-50/50 p-6 rounded-xl border border-blue-100">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Summary (Box Summary)</label>
+                    <p class="text-xs text-gray-500 mb-3">Displayed directly below the title. You can insert HTML bullet points (<code>&lt;ul&gt;&lt;li&gt;...&lt;/li&gt;&lt;/ul&gt;</code>) or press Enter for new lines.</p>
+                    {{ form.summary }}
+                </div>
+
+                <!-- Editor Segment -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Post Content <span class="text-red-500">*</span></label>
+                    {{ form.content }}
+                </div>
+
+                <!-- SEO Segment -->
+                <div class="bg-gray-50 p-6 rounded-xl border border-gray-100 space-y-4">
+                    <h3 class="text-lg font-bold text-gray-900 border-b border-gray-200 pb-2 mb-4">SEO Configuration</h3>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Meta Title</label>
+                        {{ form.meta_title }}
+                        <p class="text-xs text-gray-500 mt-1">The title will appear on Google. If left blank, the Post Title will be used.</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Meta Keywords</label>
+                        {{ form.meta_keywords }}
+                        <p class="text-xs text-gray-500 mt-1">Primary and secondary keywords, separated by commas.</p>
+                    </div>
+
+                    <div class="pt-4 border-t border-gray-100">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Post Publish Time Configuration</label>
+                        <div class="flex space-x-6 mb-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            {% for radio in form.publish_status %}
+                            <label class="flex items-center cursor-pointer group">
+                                <div class="relative flex items-center">
+                                    {{ radio.tag }}
+                                    <div class="w-5 h-5 border-2 border-slate-300 rounded-full group-hover:border-primary transition-all peer-checked:border-primary peer-checked:bg-primary"></div>
+                                    <div class="absolute inset-0 m-auto w-2 h-2 bg-white rounded-full scale-0 peer-checked:scale-100 transition-transform"></div>
+                                </div>
+                                <span class="ml-3 text-sm font-bold text-slate-600 group-hover:text-slate-900 transition-colors">{{ radio.choice_label }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+
+                        <div id="schedule-datetime-wrapper" class="{% if form.publish_status.value != 'schedule' %}hidden{% endif %} animate-in fade-in slide-in-from-top-2 duration-300">
+                            <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Select Publish Date and Time</label>
+                            {{ form.published_at }}
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Meta Description</label>
+                        {{ form.meta_description }}
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-6 border-t border-gray-100">
+                    <a href="{% url 'blog:manage_post_list' %}" class="px-6 py-3 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">Cancel</a>
+                    <button type="submit" class="px-6 py-3 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary hover:bg-secondary focus:outline-none">
+                        Save Post
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- CKEditor 5 Initialization -->
+<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+<script>
+    class MyUploadAdapter {
+        constructor(loader) {
+            this.loader = loader;
+        }
+
+        upload() {
+            return this.loader.file
+                .then(file => new Promise((resolve, reject) => {
+                    const data = new FormData();
+                    data.append('file', file);
+
+                    fetch('{% url "blog:upload_image" %}', {
+                        method: 'POST',
+                        body: data,
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.location) {
+                            resolve({
+                                default: result.location
+                            });
+                        } else {
+                            reject(result.error || 'Upload failed');
+                        }
+                    })
+                    .catch(error => {
+                        reject(error);
+                    });
+                }));
+        }
+
+        abort() {
+            // Handle abort if needed
+        }
+    }
+
+    function CustomUploadAdapterPlugin(editor) {
+        editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+            return new MyUploadAdapter(loader);
+        };
+    }
+
+    ClassicEditor
+        .create(document.querySelector('#post-editor'), {
+            extraPlugins: [CustomUploadAdapterPlugin],
+            toolbar: {
+                items: [
+                    'heading', '|',
+                    'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
+                    'outdent', 'indent', '|',
+                    'imageUpload', 'blockQuote', 'insertTable', 'mediaEmbed', 'undo', 'redo', 'codeBlock', 'htmlEmbed'
+                ]
+            },
+            language: 'en',
+            image: {
+                toolbar: [
+                    'imageTextAlternative', 'imageStyle:inline', 'imageStyle:block', 'imageStyle:side'
+                ]
+            },
+            table: {
+                contentToolbar: [
+                    'tableColumn', 'tableRow', 'mergeTableCells'
+                ]
+            },
+        })
+        .then(editor => {
+            console.log('CKEditor 5 initialized successfully');
+            
+            // Ensure data is synced to the textarea for form submission
+            editor.model.document.on('change:data', () => {
+                document.querySelector('#post-editor').value = editor.getData();
+            });
+        })
+        .catch(error => {
+            console.error('Error initializing CKEditor 5:', error);
+        });
+
+    // Schedule Toggle Logic
+    const radioButtons = document.querySelectorAll('.publish-status-radio');
+    const scheduleWrapper = document.getElementById('schedule-datetime-wrapper');
+    
+    radioButtons.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'schedule') {
+                scheduleWrapper.classList.remove('hidden');
+            } else {
+                scheduleWrapper.classList.add('hidden');
+            }
+        });
+    });
+</script>
+
+<style>
+    /* Radio Styling */
+    .publish-status-radio {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+        height: 0;
+        width: 0;
+    }
+
+    .ck-editor__editable_inline {
+        min-height: 400px;
+        border-radius: 0 0 12px 12px !important;
+        border-color: #e2e8f0 !important;
+    }
+    .ck-toolbar {
+        border-radius: 12px 12px 0 0 !important;
+        background-color: #f8fafc !important;
+        border-color: #e2e8f0 !important;
+    }
+    .ck.ck-editor__main>.ck-editor__editable:not(.ck-focused) {
+        border-color: #e2e8f0 !important;
+    }
+    .ck.ck-editor__main>.ck-editor__editable.ck-focused {
+        border-color: var(--primary) !important;
+    }
+</style>
+{% endblock %}

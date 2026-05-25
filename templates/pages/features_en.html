@@ -1,0 +1,81 @@
+{% extends 'base_en.html' %}
+{% load static %}
+
+{% block title %}Features - Mia AI Data Analytics{% endblock %}
+
+{% block content %}
+<div class="bg-slate-50 min-h-screen pt-20">
+    <!-- Hero Section -->
+    <section class="py-24 bg-white border-b border-slate-100">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <h1 class="text-[10px] font-black uppercase tracking-[0.4em] text-primary mb-6">Advanced Features</h1>
+            <h2 class="text-4xl md:text-7xl font-black text-slate-900 mb-8 tracking-tighter">Bring Data into <br><span class="text-primary italic">Conversation.</span></h2>
+            <p class="text-xl text-slate-500 max-w-3xl mx-auto leading-relaxed">Discover how Mia redefines business data analytics through the power of next-generation AI.</p>
+        </div>
+    </section>
+
+    <!-- Detailed Features Grid -->
+    <section class="py-24">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <!-- Feature 1 -->
+                <div class="bg-white p-12 rounded-[3rem] shadow-xl shadow-slate-200/50 flex flex-col items-start group">
+                    <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-10 group-hover:bg-blue-600 transition-colors">
+                        <svg class="w-8 h-8 text-blue-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" stroke-width="2"></path></svg>
+                    </div>
+                    <h3 class="text-3xl font-black text-slate-900 mb-6">Natural Language Analytics</h3>
+                    <p class="text-lg text-slate-500 leading-relaxed mb-8">Mia uses the most advanced LLM technology (Gemini 1.5 Pro) to understand your complex queries. Instead of writing code, simply type: "Why did the conversion rate decrease last week?" and Mia will automatically cross-reference data to find the answer.</p>
+                    <ul class="space-y-4 font-bold text-slate-400 text-sm uppercase tracking-widest">
+                        <li class="flex items-center"><span class="w-2 h-2 bg-blue-500 rounded-full mr-4"></span> Understands Vietnamese Business Context</li>
+                        <li class="flex items-2 h-2 bg-blue-500 rounded-full mr-4"></span> Automatically Generates Python/SQL Code</li>
+                        <li class="flex items-center"><span class="w-2 h-2 bg-blue-500 rounded-full mr-4"></span> Over 98% Response Accuracy</li>
+                    </ul>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="bg-white p-12 rounded-[3rem] shadow-xl shadow-slate-200/50 flex flex-col items-start group">
+                    <div class="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center mb-10 group-hover:bg-purple-600 transition-colors">
+                        <svg class="w-8 h-8 text-purple-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" stroke-width="2"></path></svg>
+                    </div>
+                    <h3 class="text-3xl font-black text-slate-900 mb-6">Smart Visualization Engine</h3>
+                    <p class="text-lg text-slate-500 leading-relaxed mb-8">Mia doesn't just respond with text. The system automatically selects the most suitable chart type (Column, Line, Pie, Funnel) to visualize data, providing you with the quickest overall insight.</p>
+                    <ul class="space-y-4 font-bold text-slate-400 text-sm uppercase tracking-widest">
+                        <li class="flex items-center"><span class="w-2 h-2 bg-purple-500 rounded-full mr-4"></span> Smart Chart Suggestions</li>
+                        <li class="flex items-center"><span class="w-2 h-2 bg-purple-500 rounded-full mr-4"></span> Customize Parameters within Conversation</li>
+                        <li class="flex items-center"><span class="w-2 h-2 bg-purple-500 rounded-full mr-4"></span> Export High-Quality Charts (PNG/PDF)</li>
+                    </ul>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="bg-white p-12 rounded-[3rem] shadow-xl shadow-slate-200/50 flex flex-col items-start group">
+                    <div class="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mb-10 group-hover:bg-green-600 transition-colors">
+                        <svg class="w-8 h-8 text-green-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-width="2"></path></svg>
+                    </div>
+                    <h3 class="text-3xl font-black text-slate-900 mb-6">Data Automation Bot</h3>
+                    <p class="text-lg text-slate-500 leading-relaxed mb-8">Transform Mia into a 24/7 employee. Set up schedules for Mia to automatically scan data and send periodic analytical reports directly via Telegram or Zalo to you and your team.</p>
+                    <ul class="space-y-4 font-bold text-slate-400 text-sm uppercase tracking-widest">
+                        <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-4"></span> Telegram/Webhook Integration</li>
+                        <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-4"></span> Daily/Weekly/Monthly Reports</li>
+                        <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-4"></span> Alerts for Unusual Fluctuations</li>
+                    </ul>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="bg-white p-12 rounded-[3rem] shadow-xl shadow-slate-200/50 flex flex-col items-start group">
+                    <div class="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mb-10 group-hover:bg-orange-600 transition-colors">
+                        <svg class="w-8 h-8 text-orange-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-width="2"></path></svg>
+                    </div>
+                    <h3 class="text-3xl font-black text-slate-900 mb-6">Enterprise-Grade Security</h3>
+                    <p class="text-lg text-slate-500 leading-relaxed mb-8">Your data is protected by military-grade encryption layers. We are absolutely committed to privacy, never sharing or using your data for other purposes.</p>
+                    <ul class="space-y-4 font-bold text-slate-400 text-sm uppercase tracking-widest">
+                        <li class="flex items-center"><span class="w-2 h-2 bg-orange-500 rounded-full mr-4"></span> AES-256 Data Encryption</li>
+                        <li class="flex items-center"><span class="w-2 h-2 bg-orange-500 rounded-full mr-4"></span> No AI Training from Customer Data</li>
+                        <li class="flex items-center"><span class="w-2 h-2 bg-orange-500 rounded-full mr-4"></span> Multi-Layer Access Monitoring System</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+    {% include 'partials/sales_chat_en.html' %}
+{% endblock %}

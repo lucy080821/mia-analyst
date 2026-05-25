@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tính năng chính - Mia AI Data Analytics{% endblock %}
+
+{% block content %}
+<div class="bg-slate-50 min-h-screen pt-20">
+    <!-- Hero Section -->
+    <section class="py-24 bg-white border-b border-slate-100">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <h1 class="text-[10px] font-black uppercase tracking-[0.4em] text-primary mb-6">Tính năng vượt trội</h1>
+            <h2 class="text-4xl md:text-7xl font-black text-slate-900 mb-8 tracking-tighter">Đưa dữ liệu vào <br><span class="text-primary italic">Cuộc hội thoại.</span></h2>
+            <p class="text-xl text-slate-500 max-w-3xl mx-auto leading-relaxed">Khám phá cách Mia tái định nghĩa việc phân tích dữ liệu kinh doanh thông qua sức mạnh của AI thế hệ mới.</p>
+        </div>
+    </section>
+
+    <!-- Detailed Features Grid -->
+    <section class="py-24">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <!-- Feature 1 -->
+                <div class="bg-white p-12 rounded-[3rem] shadow-xl shadow-slate-200/50 flex flex-col items-start group">
+                    <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-10 group-hover:bg-blue-600 transition-colors">
+                        <svg class="w-8 h-8 text-blue-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" stroke-width="2"></path></svg>
+                    </div>
+                    <h3 class="text-3xl font-black text-slate-900 mb-6">Natural Language Analytics</h3>
+                    <p class="text-lg text-slate-500 leading-relaxed mb-8">Mia sử dụng công nghệ LLM tiên tiến nhất (Gemini 1.5 Pro) để hiểu các truy vấn phức tạp của bạn. Thay vì viết code, bạn chỉ cần gõ: "Tại sao tỷ lệ chốt đơn thuyên giảm trong tuần qua?" và Mia sẽ tự động đối soát dữ liệu để tìm ra câu trả lời.</p>
+                    <ul class="space-y-4 font-bold text-slate-400 text-sm uppercase tracking-widest">
+                        <li class="flex items-center"><span class="w-2 h-2 bg-blue-500 rounded-full mr-4"></span> Hiểu ngữ cảnh kinh doanh Việt Nam</li>
+                        <li class="flex items-center"><span class="w-2 h-2 bg-blue-500 rounded-full mr-4"></span> Tự động viết code Python/SQL ngầm</li>
+                        <li class="flex items-center"><span class="w-2 h-2 bg-blue-500 rounded-full mr-4"></span> Phản hồi chính xác hơn 98%</li>
+                    </ul>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="bg-white p-12 rounded-[3rem] shadow-xl shadow-slate-200/50 flex flex-col items-start group">
+                    <div class="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center mb-10 group-hover:bg-purple-600 transition-colors">
+                        <svg class="w-8 h-8 text-purple-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" stroke-width="2"></path></svg>
+                    </div>
+                    <h3 class="text-3xl font-black text-slate-900 mb-6">Smart Visualization Engine</h3>
+                    <p class="text-lg text-slate-500 leading-relaxed mb-8">Mia không chỉ trả lời bằng văn bản. Hệ thống tự động chọn loại biểu đồ phù hợp nhất (Cột, Đường, Tròn, Phễu) để trực quan hóa dữ liệu, giúp bạn cái cái nhìn tổng thể nhanh chóng nhất.</p>
+                    <ul class="space-y-4 font-bold text-slate-400 text-sm uppercase tracking-widest">
+                        <li class="flex items-center"><span class="w-2 h-2 bg-purple-500 rounded-full mr-4"></span> Tự động gợi ý biểu đồ thông minh</li>
+                        <li class="flex items-center"><span class="w-2 h-2 bg-purple-500 rounded-full mr-4"></span> Tùy chỉnh tham số ngay trong hội thoại</li>
+                        <li class="flex items-center"><span class="w-2 h-2 bg-purple-500 rounded-full mr-4"></span> Xuất biểu đồ chất lượng cao (PNG/PDF)</li>
+                    </ul>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="bg-white p-12 rounded-[3rem] shadow-xl shadow-slate-200/50 flex flex-col items-start group">
+                    <div class="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mb-10 group-hover:bg-green-600 transition-colors">
+                        <svg class="w-8 h-8 text-green-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-width="2"></path></svg>
+                    </div>
+                    <h3 class="text-3xl font-black text-slate-900 mb-6">Data Automation Bot</h3>
+                    <p class="text-lg text-slate-500 leading-relaxed mb-8">Biến Mia thành một nhân viên làm việc 24/7. Thiết lập lịch trình để Mia tự động quét dữ liệu và gửi báo cáo phân tích định kỳ trực tiếp qua Telegram hoặc Zalo cho bạn và đội ngũ.</p>
+                    <ul class="space-y-4 font-bold text-slate-400 text-sm uppercase tracking-widest">
+                        <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-4"></span> Kết nối Telegram/Webhook</li>
+                        <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-4"></span> Báo cáo theo ngày/tuần/tháng</li>
+                        <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-4"></span> Cảnh báo khi có biến động bất thường</li>
+                    </ul>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="bg-white p-12 rounded-[3rem] shadow-xl shadow-slate-200/50 flex flex-col items-start group">
+                    <div class="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mb-10 group-hover:bg-orange-600 transition-colors">
+                        <svg class="w-8 h-8 text-orange-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-width="2"></path></svg>
+                    </div>
+                    <h3 class="text-3xl font-black text-slate-900 mb-6">Enterprise-Grade Security</h3>
+                    <p class="text-lg text-slate-500 leading-relaxed mb-8">Dữ liệu của bạn được bảo vệ bởi các lớp mã hóa chuẩn quân đội. Chúng tôi cam kết tuyệt đối về tính riêng tư, không bao giờ chia sẻ hoặc sử dụng dữ liệu của bạn cho mục đích khác.</p>
+                    <ul class="space-y-4 font-bold text-slate-400 text-sm uppercase tracking-widest">
+                        <li class="flex items-center"><span class="w-2 h-2 bg-orange-500 rounded-full mr-4"></span> Mã hóa dữ liệu AES-256</li>
+                        <li class="flex items-center"><span class="w-2 h-2 bg-orange-500 rounded-full mr-4"></span> Không huấn luyện AI từ dữ liệu khách hàng</li>
+                        <li class="flex items-center"><span class="w-2 h-2 bg-orange-500 rounded-full mr-4"></span> Hệ thống giám sát truy cập đa tầng</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+    {% include 'partials/sales_chat.html' %}
+{% endblock %}

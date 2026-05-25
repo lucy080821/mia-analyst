@@ -1,0 +1,2199 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mia AI - Thiết kế Dashboard{% endblock %}
+
+{% block content %}
+<!-- Include Gridstack and Chart.js -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/7.2.3/gridstack.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/7.2.3/gridstack-all.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+    :root {
+        --primary: #6366f1;
+        --primary-light: #818cf8;
+        --primary-dark: #4f46e5;
+        --bg-app: #f1f5f9;
+        --sidebar-w: 360px;
+        --glass: rgba(255, 255, 255, 0.9);
+    }
+
+    body { background-color: var(--bg-app); }
+
+    main.max-w-7xl {
+        max-width: none !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .builder-layout {
+        display: flex;
+        height: calc(100vh - 64px);
+        background: var(--bg-app);
+        overflow: hidden;
+    }
+
+    /* Sidebar Styles */
+    .builder-sidebar {
+        width: 320px;
+        background: #0f172a;
+        color: white;
+        border-right: 1px solid rgba(255,255,255,0.1);
+        display: flex;
+        flex-direction: column;
+        z-index: 60;
+        box-shadow: 10px 0 30px rgba(0,0,0,0.1);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+
+    .builder-sidebar.collapsed {
+        width: 0;
+        min-width: 0;
+        padding: 0;
+        margin: 0;
+        overflow: hidden;
+        border-right: none;
+    }
+
+    .sidebar-header {
+        padding: 1.5rem;
+        background: #1e293b;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .sidebar-scroll {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.5rem;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar { width: 6px; }
+    .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+    /* Canvas Styles */
+    .builder-canvas {
+        flex: 1;
+        overflow-y: auto;
+        padding: 2rem;
+        position: relative;
+        background: rgb(248, 250, 252);
+    }
+
+    .grid-stack {
+        min-height: 800px !important;
+        width: 100%;
+        padding-bottom: 100px;
+    }
+
+    .grid-stack-item-content {
+        background: var(--glass) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        border-radius: 10px !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04) !important;
+        border: 1px solid rgba(0, 0, 0, 0.05) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    }
+
+    .grid-stack-item-content:hover {
+        transform: translateY(-6px) scale(1.01);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08) !important;
+        z-index: 100 !important;
+    }
+
+    .widget-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        width: 100%;
+        padding: 1.5rem;
+        position: relative; /* CRITICAL for absolute children like the X button */
+    }
+
+    .widget-container.full-bleed {
+        padding: 0 !important;
+    }
+
+    .widget-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid rgba(0,0,0,0.03);
+    }
+
+    /* UI Components */
+    .sidebar-tabs {
+        display: flex;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        margin-bottom: 1.5rem;
+    }
+
+    .tab-btn {
+        flex: 1;
+        padding: 0.75rem;
+        text-align: center;
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #94a3b8;
+        cursor: pointer;
+        transition: all 0.2s;
+        border-bottom: 2px solid transparent;
+    }
+
+    .tab-btn:hover { color: white; }
+    .tab-btn.active {
+        color: var(--primary-light);
+        border-bottom-color: var(--primary);
+        background: rgba(99, 102, 241, 0.05);
+    }
+
+    .input-group { margin-bottom: 1.25rem; }
+    .label-tiny {
+        display: block;
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: #64748b;
+        margin-bottom: 0.5rem;
+        letter-spacing: 0.05em;
+    }
+
+    .form-select, .form-input, .form-textarea {
+        width: 100%;
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 0.75rem;
+        padding: 0.75rem;
+        color: white;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+
+    .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); }
+
+    .btn-action {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        border-radius: 0.75rem;
+        font-weight: 700;
+        transition: all 0.2s;
+        cursor: pointer;
+        width: 100%;
+        color: white;
+        border: none;
+    }
+
+    .dashboard-toolbar {
+        position: relative;
+        z-index: 100;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        padding: 0.75rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-left: -2rem;
+        margin-right: -2rem;
+        margin-top: -2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    }
+
+    .toolbar-item {
+        display: flex;
+        align-items: center;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        gap: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .toolbar-item:focus-within {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .toolbar-select, .toolbar-input {
+        border: none;
+        background: transparent;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: #1e293b;
+        outline: none;
+        padding: 0;
+    }
+
+    .toolbar-input {
+        width: 150px;
+    }
+
+    .toolbar-save-btn {
+        margin-left: 0.5rem;
+        background: #0f172a;
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        padding: 0.625rem 1.25rem;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .toolbar-export-btn {
+        margin-left: auto;
+        background: white;
+        color: #0f172a;
+        border: 1px solid #e2e8f0;
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        padding: 0.625rem 1.25rem;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .toolbar-export-btn:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+    }
+
+    /* PDF Export Helper */
+    .grid-stack-item {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    .toolbar-save-btn:hover {
+        background: #1e293b;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    #expand-btn {
+        position: fixed;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 70;
+        background: #0f172a;
+        color: white;
+        padding: 1rem 0.5rem;
+        border-radius: 0 1rem 1rem 0;
+        cursor: pointer;
+        box-shadow: 5px 0 15px rgba(0,0,0,0.2);
+    }
+
+    /* Toast Notifications */
+    #toast-container {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        pointer-events: none;
+    }
+    .toast {
+        padding: 1rem 1.5rem;
+        border-radius: 1rem;
+        background: #0f172a;
+        color: white;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        animation: toastIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        min-width: 300px;
+        border: 1px solid rgba(255,255,255,0.1);
+        pointer-events: auto;
+    }
+    .toast-success { border-left: 4px solid #10b981; }
+    .toast-error { border-left: 4px solid #f43f5e; }
+    .toast-warning { border-left: 4px solid #f59e0b; }
+    @keyframes toastIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes toastOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+    /* Custom Scrollbar for Calculation Modal */
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+
+    .suggestion-item.active {
+        background-color: #f5f3ff;
+        color: #4f46e5;
+    }
+
+    .calc-input-light {
+        background-color: rgba(238, 242, 255, 0.5) !important;
+        color: #0f172a !important;
+        border-color: #e0e7ff !important;
+    }
+    .calc-input-light:focus {
+        background-color: #ffffff !important;
+        border-color: #6366f1 !important;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1) !important;
+    }
+
+    .calc-editor-dark {
+        background-color: rgba(49, 46, 129, 0.95) !important;
+        color: #e0e7ff !important;
+        border: none !important;
+    }
+    .calc-editor-dark:focus {
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2) !important;
+    }
+</style>
+
+<div id="toast-container"></div>
+
+<div class="builder-layout">
+    <!-- Expand Button (hidden initially) -->
+    <div id="expand-btn" class="hidden" onclick="toggleSidebar()">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
+    </div>
+
+    <!-- Sidebar -->
+    <aside id="main-sidebar" class="builder-sidebar">
+        <div class="sidebar-header flex items-center justify-between">
+            <div>
+                <h2 class="text-xl font-black text-white tracking-tight">Dashboard Builder</h2>
+                <p class="text-xs text-slate-400 mt-1">Design your custom data view</p>
+            </div>
+            <button onclick="toggleSidebar()" class="p-2 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white transition-all transform hover:scale-110">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path></svg>
+            </button>
+        </div>
+
+        <div class="sidebar-tabs">
+            <div class="tab-btn active" onclick="switchTab('data')">Thêm mới</div>
+            <div class="tab-btn" onclick="switchTab('style')">Cài đặt</div>
+        </div>
+
+        <div class="sidebar-scroll">
+            <!-- Data Tab -->
+            <div id="tab-data">
+                <div class="input-group">
+                    <label class="label-tiny">Chọn Dashboard</label>
+                    <select id="active-dashboard" class="form-select" onchange="if(this.value==='new'){ createNewDashboard(); } else if(this.value) { location.href='?id='+this.value; }">
+                        {% for db in dashboards %}
+                        <option value="{{ db.id }}" {% if db.id == current_dashboard.id %}selected{% endif %}>{{ db.name }}</option>
+                        {% endfor %}
+                        <option value="new">+ Tạo Dashboard mới</option>
+                    </select>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xs font-black uppercase text-slate-500 tracking-widest">Widget mới</h3>
+                        <div class="flex bg-slate-800 rounded-lg p-1">
+                            <button onclick="setWidgetMode('chart')" class="p-1.5 rounded-md hover:bg-slate-700 text-slate-400"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg></button>
+                            <button onclick="setWidgetMode('text')" class="p-1.5 rounded-md hover:bg-slate-700 text-slate-400"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg></button>
+                        </div>
+                    </div>
+
+                    <div class="input-group" id="w-title-group">
+                        <label class="label-tiny">Tiêu đề Widget</label>
+                        <input type="text" id="w-title" class="form-input" placeholder="Ví dụ: Doanh thu theo tháng">
+                    </div>
+
+                    <div class="input-group">
+                        <label class="label-tiny">Loại biểu đồ</label>
+                        <select id="w-type" class="form-select" onchange="onWidgetTypeChange(this.value)">
+                            <option value="bar">Biểu đồ cột (Bar)</option>
+                            <option value="line">Biểu đồ đường (Line)</option>
+                            <option value="pie">Biểu đồ tròn (Pie)</option>
+                            <option value="doughnut">Biểu đồ vòng (Doughnut)</option>
+                            <option value="histogram">Biểu đồ phân phối (Histogram)</option>
+                            <option value="card">Thẻ chỉ số (Metric Card)</option>
+                            <option value="table">Bảng dữ liệu (Data Table)</option>
+                            <option value="slicer">Bộ lọc (Slicer)</option>
+                            <option value="time_period">Khoảng thời gian (Time)</option>
+                            <option value="text">Nội dung văn bản</option>
+                            <option value="image">Hình ảnh / Logo</option>
+                        </select>
+                    </div>
+
+                    <div id="w-image-group" class="hidden">
+                        <div class="input-group">
+                            <label class="label-tiny">Tải lên hình ảnh (Logo)</label>
+                            <input type="file" id="w-image-file" class="form-input text-xs" accept="image/*">
+                            <input type="hidden" id="w-image-base64">
+                        </div>
+                    </div>
+
+                    <div id="w-bins-group" class="hidden">
+                        <div class="input-group">
+                            <label class="label-tiny">Khoảng chia (Bins)</label>
+                            <input type="number" id="w-bins" class="form-input" value="1" min="1">
+                        </div>
+                    </div>
+
+                    <div id="data-fields">
+                        <div class="input-group">
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="label-tiny">Nguồn dữ liệu (Dataset)</label>
+                                <button onclick="refreshDatasetsList()" class="text-indigo-500 hover:text-indigo-700 p-1" title="Làm mới danh sách">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                </button>
+                            </div>
+                            <select id="w-dataset" class="form-select" onchange="loadDatasetColumns(this.value)">
+                                <option value="">-- Chọn Dataset --</option>
+                                {% for ds in datasets %}
+                                <option value="{{ ds.id }}">{{ ds.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div id="w-xaxis-group" class="input-group">
+                                <label id="w-xaxis-label" class="label-tiny">Trục X (Nhãn)</label>
+                                <select id="w-xaxis" class="form-select"><option value="">-- Chọn --</option></select>
+                            </div>
+                            <div id="w-yaxis-group" class="input-group">
+                                <label id="w-yaxis-label" class="label-tiny">Trục Y (Giá trị)</label>
+                                <select id="w-yaxis" class="form-select"><option value="">-- Chọn --</option></select>
+                            </div>
+                        </div>
+                        <div class="mt-2 mb-4">
+                            <button onclick="openCalcModal('w')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-slate-700 flex items-center justify-center gap-2">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                                Thêm phép tính
+                            </button>
+                        </div>
+                        <div id="w-agg-group" class="input-group">
+                            <label class="label-tiny">Hàm tổng hợp</label>
+                            <select id="w-agg" class="form-select">
+                                <option value="SUM">Tổng (Sum)</option>
+                                <option value="AVG">Trung bình (Avg)</option>
+                                <option value="COUNT">Đếm (Count)</option>
+                                <option value="MIN">Nhỏ nhất (Min)</option>
+                                <option value="MAX">Lớn nhất (Max)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="w-time-group" class="hidden space-y-3">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="input-group">
+                                <label class="label-tiny">Bắt đầu</label>
+                                <input type="date" id="w-start-date" class="form-input text-xs">
+                            </div>
+                            <div class="input-group">
+                                <label class="label-tiny">Kết thúc</label>
+                                <input type="date" id="w-end-date" class="form-input text-xs">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="text-fields" class="hidden">
+                        <div class="input-group">
+                            <label class="label-tiny">Nội dung văn bản</label>
+                            <textarea id="w-text-content" class="form-textarea h-24" placeholder="Nhập nội dung ở đây..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="input-group">
+                            <label class="label-tiny">Màu chủ đạo</label>
+                            <input type="color" id="w-color" class="w-full h-8 p-0 border-0 bg-transparent cursor-pointer" value="#6366f1">
+                        </div>
+                        <label class="flex items-center gap-2 p-2 rounded bg-slate-800 cursor-pointer h-8 mt-6">
+                            <input type="checkbox" id="w-show-labels">
+                            <span class="text-[10px] uppercase font-bold text-slate-300">Hiện nhãn số</span>
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mt-2">
+                        <div class="input-group">
+                            <label class="label-tiny">Màu nhãn số</label>
+                            <input type="color" id="w-label-color" class="w-full h-8 p-0 border-0 bg-transparent cursor-pointer" value="#475569">
+                        </div>
+                    </div>
+
+                    <div class="pt-4">
+                        <button onclick="addWidget()" class="btn-action bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 py-4">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                            Thêm Widget
+                        </button>
+                    </div>
+                    <div class="h-20"></div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="tab-style" class="hidden">
+                <div id="no-selection" class="text-center py-10">
+                    <div class="bg-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
+                        <svg class="w-12 h-12 text-slate-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="1.5" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
+                        <p class="text-slate-400 font-medium">Chọn một Widget trên màn hình để cấu hình dữ liệu và giao diện</p>
+                    </div>
+                </div>
+
+                <div id="style-controls" class="hidden space-y-4">
+                    <input type="hidden" id="selected-widget-id">
+                    
+                    <h3 class="text-[10px] font-black uppercase text-indigo-400 tracking-[0.2em] mb-2">Cài đặt chung</h3>
+                    <div id="s-title-group" class="input-group">
+                        <label class="label-tiny">Tiêu đề Widget</label>
+                        <input type="text" id="s-title" class="form-input" oninput="updateLiveWidgetTitle(this.value)">
+                    </div>
+
+                    <div id="s-title-style-group" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="input-group">
+                                <label class="label-tiny">Màu tiêu đề</label>
+                                <input type="color" id="s-title-color" class="w-full h-8 p-0 border-0 bg-transparent" onchange="applyStylePreview()">
+                            </div>
+                            <div class="input-group">
+                                <label class="label-tiny">Căn lề</label>
+                                <select id="s-title-align" class="form-select" onchange="applyStylePreview()">
+                                    <option value="left">Trái</option>
+                                    <option value="center">Giữa</option>
+                                    <option value="right">Phải</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="input-group">
+                                <label class="label-tiny">Cỡ chữ</label>
+                                <select id="s-title-size" class="form-select" onchange="applyStylePreview()">
+                                    <option value="text-[10px]">Rất nhỏ</option>
+                                    <option value="text-xs">Nhỏ</option>
+                                    <option value="text-sm">Bình thường</option>
+                                    <option value="text-base">Lớn</option>
+                                    <option value="text-xl">Rất lớn</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label class="label-tiny">Độ đậm</label>
+                                <select id="s-title-weight" class="form-select" onchange="applyStylePreview()">
+
+                    <div class="input-group">
+                        <label class="label-tiny">Chart Type</label>
+                        <select id="s-type" class="form-select" onchange="updateLiveWidgetType(this.value)">
+                            <option value="bar">Biểu đồ cột (Bar)</option>
+                            <option value="line">Biểu đồ đường (Line)</option>
+                            <option value="pie">Biểu đồ tròn (Pie)</option>
+                            <option value="doughnut">Biểu đồ vòng (Doughnut)</option>
+                            <option value="histogram">Biểu đồ phân phối (Histogram)</option>
+                            <option value="card">Thẻ chỉ số (Metric Card)</option>
+                            <option value="table">Bảng dữ liệu (Data Table)</option>
+                            <option value="slicer">Bộ lọc (Slicer)</option>
+                            <option value="time_period">Khoảng thời gian (Time)</option>
+                            <option value="text">Nội dung văn bản</option>
+                            <option value="image">Hình ảnh / Logo</option>
+                        </select>
+                    </div>
+
+                    <div id="s-image-group" class="hidden">
+                        <div class="input-group">
+                            <label class="label-tiny">Cập nhật hình ảnh (Logo)</label>
+                            <input type="file" id="s-image-file" class="form-input text-xs" accept="image/*">
+                            <input type="hidden" id="s-image-base64">
+                        </div>
+                    </div>
+
+                    <div id="s-bins-group" class="hidden">
+                        <div class="input-group">
+                            <label class="label-tiny">Khoảng chia (Bins)</label>
+                            <input type="number" id="s-bins" class="form-input" value="1" min="1" oninput="applyStylePreview()">
+                        </div>
+                    </div>
+
+                    <!-- Cấu hình dữ liệu -->
+                    <div id="s-data-fields" class="pt-2 border-t border-slate-700/50 mt-6">
+                        <h3 class="text-[10px] font-black uppercase text-indigo-400 tracking-[0.2em] mb-4">Cấu hình dữ liệu</h3>
+                        
+                        <div class="input-group">
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="label-tiny">Nguồn dữ liệu (Dataset)</label>
+                                <button onclick="refreshDatasetsList()" class="text-indigo-500 hover:text-indigo-700 p-1" title="Làm mới danh sách">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                </button>
+                            </div>
+                            <select id="s-dataset" class="form-select" onchange="loadDatasetColumns(this.value, 's')">
+                                <option value="">-- Chọn Dataset --</option>
+                                {% for ds in datasets %}
+                                <option value="{{ ds.id }}">{{ ds.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div id="s-xaxis-group" class="input-group">
+                            <label id="s-xaxis-label" class="label-tiny">Trục X (Nhãn)</label>
+                            <select id="s-xaxis" class="form-select"><option value="">-- Chọn --</option></select>
+                        </div>
+                        
+                        <div id="s-yaxis-group" class="input-group">
+                            <label id="s-yaxis-label" class="label-tiny">Trục Y (Giá trị)</label>
+                            <select id="s-yaxis" class="form-select"><option value="">-- Chọn --</option></select>
+                        </div>
+                        
+                        <div class="mt-2 mb-4">
+                            <button onclick="openCalcModal('s')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-slate-700 flex items-center justify-center gap-2">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                                Thêm phép tính
+                            </button>
+                        </div>
+                        <div id="s-agg-group" class="input-group">
+                            <label class="label-tiny">Hàm tổng hợp</label>
+                            <select id="s-agg" class="form-select">
+                                <option value="SUM">Tổng (Sum)</option>
+                                <option value="AVG">Trung bình (Avg)</option>
+                                <option value="COUNT">Đếm (Count)</option>
+                                <option value="MIN">Nhỏ nhất (Min)</option>
+                                <option value="MAX">Lớn nhất (Max)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-700/50 mt-6">
+                        <h3 class="text-[10px] font-black uppercase text-indigo-400 tracking-[0.2em] mb-4">Giao diện</h3>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div id="color-controls" class="input-group">
+                            <label class="label-tiny">Màu chủ đạo</label>
+                            <input type="color" id="s-color" class="w-full h-8 p-0 border-0 bg-transparent" onchange="applyStylePreview()">
+                        </div>
+                        <div class="input-group">
+                            <label class="label-tiny">Màu nền</label>
+                            <div class="flex items-center gap-2 mt-2">
+                                <input type="color" id="s-bg-color" class="w-8 h-8 p-0 border-0 bg-transparent" onchange="applyStylePreview()">
+                                <label class="flex items-center gap-1 cursor-pointer">
+                                    <input type="checkbox" id="s-bg-transparent" onchange="applyStylePreview()">
+                                    <span class="text-[10px] text-slate-400">Trong suốt</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label class="label-tiny">Màu nhãn số</label>
+                            <input type="color" id="s-label-color" class="w-full h-8 p-0 border-0 bg-transparent" onchange="applyStylePreview()">
+                        </div>
+                    </div>
+
+                    <div id="grid-axes-controls" class="grid grid-cols-3 gap-2">
+                        <label class="flex items-center gap-2 p-2 rounded bg-slate-800 cursor-pointer">
+                            <input type="checkbox" id="s-hide-grid" onchange="applyStylePreview()">
+                            <span class="text-[8px] uppercase font-bold text-slate-300">Ẩn lưới</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 rounded bg-slate-800 cursor-pointer">
+                            <input type="checkbox" id="s-hide-axes" onchange="applyStylePreview()">
+                            <span class="text-[8px] uppercase font-bold text-slate-300">Ẩn trục</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 rounded bg-slate-800 cursor-pointer">
+                            <input type="checkbox" id="s-show-labels" onchange="applyStylePreview()">
+                            <span class="text-[8px] uppercase font-bold text-slate-300">Nhãn số</span>
+                        </label>
+                    </div>
+
+                    <div id="font-controls" class="hidden">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="input-group">
+                                <label class="label-tiny">Cỡ chữ</label>
+                                <select id="s-font-size" class="form-select" onchange="applyStylePreview()">
+                                    <option value="text-sm">Nhỏ</option>
+                                    <option value="text-base">Bình thường</option>
+                                    <option value="text-xl">Lớn</option>
+                                    <option value="text-3xl">Rất lớn</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label class="label-tiny">Độ đậm</label>
+                                <select id="s-font-weight" class="form-select" onchange="applyStylePreview()">
+                                    <option value="font-normal">Bình thường</option>
+                                    <option value="font-bold">Đậm</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="content-controls" class="hidden">
+                        <div class="input-group">
+                            <label class="label-tiny">Căn lề</label>
+                            <select id="s-content-align" class="form-select" onchange="applyStylePreview()">
+                                <option value="text-left">Trái</option>
+                                <option value="text-center">Giữa</option>
+                                <option value="text-right">Phải</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label class="label-tiny">Nội dung</label>
+                            <textarea id="s-content" class="form-textarea h-32" oninput="applyStylePreview()"></textarea>
+                        </div>
+                    </div>
+
+                    <button onclick="updateWidgetStyle()" class="btn-action bg-indigo-600 hover:bg-indigo-700 py-4 shadow-lg shadow-indigo-500/20">
+                        Cập nhật Widget
+                    </button>
+                    <div class="h-20"></div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <section class="builder-canvas">
+        <!-- New Dashboard Toolbar -->
+        <div class="dashboard-toolbar">
+            <div class="toolbar-item">
+                <select class="toolbar-select" onchange="if(this.value) window.location.href='?id=' + this.value">
+                    <option value="">Chọn Dashboard</option>
+                    {% for db in dashboards %}
+                    <option value="{{ db.id }}" {% if current_dashboard.id == db.id %}selected{% endif %}>{{ db.name }}</option>
+                    {% endfor %}
+                </select>
+                {% if current_dashboard %}
+                <button onclick="deleteDashboard('{{ current_dashboard.id }}')" class="p-1 text-slate-400 hover:text-red-500 transition-colors ml-1" title="Xóa Dashboard này">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+                {% endif %}
+            </div>
+
+            <div class="toolbar-item">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <select class="toolbar-select">
+                    <option>Khoảng thời gian</option>
+                    <option>24 giờ qua</option>
+                    <option>7 ngày qua</option>
+                    <option>30 ngày qua</option>
+                    <option>Tháng này</option>
+                </select>
+            </div>
+
+            <div class="toolbar-item">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" class="toolbar-input" placeholder="Tìm kiếm widget...">
+            </div>
+
+            <button onclick="exportToPDF()" class="toolbar-export-btn">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                XUẤT PDF
+            </button>
+
+            <button onclick="saveLayout()" class="toolbar-save-btn">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                LƯU GIAO DIỆN
+            </button>
+        </div>
+
+        <!-- Empty State Placeholder -->
+        <div id="grid-empty-state" class="flex flex-col items-center justify-start pt-12 text-slate-400">
+            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+            </div>
+            <p class="text-base font-black text-slate-900 mb-1">Chưa có biểu đồ nào tại đây</p>
+            <p class="text-[11px] text-slate-400">Hãy chọn cấu hình dữ liệu bên trái và bấm "Thêm Widget" để bắt đầu thiết kế.</p>
+        </div>
+
+        <div class="grid-stack"></div>
+    </section>
+</div>
+
+<!-- Calculation Modal -->
+<div id="calc-modal" class="fixed inset-0 z-[1100] hidden flex items-start justify-center p-4 bg-slate-900/90 backdrop-blur-md overflow-y-auto">
+    <div class="bg-white rounded-[3rem] p-8 md:p-12 max-w-4xl w-full shadow-2xl transform transition-all scale-95 opacity-0 my-auto border border-white/20" id="calc-modal-content">
+        <div class="flex justify-between items-start mb-10">
+            <div>
+                <div class="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-3">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    Phân tích nâng cao
+                </div>
+                <h2 class="text-3xl font-black text-slate-900 tracking-tight">Phép tính tùy chỉnh</h2>
+                <p class="text-slate-400 text-sm mt-1">Tạo các Measure (tổng hợp) và Column (theo dòng) kiểu DAX</p>
+            </div>
+            <button onclick="closeCalcModal()" class="p-3 hover:bg-slate-100 rounded-full text-slate-400 transition-all transform hover:rotate-90">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            <div class="lg:col-span-7 space-y-8">
+                <div class="input-group">
+                    <label class="label-tiny text-indigo-500">Tên trường</label>
+                    <input type="text" id="calc-name" class="form-input calc-input-light text-base py-4 px-6 shadow-sm" placeholder="Ví dụ: Tỷ lệ tăng trưởng doanh thu">
+                </div>
+
+                <div class="input-group">
+                    <label class="label-tiny text-indigo-500">Loại tính toán</label>
+                    <div class="grid grid-cols-2 gap-4 mt-2">
+                        <button onclick="setCalcType('MEASURE')" id="btn-calc-measure" class="group relative py-5 rounded-3xl border-2 border-indigo-500 bg-indigo-50 text-indigo-700 transition-all overflow-hidden">
+                            <span class="relative z-10 text-xs font-black uppercase tracking-widest">Measure</span>
+                            <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity"></div>
+                        </button>
+                        <button onclick="setCalcType('COLUMN')" id="btn-calc-column" class="group relative py-5 rounded-3xl border-2 border-slate-100 text-slate-400 transition-all">
+                            <span class="relative z-10 text-xs font-black uppercase tracking-widest">Calculated Column</span>
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-2 mt-3 px-1">
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <p id="calc-desc" class="text-[11px] text-slate-400 italic">Measure được tính sau khi lọc (Hàm tổng hợp như SUM, AVG).</p>
+                    </div>
+                </div>
+
+                <div class="input-group relative">
+                    <label class="label-tiny text-indigo-500">Trình soạn thảo công thức</label>
+                    <div class="relative">
+                        <textarea id="calc-formula" 
+                            oninput="handleFormulaInput(event)"
+                            onkeydown="handleFormulaKeydown(event)"
+                            class="form-textarea h-48 font-mono text-sm p-6 calc-editor-dark rounded-3xl shadow-2xl transition-all" 
+                            placeholder="e.g., SUM([Revenue]) - SUM([Cost])"></textarea>
+                        
+                        <!-- Auto-suggestion box -->
+                        <div id="calc-suggestions" class="absolute left-6 top-full mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 hidden z-50 overflow-hidden">
+                            <!-- Suggested columns will appear here -->
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center mt-3 px-2">
+                        <span class="text-[10px] text-slate-400 font-medium">Mẹo: Gõ <kbd class="px-1.5 py-0.5 bg-slate-100 rounded border border-slate-200 font-mono">[</kbd> để hiện danh sách cột</span>
+                        <button onclick="document.getElementById('calc-formula').value = ''" class="text-[10px] text-red-400 font-bold hover:text-red-500 uppercase tracking-widest">Xóa hết</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-5 flex flex-col h-full">
+                <div class="bg-slate-50 rounded-[2.5rem] p-8 border border-slate-100 flex flex-col flex-1 shadow-inner">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Các trường hiện có</h3>
+                        <span id="col-count-badge" class="px-2 py-0.5 bg-slate-200 text-slate-500 rounded-full text-[9px] font-bold">0</span>
+                    </div>
+                    
+                    <div id="calc-columns" class="flex-1 overflow-y-auto space-y-2 pr-2 min-h-[200px] max-h-[300px] custom-scrollbar">
+                        <!-- Columns will be listed here -->
+                    </div>
+
+                    <div class="mt-8 pt-8 border-t border-slate-200/60">
+                        <h3 class="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-4">Hàm nhanh</h3>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="insertFormula('SUM()')" class="px-4 py-3 bg-white border border-slate-200 rounded-2xl text-[11px] font-bold text-slate-700 hover:border-indigo-300 hover:text-indigo-600 transition-all flex items-center justify-between group">
+                                SUM <span class="opacity-0 group-hover:opacity-100 text-indigo-400">+</span>
+                            </button>
+                            <button onclick="insertFormula('AVG()')" class="px-4 py-3 bg-white border border-slate-200 rounded-2xl text-[11px] font-bold text-slate-700 hover:border-indigo-300 hover:text-indigo-600 transition-all flex items-center justify-between group">
+                                AVG <span class="opacity-0 group-hover:opacity-100 text-indigo-400">+</span>
+                            </button>
+                            <button onclick="insertFormula('COUNT()')" class="px-4 py-3 bg-white border border-slate-200 rounded-2xl text-[11px] font-bold text-slate-700 hover:border-indigo-300 hover:text-indigo-600 transition-all flex items-center justify-between group">
+                                COUNT <span class="opacity-0 group-hover:opacity-100 text-indigo-400">+</span>
+                            </button>
+                            <button onclick="insertFormula('IF()')" class="px-4 py-3 bg-white border border-slate-200 rounded-2xl text-[11px] font-bold text-slate-700 hover:border-indigo-300 hover:text-indigo-600 transition-all flex items-center justify-between group">
+                                IF <span class="opacity-0 group-hover:opacity-100 text-indigo-400">+</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 flex gap-4">
+            <button onclick="closeCalcModal()" class="flex-1 py-4 text-slate-400 font-black uppercase tracking-widest text-xs hover:bg-slate-50 rounded-2xl transition-all">Hủy</button>
+            <button id="save-calc-btn" onclick="saveCalculation()" class="flex-[2] py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest text-xs rounded-2xl shadow-xl shadow-indigo-200 transform hover:-translate-y-1 active:translate-y-0 transition-all flex items-center justify-center gap-3">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                Xác nhận & Tạo
+            </button>
+        </div>
+    </div>
+</div>
+<div id="confirm-modal" class="fixed inset-0 z-[1000] hidden flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl transform transition-all scale-95 opacity-0" id="confirm-modal-content">
+        <div class="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mb-6 mx-auto">
+            <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+        </div>
+        <h3 class="text-xl font-black text-slate-900 text-center mb-2" id="confirm-modal-title">Remove Widget?</h3>
+        <p class="text-slate-500 text-center text-sm mb-8" id="confirm-modal-text">This action cannot be undone. Are you sure you want to delete this item?</p>
+        <div class="flex gap-3">
+            <button onclick="closeConfirmModal()" class="flex-1 py-3 px-4 rounded-xl font-bold text-slate-500 hover:bg-slate-50 transition-all border border-slate-200">Cancel</button>
+            <button id="confirm-modal-btn" class="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/20 transition-all">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- Safe JSON data passing using Django's json_script -->
+{% if current_dashboard.layout_json %}
+    {{ current_dashboard.layout_json|json_script:"layout-data" }}
+{% else %}
+    <script id="layout-data" type="application/json">[]</script>
+{% endif %}
+
+<script>
+    (function() {
+        // Global Error Catcher for easier debugging
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            console.error('Global Error:', msg, 'at', lineNo, ':', columnNo);
+            const errDiv = document.createElement('div');
+            errDiv.className = 'fixed top-4 right-4 bg-red-500 text-white p-4 rounded-xl shadow-2xl z-[9999] text-xs font-bold animate-bounce';
+            errDiv.innerHTML = `⚠️ JS Error: ${msg} (Line ${lineNo})`;
+            document.body.appendChild(errDiv);
+            setTimeout(() => errDiv.remove(), 5000);
+            return false;
+        };
+
+        // Register Global Plugins
+        // (Reverted as per user request)
+
+        // Core State
+        let grid = null;
+        const currentDashboardId = "{{ current_dashboard.id|default:'' }}";
+        const USER_TIER = "{{ request.user.userprofile.tier }}";
+        let selectedWidgetId = null;
+        const widgetConfigs = {};
+        const globalFilters = {}; // { datasetId: { column: value } }
+
+        // 1. Initialization
+        function init() {
+            const gridEl = document.querySelector('.grid-stack');
+            if (!gridEl) return;
+
+            try {
+                grid = GridStack.init({
+                    cellHeight: 100,
+                    margin: 10,
+                    acceptWidgets: true,
+                    column: 12,
+                    float: true
+                }, gridEl);
+
+                const layoutScript = document.getElementById('layout-data');
+                let layout = [];
+                if (layoutScript) {
+                    try {
+                        layout = JSON.parse(layoutScript.textContent);
+                    } catch(e) { console.error("Layout parse error", e); }
+                }
+
+                if (layout && layout.length > 0) {
+                    loadLayout(layout);
+                } else {
+                    fetchInitialWidgets();
+                }
+                updateEmptyState();
+            } catch(e) {
+                console.error("GridStack Init Error:", e);
+            }
+        }
+
+        function updateEmptyState() {
+            const emptyState = document.getElementById('grid-empty-state');
+            if (!emptyState || !grid) return;
+            const items = grid.getGridItems();
+            emptyState.style.display = (items.length === 0) ? 'flex' : 'none';
+        }
+
+        // 2. Sidebar Controls
+        window.toggleSidebar = function() {
+            const sidebar = document.getElementById('main-sidebar');
+            const expandBtn = document.getElementById('expand-btn');
+            const isCollapsed = sidebar.classList.toggle('collapsed');
+            if (expandBtn) expandBtn.classList.toggle('hidden', !isCollapsed);
+            setTimeout(() => { if(grid) grid.onParentResize(); }, 400);
+        };
+
+        window.switchTab = function(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                const text = b.textContent.toLowerCase();
+                b.classList.toggle('active', (tab === 'data' && text.includes('add')) || (tab === 'style' && text.includes('settings')));
+            });
+            document.getElementById('tab-data').classList.toggle('hidden', tab !== 'data');
+            document.getElementById('tab-style').classList.toggle('hidden', tab !== 'style');
+        };
+
+        window.setWidgetMode = function(mode) {
+            const typeSel = document.getElementById('w-type');
+            typeSel.value = (mode === 'text') ? 'text' : 'bar';
+            window.onWidgetTypeChange(typeSel.value);
+        };
+
+        window.showToast = function(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            const icon = type === 'success' ? '✅' : (type === 'error' ? '❌' : '⚠️');
+            toast.innerHTML = `<span>${icon}</span><span class="text-sm font-medium">${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'toastOut 0.3s forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        };
+
+        window.onWidgetTypeChange = function(val) {
+            const isData = !['text', 'image'].includes(val);
+            const isText = val === 'text';
+            const isImage = val === 'image';
+
+            if (document.getElementById('w-title-group')) document.getElementById('w-title-group').classList.toggle('hidden', isImage);
+            if (document.getElementById('data-fields')) document.getElementById('data-fields').classList.toggle('hidden', !isData);
+            if (document.getElementById('text-fields')) document.getElementById('text-fields').classList.toggle('hidden', !isText);
+            if (document.getElementById('w-image-group')) document.getElementById('w-image-group').classList.toggle('hidden', !isImage);
+            
+            // Contextual Data Fields
+            const xGroup = document.getElementById('w-xaxis-group');
+            if (xGroup) {
+                const isFilter = ['slicer', 'time_period'].includes(val);
+                xGroup.classList.toggle('hidden', !isData || val === 'card');
+                const label = isFilter ? (val === 'slicer' ? 'Filter Column' : 'Date Column') : 'Labels (X-Axis)';
+                const isPie = ['pie', 'doughnut'].includes(val);
+                const xLabel = document.getElementById('w-xaxis-label');
+                if (xLabel) xLabel.innerText = isPie ? "Labels" : label;
+            }
+            const yGroup = document.getElementById('w-yaxis-group');
+            if (yGroup) {
+                yGroup.classList.toggle('hidden', !isData || ['slicer', 'time_period'].includes(val));
+                const isPie = ['pie', 'doughnut'].includes(val);
+                const yLabel = document.getElementById('w-yaxis-label');
+                if (yLabel) yLabel.innerText = isPie ? "Values" : "Value (Y-Axis)";
+            }
+            const aggGroup = document.getElementById('w-agg-group');
+            if (aggGroup) {
+                aggGroup.classList.toggle('hidden', !isData || ['slicer', 'time_period'].includes(val));
+            }
+            const timeGroup = document.getElementById('w-time-group');
+            if (timeGroup) {
+                timeGroup.classList.toggle('hidden', val !== 'time_period');
+            }
+            const binsGroup = document.getElementById('w-bins-group');
+            if (binsGroup) {
+                binsGroup.classList.toggle('hidden', val !== 'histogram');
+            }
+        };
+
+        // Image to Base64 helper
+        const fileToBase64 = (file) => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+
+        // Listen for image uploads
+        document.addEventListener('change', async (e) => {
+            if (e.target.id === 'w-image-file' || e.target.id === 's-image-file') {
+                const file = e.target.files[0];
+                if (file) {
+                    if (file.size > 20 * 1024 * 1024) {
+                        showToast("File quá lớn. Vui lòng chọn ảnh dưới 20MB", "error");
+                        e.target.value = '';
+                        return;
+                    }
+                    const base64 = await fileToBase64(file);
+                    const targetId = e.target.id === 'w-image-file' ? 'w-image-base64' : 's-image-base64';
+                    document.getElementById(targetId).value = base64;
+                    if (e.target.id === 's-image-file') window.applyStylePreview();
+                }
+            }
+        });
+
+        // 3. Data Loading
+        window.refreshDatasetsList = async function() {
+            try {
+                const res = await fetch('{% url "dataset_manager_api" %}');
+                const data = await res.json();
+                if (data.datasets) {
+                    const dropdowns = ['w-dataset', 's-dataset'];
+                    dropdowns.forEach(id => {
+                        const select = document.getElementById(id);
+                        if (!select) return;
+                        const currentVal = select.value;
+                        
+                        let html = '<option value="">-- Chọn Dataset --</option>';
+                        data.datasets.forEach(ds => {
+                            html += `<option value="${ds.id}">${ds.name}</option>`;
+                        });
+                        select.innerHTML = html;
+                        select.value = currentVal; // Restore selection if still exists
+                    });
+                    showToast("Danh sách Dataset đã được cập nhật!");
+                }
+            } catch(e) { console.error(e); showToast("Lỗi khi cập nhật danh sách", "error"); }
+        }
+
+        window.loadDatasetColumns = async function(dsId, prefix = 'w') {
+            if (!dsId) return;
+            const xSel = document.getElementById(`${prefix}-xaxis`);
+            const ySel = document.getElementById(`${prefix}-yaxis`);
+            if (!xSel || !ySel) return;
+            
+            xSel.innerHTML = ySel.innerHTML = '<option>Loading...</option>';
+
+            try {
+                const res = await fetch(`{% url "get_dataset_columns" %}?id=${dsId}`);
+                const data = await res.json();
+                if (data.columns) {
+                    let html = '<option value="">-- Select --</option>';
+                    data.columns.forEach(c => html += `<option value="${c}">${c}</option>`);
+                    xSel.innerHTML = ySel.innerHTML = html;
+                } else if (data.error) {
+                    showToast(data.error, "error");
+                }
+            } catch(e) { 
+                console.error("Column Load Error", e);
+                showToast("Không thể tải danh sách cột", "error");
+            }
+        };
+
+        // 4. Widget Management
+        window.addWidget = async function() {
+            const type = document.getElementById('w-type').value;
+            const title = type === 'image' ? 'Logo' : document.getElementById('w-title').value;
+            const color = document.getElementById('w-color').value;
+
+            if (!title && type !== 'image') { showToast("Vui lòng nhập tiêu đề widget", "warning"); return; }
+
+            // Widget Limit for FREE Tier
+            if (USER_TIER === 'FREE' && grid.getGridItems().length >= 3) {
+                showToast("Gói Miễn phí chỉ được tối đa 3 widget. Vui lòng nâng cấp để tạo thêm không giới hạn!", "error");
+                return;
+            }
+
+            const payload = {
+                action: 'add_widget',
+                dashboard_id: currentDashboardId,
+                title: title,
+                chart_type: type,
+                style_config: { 
+                    color: color, 
+                    bins: document.getElementById('w-bins').value,
+                    showLabels: document.getElementById('w-show-labels').checked,
+                    labelColor: document.getElementById('w-label-color').value
+                }
+            };
+
+            if (type === 'text') {
+                payload.query = document.getElementById('w-text-content').value;
+            } else if (type === 'image') {
+                payload.query = document.getElementById('w-image-base64').value;
+                payload.style_config.bgTransparent = true; // Default to transparent for logos
+            } else {
+                payload.data_source_id = document.getElementById('w-dataset').value;
+                payload.label_col = document.getElementById('w-xaxis').value;
+                payload.value_col = document.getElementById('w-yaxis').value;
+                payload.agg_func = document.getElementById('w-agg').value;
+
+                if (type === 'time_period') {
+                    const start = document.getElementById('w-start-date').value;
+                    const end = document.getElementById('w-end-date').value;
+                    if (start || end) {
+                        const dsId = payload.data_source_id;
+                        const col = payload.label_col;
+                        if (!globalFilters[dsId]) globalFilters[dsId] = {};
+                        globalFilters[dsId][col] = { start, end };
+                    }
+                }
+            }
+
+            try {
+                const res = await fetch('{% url "dashboard_manager" %}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    addNewWidgetToGrid(data.id || data.widget_id, title, type);
+                    updateEmptyState();
+                } else if (data.upgrade_required) {
+                    window.showUpsell(data.error);
+                } else {
+                    showToast(data.error || "Lỗi khi lưu widget", "error");
+                }
+            } catch(e) { console.error("Add Widget Error", e); }
+        };
+
+        window.showUpsell = function(msg) {
+            const overlay = document.getElementById('upsell-overlay');
+            const msgEl = document.getElementById('upsell-message');
+            if (overlay && msgEl) {
+                msgEl.innerText = msg;
+                overlay.style.display = 'flex';
+            } else {
+                alert(msg);
+            }
+        };
+
+        window.createNewDashboard = async function() {
+            const name = prompt("Nhập tên Dashboard mới:");
+            if (!name) return;
+            try {
+                const res = await fetch('{% url "dashboard_manager" %}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                    body: JSON.stringify({ action: 'create', name: name })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    location.href = '?id=' + data.id;
+                } else if (data.upgrade_required) {
+                    window.showUpsell(data.error);
+                } else {
+                    showToast(data.error || "Lỗi khi tạo dashboard", "error");
+                }
+            } catch(e) { console.error("Create Dashboard Error", e); }
+        };
+
+        window.deleteDashboard = async function(id) {
+            if (!confirm("Bạn có chắc chắn muốn xóa toàn bộ Dashboard này không? Hành động này không thể hoàn tác.")) return;
+            try {
+                const res = await fetch('{% url "dashboard_manager" %}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                    body: JSON.stringify({ action: 'delete', dashboard_id: id })
+                });
+                if (res.ok) {
+                    location.href = '{% url "analytics_dashboard_builder" %}';
+                } else {
+                    const data = await res.json();
+                    showToast(data.error || "Lỗi khi xóa dashboard", "error");
+                }
+            } catch(e) { console.error("Delete Dashboard Error", e); }
+        };
+
+        async function fetchInitialWidgets() {
+            if (!currentDashboardId) return;
+            try {
+                const res = await fetch('{% url "dashboard_manager" %}?id=' + currentDashboardId);
+                const data = await res.json();
+                if (data.widgets) {
+                    data.widgets.forEach(w => addNewWidgetToGrid(w.id, w.title, w.chart_type));
+                    updateEmptyState();
+                }
+            } catch(e) { console.error("Fetch Widgets Error", e); }
+        }
+
+        function loadLayout(layout) {
+            grid.removeAll();
+            layout.forEach(l => {
+                const opts = { x: l.x, y: l.y, w: l.w, h: l.h, id: l.id, content: createWidgetHTML(l.id, l.title) };
+                grid.addWidget(opts);
+                // Render immediately or with minimal delay
+                window.renderWidgetChart(l.id);
+            });
+        }
+
+        function addNewWidgetToGrid(id, title, type) {
+            const opts = { w: 4, h: 4, id: id, content: createWidgetHTML(id, title, type) };
+            const el = grid.addWidget(opts);
+            window.renderWidgetChart(id);
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function createWidgetHTML(id, title, type = 'bar') {
+            const isText = type === 'text';
+            const isImage = type === 'image';
+            
+            let headerHTML = "";
+            if (isText || isImage) {
+                headerHTML = ""; // No header for text/image, button is absolute below
+            } else {
+                headerHTML = `
+                    <div class="widget-header flex items-center">
+                        <span class="text-xs font-bold text-slate-800 uppercase tracking-wider flex-1">${title}</span>
+                    </div>`;
+            }
+
+            return `
+                <div class="widget-container group ${isImage ? 'full-bleed' : ''}" onclick="window.selectWidget('${id}'); window.switchTab('style');">
+                    <!-- Global Delete Button - Always present, always visible on top -->
+                    <div class="absolute top-2 right-2 z-50">
+                        <button onclick="removeWidget(${id}, this); event.stopPropagation();" 
+                                class="p-2 bg-white shadow-xl border border-slate-200 rounded-full text-red-500 hover:bg-red-50 transition-all transform hover:scale-110 active:scale-95" 
+                                title="Xóa widget">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <path d="M18 6L6 18M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    ${headerHTML}
+                    <div class="flex-1 relative min-h-0 w-full flex items-center justify-center ${isImage ? 'p-0' : 'p-4'}">
+                        <div id="status-${id}" class="text-[10px] text-slate-400 font-bold uppercase">Loading...</div>
+                        ${(!isText && !isImage) ? `<canvas id="chart-${id}" style="width:100%; height:100%; z-index:10;"></canvas>` : ''}
+                    </div>
+                </div>`;
+        }
+
+        // 5. Rendering & Style
+        window.renderWidgetChart = async function(id) {
+            const container = document.querySelector(`[gs-id="${id}"] .widget-container`);
+            if (!container) return;
+            const statusEl = document.getElementById(`status-${id}`);
+
+            try {
+                const filtersJson = encodeURIComponent(JSON.stringify(globalFilters));
+                const res = await fetch(`{% url 'get_widget_data' widget_id=999999 %}`.replace('999999', id) + `?filters=${filtersJson}`);
+                if (!res.ok) throw new Error(`API returned ${res.status}`);
+                
+                const data = await res.json();
+                widgetConfigs[id] = data.config;
+                
+                const contentEl = container.closest('.grid-stack-item-content');
+
+                const { type, style = {} } = data.config;
+
+                const color = style.color || '#6366f1';
+                const palette = ['pie', 'doughnut'].includes(type) ? [
+                    color, '#f43f5e', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4'
+                ] : color;
+
+                // Apply Container Styles
+                if (contentEl) {
+                    contentEl.style.background = style.bgTransparent ? 'transparent' : (style.bgColor || 'var(--glass)');
+                    contentEl.style.backdropFilter = style.bgTransparent ? 'none' : 'blur(20px)';
+                    contentEl.style.border = style.bgTransparent ? 'none' : '1px solid rgba(0,0,0,0.05)';
+                }
+
+                // Re-generate HTML structure
+                const isMetric = type === 'card' || type === 'metric card';
+                const isText = type === 'text';
+                const isImage = type === 'image';
+                const isSlicer = type === 'slicer';
+                const isTime = type === 'time_period';
+
+                container.setAttribute('onclick', `window.selectWidget('${id}'); window.switchTab('style');`);
+                
+                let headerHTML = "";
+                if (isText || isImage) {
+                    headerHTML = `
+                        <div class="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="removeWidget(${id}, this); event.stopPropagation();" class="p-1 bg-white/80 backdrop-blur-sm rounded-lg text-slate-400 hover:text-red-500 shadow-sm border border-slate-100 transition-all">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+                            </button>
+                        </div>`;
+                } else {
+                    headerHTML = `
+                        <div class="widget-header flex items-center">
+                            <span style="color:${style.titleColor || '#1e293b'}; text-align:${style.titleAlign || 'left'}; flex:1; display:block;" class="${style.titleSize || 'text-xs'} ${style.titleWeight || 'font-bold'} uppercase tracking-wider">${data.config.title}</span>
+                            <div class="flex gap-1">
+                            <button onclick="removeWidget(${id}, this); event.stopPropagation();" class="text-slate-400 hover:text-red-500 transition-all">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+                            </button>
+                            </div>
+                        </div>`;
+                }
+
+                let bodyHTML = "";
+                if (isText) {
+                    bodyHTML = `<div class="${style.contentAlign || 'text-center'} ${style.fontSize || 'text-base'} ${style.fontWeight || 'font-normal'}" style="color:${style.color}">${style.content || data.config.query || ''}</div>`;
+                } else if (isImage) {
+                    const imgUrl = style.imageUrl || data.config.query || '';
+                    bodyHTML = imgUrl ? `<img src="${imgUrl}" class="w-full h-full object-cover">` : `<div class="text-[10px] text-slate-400 uppercase font-bold">No Image Uploaded</div>`;
+                } else if (isMetric) {
+                    bodyHTML = `
+                        <div class="flex flex-col items-center justify-center text-center">
+                            <div class="text-3xl font-black tracking-tight" style="color:${color}">${Number(data.data.values[0] || 0).toLocaleString()}</div>
+                            <div class="text-[10px] uppercase font-bold text-slate-400 mt-1">${data.data.labels[0] || ''}</div>
+                        </div>`;
+                } else if (isSlicer) {
+                    bodyHTML = `
+                        <div class="w-full">
+                            <select class="form-select text-xs" style="border-color:${color}; background-color:${style.bgColor || '#1e293b'}; color:${style.color || 'white'}" onchange="applyGlobalFilter('${data.config.dataset_id}', '${data.config.column}', this.value)">
+                                <option value="">All ${data.config.column}</option>
+                                ${data.data.values.map(v => `<option value="${v}" ${globalFilters[data.config.dataset_id]?.[data.config.column] === String(v) ? 'selected' : ''}>${v}</option>`).join('')}
+                            </select>
+                        </div>`;
+                } else if (isTime) {
+                    bodyHTML = `
+                        <div class="w-full space-y-2">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-[8px] uppercase font-bold text-slate-400">Start Date</label>
+                                    <input type="date" class="form-select text-[10px] p-1" style="border-color:${color}; background-color:${style.bgColor || '#1e293b'}; color:${style.color || 'white'}" value="${globalFilters[data.config.dataset_id]?.[data.config.column]?.start || ''}" 
+                                        onchange="applyGlobalFilter('${data.config.dataset_id}', '${data.config.column}', {start: this.value, end: this.parentNode.parentNode.querySelector('input[type=date]:last-child').value})">
+                                </div>
+                                <div>
+                                    <label class="text-[8px] uppercase font-bold text-slate-400">End Date</label>
+                                    <input type="date" class="form-select text-[10px] p-1" style="border-color:${color}; background-color:${style.bgColor || '#1e293b'}; color:${style.color || 'white'}" value="${globalFilters[data.config.dataset_id]?.[data.config.column]?.end || ''}"
+                                        onchange="applyGlobalFilter('${data.config.dataset_id}', '${data.config.column}', {start: this.parentNode.parentNode.querySelector('input[type=date]:first-child').value, end: this.value})">
+                                </div>
+                            </div>
+                        </div>`;
+                } else {
+                    bodyHTML = `<canvas id="chart-${id}" style="width:100%; height:100%;"></canvas>`;
+                }
+
+                if (isImage) {
+                    container.classList.add('full-bleed');
+                } else {
+                    container.classList.remove('full-bleed');
+                }
+
+                container.innerHTML = `
+                    <div class="absolute top-2 right-2 z-50">
+                        <button onclick="removeWidget(${id}, this); event.stopPropagation();" 
+                                class="p-2 bg-white shadow-xl border border-slate-200 rounded-full text-red-500 hover:bg-red-50 transition-all transform hover:scale-110 active:scale-95" 
+                                title="Xóa widget">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <path d="M18 6L6 18M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    ${headerHTML}
+                    <div class="flex-1 relative min-h-0 w-full flex items-center justify-center ${isImage ? 'p-0 overflow-hidden rounded-xl' : 'p-4'}">
+                        ${bodyHTML}
+                    </div>`;
+
+                if (isText || isImage || isMetric || isSlicer || isTime) return;
+
+                // Chart Rendering
+                const canvas = document.getElementById(`chart-${id}`);
+                if (!canvas) return;
+                
+                // CRITICAL: Destroy existing chart to prevent "Canvas is already in use" error
+                const existingChart = Chart.getChart(canvas);
+                if (existingChart) existingChart.destroy();
+
+                const ctx = canvas.getContext('2d');
+                
+                // Register datalabels plugin
+                Chart.register(ChartDataLabels);
+
+                new Chart(ctx, {
+                    type: type === 'histogram' ? 'bar' : (['card', 'table'].includes(type) ? 'bar' : type),
+                    data: {
+                        labels: data.data.labels,
+                        datasets: [{
+                            label: data.config.title,
+                            data: data.data.values,
+                            backgroundColor: palette,
+                            borderColor: style.bgTransparent ? 'transparent' : (style.bgColor || '#ffffff'),
+                            borderWidth: 2,
+                            borderRadius: type === 'bar' ? 6 : 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: ['pie', 'doughnut'].includes(type),
+                                position: 'bottom',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 15,
+                                    font: { size: 10, weight: 'bold' }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: '#0f172a',
+                                padding: 12,
+                                borderRadius: 12,
+                                titleFont: { size: 12, weight: 'bold' },
+                                bodyFont: { size: 12 }
+                            },
+                            datalabels: {
+                                display: !!style.showLabels,
+                                color: style.labelColor || (['pie', 'doughnut'].includes(type) ? '#fff' : '#475569'),
+                                font: { weight: 'bold', size: 10 },
+                                formatter: (value) => {
+                                    if (typeof value === 'number') return value.toLocaleString();
+                                    return value;
+                                },
+                                anchor: 'center',
+                                align: 'center',
+                                offset: 0
+                            }
+                        },
+                        scales: ['pie', 'doughnut', 'card', 'text'].includes(type) ? {} : {
+                            x: {
+                                display: !style.hideAxes,
+                                grid: { display: !style.hideGrid, color: 'rgba(0,0,0,0.05)' },
+                                ticks: { font: { size: 10 }, color: '#64748b' }
+                            },
+                            y: {
+                                display: !style.hideAxes,
+                                grid: { display: !style.hideGrid, color: 'rgba(0,0,0,0.05)' },
+                                ticks: { font: { size: 10 }, color: '#64748b' }
+                            }
+                        }
+                    }
+                });
+            } catch(e) { 
+                console.error("Render Error", e);
+                if (container) {
+                    container.innerHTML = `
+                        <div class="absolute top-2 right-2 z-50">
+                            <button onclick="removeWidget(${id}, this); event.stopPropagation();" 
+                                    class="p-2 bg-white shadow-xl border border-slate-200 rounded-full text-red-500 hover:bg-red-50 transition-all transform hover:scale-110 active:scale-95" 
+                                    title="Xóa widget">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                    <path d="M18 6L6 18M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class='h-full flex flex-col items-center justify-center p-4 text-center bg-red-50/50 rounded-xl'>
+                            <div class='w-8 h-8 bg-red-100 text-red-500 rounded-full flex items-center justify-center mb-2'>⚠️</div>
+                            <p class='text-[10px] font-bold text-red-600 uppercase tracking-widest'>Render Error</p>
+                            <p class='text-[9px] text-red-400 mt-1'>${e.message}</p>
+                        </div>`;
+                }
+            }
+        };
+
+        window.selectWidget = async function(id) {
+            selectedWidgetId = String(id);
+            console.log("Selected Widget:", selectedWidgetId);
+            document.querySelectorAll('.grid-stack-item-content').forEach(el => el.classList.remove('ring-4', 'ring-indigo-500', 'ring-offset-2'));
+            
+            const el = document.querySelector(`[gs-id="${selectedWidgetId}"] .grid-stack-item-content`);
+            if (el) el.classList.add('ring-4', 'ring-indigo-500', 'ring-offset-2');
+            else console.warn("Could not find element for selection:", selectedWidgetId);
+            
+            const config = widgetConfigs[selectedWidgetId];
+            if (!config) return;
+
+            document.getElementById('no-selection').classList.add('hidden');
+            document.getElementById('style-controls').classList.remove('hidden');
+            
+            // Sync form General
+            document.getElementById('s-title').value = config.title;
+            document.getElementById('s-type').value = config.type;
+
+            // Sync Data Fields
+            if (config.dataset_id) {
+                document.getElementById('s-dataset').value = config.dataset_id;
+                // Pre-load columns and set values
+                await window.loadDatasetColumns(config.dataset_id, 's');
+                if (config.label_col) document.getElementById('s-xaxis').value = config.label_col;
+                if (config.value_col) document.getElementById('s-yaxis').value = config.value_col;
+                if (config.agg_func) document.getElementById('s-agg').value = config.agg_func;
+            } else {
+                document.getElementById('s-dataset').value = "";
+                document.getElementById('s-xaxis').innerHTML = '<option value="">-- Select --</option>';
+                document.getElementById('s-yaxis').innerHTML = '<option value="">-- Select --</option>';
+            }
+
+            // Sync Style Fields
+            const style = config.style || {};
+            document.getElementById('s-color').value = style.color || '#6366f1';
+            document.getElementById('s-title-color').value = style.titleColor || '#1e293b';
+            document.getElementById('s-title-align').value = style.titleAlign || 'left';
+            document.getElementById('s-title-size').value = style.titleSize || 'text-xs';
+            document.getElementById('s-title-weight').value = style.titleWeight || 'font-bold';
+            document.getElementById('s-bg-color').value = style.bgColor || '#ffffff';
+            document.getElementById('s-bg-transparent').checked = !!style.bgTransparent;
+            document.getElementById('s-hide-grid').checked = !!style.hideGrid;
+            document.getElementById('s-hide-axes').checked = !!style.hideAxes;
+            document.getElementById('s-show-labels').checked = !!style.showLabels;
+            document.getElementById('s-label-color').value = style.labelColor || '#475569';
+            document.getElementById('s-bins').value = style.bins || 1;
+            document.getElementById('s-content').value = style.content || config.query || '';
+            
+            // Sync Text Specific Styles
+            if (document.getElementById('s-font-size')) document.getElementById('s-font-size').value = style.fontSize || 'text-base';
+            if (document.getElementById('s-font-weight')) document.getElementById('s-font-weight').value = style.fontWeight || 'font-normal';
+            if (document.getElementById('s-content-align')) document.getElementById('s-content-align').value = style.contentAlign || 'text-center';
+            
+            if (config.type === 'image') {
+                document.getElementById('s-image-base64').value = config.query || "";
+            }
+            
+            window.updateLiveWidgetType(config.type);
+        };
+
+        window.updateLiveWidgetTitle = function(val) {
+            if(!selectedWidgetId) return;
+            const titleEl = document.querySelector(`[gs-id="${selectedWidgetId}"] .widget-header span`);
+            if(titleEl) titleEl.innerText = val;
+        };
+
+        window.updateLiveWidgetType = function(val) {
+            if(!selectedWidgetId) return;
+            if (document.getElementById('s-title-group')) document.getElementById('s-title-group').classList.toggle('hidden', val === 'image');
+            if (document.getElementById('s-title-style-group')) document.getElementById('s-title-style-group').classList.toggle('hidden', val === 'image');
+            
+            document.getElementById('font-controls').classList.toggle('hidden', val !== 'text');
+            document.getElementById('content-controls').classList.toggle('hidden', val !== 'text');
+            document.getElementById('s-image-group').classList.toggle('hidden', val !== 'image');
+            document.getElementById('s-data-fields').classList.toggle('hidden', val === 'text' || val === 'image');
+            
+            // Contextual Data Labels
+            if (document.getElementById('s-xaxis-group')) {
+                const isFilter = ['slicer', 'time_period'].includes(val);
+                document.getElementById('s-xaxis-group').classList.toggle('hidden', val === 'card' || val === 'text' || val === 'image');
+                let label = 'Labels (X-Axis)';
+                if (val === 'slicer') label = 'Filter Column';
+                if (val === 'time_period') label = 'Date Column';
+                document.getElementById('s-xaxis-group').querySelector('label').innerText = label;
+                const xLabel = document.getElementById('s-xaxis-label');
+                if (xLabel) xLabel.innerText = ['pie', 'doughnut'].includes(val) ? "Labels" : label;
+            }
+            if (document.getElementById('s-yaxis-group')) {
+                document.getElementById('s-yaxis-group').classList.toggle('hidden', val === 'text' || val === 'slicer' || val === 'time_period' || val === 'image');
+                const yLabel = document.getElementById('s-yaxis-label');
+                if (yLabel) yLabel.innerText = ['pie', 'doughnut'].includes(val) ? "Values" : "Value (Y-Axis)";
+            }
+            if (document.getElementById('s-agg-group')) {
+                document.getElementById('s-agg-group').classList.toggle('hidden', val === 'text' || val === 'slicer' || val === 'time_period' || val === 'image');
+            }
+
+            // Contextual Style Fields
+            const hideGridAxes = ['pie', 'doughnut', 'card', 'table', 'text', 'slicer', 'image'].includes(val);
+            const gridAxesCtrl = document.getElementById('grid-axes-controls');
+            if (gridAxesCtrl) gridAxesCtrl.classList.toggle('hidden', hideGridAxes);
+            
+            const colorCtrl = document.getElementById('color-controls');
+            if (colorCtrl) colorCtrl.classList.toggle('hidden', val === 'table' || val === 'image');
+            
+            if (document.getElementById('s-bins-group')) {
+                document.getElementById('s-bins-group').classList.toggle('hidden', val !== 'histogram');
+            }
+
+            window.applyStylePreview();
+        };
+
+        window.exportToPDF = function() {
+            const element = document.querySelector('.grid-stack');
+            const dashboardName = document.querySelector('.toolbar-select option[selected]')?.innerText || 'dashboard';
+            
+            // Show loading state
+            const btn = event.currentTarget;
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = `<svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 12h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" stroke-width="2" stroke-linecap="round"/></svg> Generating...`;
+            btn.disabled = true;
+
+            // Calculate dimensions
+            const width = element.offsetWidth;
+            const height = element.scrollHeight + 100; // Capture full scrollable height + padding
+            
+            // Convert px to mm (approx 1px = 0.264583mm)
+            const widthMm = width * 0.264583;
+            const heightMm = height * 0.264583;
+
+            const opt = {
+                margin: 0,
+                filename: `${dashboardName.trim()}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2, 
+                    useCORS: true,
+                    logging: false,
+                    width: width,
+                    height: height
+                },
+                jsPDF: { 
+                    unit: 'mm', 
+                    format: [widthMm, heightMm], 
+                    orientation: widthMm > heightMm ? 'landscape' : 'portrait' 
+                }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+                showToast("Đã xuất PDF thành công!");
+            }).catch(err => {
+                console.error("PDF Export Error:", err);
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+                showToast("Lỗi khi xuất PDF. Vui lòng thử lại.", "error");
+            });
+        };
+
+        window.applyGlobalFilter = function(dsId, col, val) {
+            if (!globalFilters[dsId]) globalFilters[dsId] = {};
+            
+            // Handle Date Range Object
+            if (typeof val === 'object' && val !== null) {
+                if (!val.start && !val.end) delete globalFilters[dsId][col];
+                else globalFilters[dsId][col] = val;
+            } else {
+                if (!val) delete globalFilters[dsId][col];
+                else globalFilters[dsId][col] = val;
+            }
+
+            console.log("Applying Global Filter:", globalFilters);
+
+            // Re-render all widgets that use this dataset (excluding filters themselves to avoid loop)
+            document.querySelectorAll('[gs-id]').forEach(el => {
+                const id = el.getAttribute('gs-id');
+                const config = widgetConfigs[id];
+                if (config && !['slicer', 'time_period'].includes(config.type)) {
+                    window.renderWidgetChart(id);
+                }
+            });
+        };
+
+        window.applyStylePreview = () => { if(selectedWidgetId) window.renderWidgetChart(selectedWidgetId); };
+
+        window.updateWidgetStyle = async function() {
+            if (!selectedWidgetId) return;
+            const id = selectedWidgetId;
+            const btn = document.querySelector('button[onclick="updateWidgetStyle()"]');
+            const originalText = btn ? btn.innerHTML : "Update Widget";
+            
+            if (btn) {
+                btn.innerHTML = `<svg class="w-4 h-4 animate-spin mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Updating...`;
+                btn.disabled = true;
+            }
+
+            try {
+                const sTitle = document.getElementById('s-title');
+                const sType = document.getElementById('s-type');
+                const sDataset = document.getElementById('s-dataset');
+                const sXaxis = document.getElementById('s-xaxis');
+                const sYaxis = document.getElementById('s-yaxis');
+                const sAgg = document.getElementById('s-agg');
+                const sContent = document.getElementById('s-content');
+                const sColor = document.getElementById('s-color');
+                const sTitleColor = document.getElementById('s-title-color');
+                const sTitleAlign = document.getElementById('s-title-align');
+                const sTitleSize = document.getElementById('s-title-size');
+                const sTitleWeight = document.getElementById('s-title-weight');
+                const sBgColor = document.getElementById('s-bg-color');
+                const sBgTransp = document.getElementById('s-bg-transparent');
+                const sHideGrid = document.getElementById('s-hide-grid');
+                const sHideAxes = document.getElementById('s-hide-axes');
+                const sBins = document.getElementById('s-bins');
+                const sFontSize = document.getElementById('s-font-size');
+                const sFontWeight = document.getElementById('s-font-weight');
+                const sContentAlign = document.getElementById('s-content-align');
+
+                const type = sType ? sType.value : 'bar';
+                const imageBase64 = document.getElementById('s-image-base64').value;
+                
+                const payload = {
+                    action: 'update_widget',
+                    widget_id: id,
+                    title: sTitle ? sTitle.value : 'Widget',
+                    chart_type: type,
+                    data_source_id: sDataset ? sDataset.value : null,
+                    label_col: sXaxis ? sXaxis.value : null,
+                    value_col: sYaxis ? sYaxis.value : null,
+                    agg_func: sAgg ? sAgg.value : 'SUM',
+                    query: type === 'text' ? (sContent ? sContent.value : '') : (type === 'image' ? imageBase64 : null),
+                    style_config: {
+                        color: sColor ? sColor.value : '#6366f1',
+                        imageUrl: type === 'image' ? imageBase64 : null,
+                        titleColor: sTitleColor ? sTitleColor.value : '#1e293b',
+                        titleAlign: sTitleAlign ? sTitleAlign.value : 'left',
+                        titleSize: sTitleSize ? sTitleSize.value : 'text-xs',
+                        titleWeight: sTitleWeight ? sTitleWeight.value : 'font-bold',
+                        bgColor: sBgColor ? sBgColor.value : '#ffffff',
+                        bgTransparent: sBgTransp ? sBgTransp.checked : false,
+                        hideGrid: sHideGrid ? sHideGrid.checked : false,
+                        hideAxes: sHideAxes ? sHideAxes.checked : false,
+                        showLabels: document.getElementById('s-show-labels') ? document.getElementById('s-show-labels').checked : false,
+                        labelColor: document.getElementById('s-label-color') ? document.getElementById('s-label-color').value : '#475569',
+                        bins: sBins ? sBins.value : 1,
+                        content: sContent ? sContent.value : '',
+                        fontSize: sFontSize ? sFontSize.value : 'text-base',
+                        fontWeight: sFontWeight ? sFontWeight.value : 'font-normal',
+                        contentAlign: sContentAlign ? sContentAlign.value : 'text-center'
+                    }
+                };
+
+                const res = await fetch('{% url "dashboard_manager" %}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    await window.renderWidgetChart(id);
+                    // Update header title immediately
+                    const titleEl = document.querySelector(`[gs-id="${id}"] .widget-header span`);
+                    if (titleEl) titleEl.innerText = payload.title;
+                    showToast("Cập nhật thành công!");
+                } else {
+                    const err = await res.json();
+                    showToast("Lỗi cập nhật: " + (err.error || "Không xác định"), "error");
+                }
+            } catch(e) { 
+                console.error("Update Error", e); 
+                showToast("Lỗi kết nối server", "error"); 
+            } finally {
+                if (btn) {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            }
+        };
+
+        window.saveLayout = async function() {
+            if (!currentDashboardId) {
+                showToast("Vui lòng chọn dashboard trước khi lưu.", "warning");
+                return;
+            }
+
+            const items = grid.getGridItems();
+            const layout = items.map(el => {
+                const node = el.gridstackNode;
+                return {
+                    id: el.getAttribute('gs-id'),
+                    x: node.x,
+                    y: node.y,
+                    w: node.w,
+                    h: node.h,
+                    title: el.querySelector('.widget-header span') ? el.querySelector('.widget-header span').innerText : 'Widget'
+                };
+            });
+
+            console.log("Saving layout:", layout);
+
+            try {
+                const res = await fetch('{% url "save_builder_layout_api" %}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                    body: JSON.stringify({ dashboard_id: currentDashboardId, layout: layout })
+                });
+                
+                if (res.ok) {
+                    showToast("Đã lưu bố cục thành công!");
+                } else {
+                    const err = await res.json();
+                    showToast("Lỗi khi lưu: " + (err.error || "Không xác định"), "error");
+                }
+            } catch(e) { 
+                console.error("Save Error", e);
+                showToast("Lỗi kết nối server", "error");
+            }
+        };
+
+        window.createNewDashboard = async function() {
+            window.showInputModal("Nhập tên Dashboard mới:", "My New Dashboard", async (name) => {
+                if (!name) return;
+                
+                try {
+                const res = await fetch('{% url "dashboard_manager" %}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                    body: JSON.stringify({ action: 'create', name: name })
+                });
+                const data = await res.json();
+                    if (res.ok) {
+                        location.href = '?id=' + data.id;
+                    } else {
+                        showToast("Lỗi: " + (data.error || "Không thể tạo dashboard"), "error");
+                    }
+                } catch(e) { console.error(e); showToast("Lỗi kết nối", "error"); }
+            });
+        };
+
+        window.removeWidget = function(id, btn) {
+            window.showModal("Bạn có chắc chắn muốn xóa widget này? Mọi cấu hình sẽ bị mất vĩnh viễn.", {
+                title: "Xác nhận xóa",
+                isDanger: true,
+                onConfirm: async () => {
+                    const item = btn.closest('.grid-stack-item');
+                    if (grid && item) {
+                        grid.removeWidget(item);
+                        delete widgetConfigs[id];
+                        updateEmptyState();
+                    }
+                    
+                    try {
+                        await fetch('{% url "dashboard_manager" %}', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                            body: JSON.stringify({ action: 'delete_widget', widget_id: id })
+                        });
+                    } catch(e) { console.error("Widget deletion error:", e); }
+                }
+            });
+        };
+
+        window.showConfirmModal = function(title, text, onConfirm) {
+            const modal = document.getElementById('confirm-modal');
+            const content = document.getElementById('confirm-modal-content');
+            const btn = document.getElementById('confirm-modal-btn');
+            
+            document.getElementById('confirm-modal-title').innerText = title;
+            document.getElementById('confirm-modal-text').innerText = text;
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+            }, 10);
+
+            btn.onclick = () => {
+                onConfirm();
+                closeConfirmModal();
+            };
+        };
+
+        window.closeConfirmModal = function() {
+            const modal = document.getElementById('confirm-modal');
+            const content = document.getElementById('confirm-modal-content');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        };
+
+        // Boot
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    })();
+        // Calculation Management logic
+        let currentCalcType = 'MEASURE';
+        let currentCalcPrefix = 'w';
+        let currentDatasetColumns = [];
+        let selectedSuggestionIndex = -1;
+
+        window.openCalcModal = async function(prefix) {
+            currentCalcPrefix = prefix;
+            const dsId = document.getElementById(`${prefix}-dataset`).value;
+            if (!dsId) {
+                showToast("Vui lòng chọn Data Source trước!", "warning");
+                return;
+            }
+
+            // Clear previous
+            document.getElementById('calc-name').value = '';
+            document.getElementById('calc-formula').value = '';
+            const colContainer = document.getElementById('calc-columns');
+            colContainer.innerHTML = '<div class="text-center py-10 text-slate-400 text-xs italic">Loading columns...</div>';
+            document.getElementById('col-count-badge').innerText = '0';
+
+            const modal = document.getElementById('calc-modal');
+            const content = document.getElementById('calc-modal-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => content.classList.remove('scale-95', 'opacity-0'), 10);
+
+            // Fetch datasets
+            try {
+                const res = await fetch('{% url "dataset_manager_api" %}');
+                const data = await res.json();
+                const ds = data.datasets.find(d => String(d.id) === String(dsId));
+                
+                colContainer.innerHTML = '';
+                if (ds && ds.columns) {
+                    currentDatasetColumns = ds.columns;
+                    document.getElementById('col-count-badge').innerText = ds.columns.length;
+                    
+                    ds.columns.forEach(c => {
+                        const btn = document.createElement('button');
+                        btn.className = "w-full text-left px-5 py-3 bg-white border border-slate-100 hover:border-indigo-200 hover:shadow-sm rounded-2xl text-xs font-bold text-slate-600 transition-all flex items-center justify-between group";
+                        btn.innerHTML = `
+                            <div class="flex items-center gap-3">
+                                <div class="w-2 h-2 rounded-full bg-slate-200 group-hover:bg-indigo-400 transition-colors"></div>
+                                <span>${c}</span>
+                            </div>
+                            <span class="opacity-0 group-hover:opacity-100 text-indigo-500 font-black">+</span>
+                        `;
+                        btn.onclick = () => insertFormula(`[${c}]`);
+                        colContainer.appendChild(btn);
+                    });
+                }
+            } catch(e) {
+                console.error("Error loading columns", e);
+                showToast("Lỗi khi tải danh sách cột", "error");
+            }
+        };
+
+        window.closeCalcModal = function() {
+            const modal = document.getElementById('calc-modal');
+            const content = document.getElementById('calc-modal-content');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 200);
+            hideSuggestions();
+        };
+
+        window.handleFormulaInput = function(e) {
+            const textarea = e.target;
+            const cursorPosition = textarea.selectionStart;
+            const textBeforeCursor = textarea.value.substring(0, cursorPosition);
+            
+            // Check for '[' trigger
+            const lastOpenBracket = textBeforeCursor.lastIndexOf('[');
+            if (lastOpenBracket !== -1 && lastOpenBracket >= textBeforeCursor.lastIndexOf(']')) {
+                const query = textBeforeCursor.substring(lastOpenBracket + 1).toLowerCase();
+                showSuggestions(query, lastOpenBracket);
+            } else {
+                hideSuggestions();
+            }
+        };
+
+        window.handleFormulaKeydown = function(e) {
+            const suggestions = document.getElementById('calc-suggestions');
+            if (suggestions.classList.contains('hidden')) return;
+
+            const items = suggestions.querySelectorAll('.suggestion-item');
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedSuggestionIndex = (selectedSuggestionIndex + 1) % items.length;
+                updateSelectedSuggestion(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedSuggestionIndex = (selectedSuggestionIndex - 1 + items.length) % items.length;
+                updateSelectedSuggestion(items);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (selectedSuggestionIndex >= 0) items[selectedSuggestionIndex].click();
+            } else if (e.key === 'Escape') {
+                hideSuggestions();
+            }
+        };
+
+        function showSuggestions(query, startPos) {
+            const container = document.getElementById('calc-suggestions');
+            const filtered = currentDatasetColumns.filter(c => c.toLowerCase().includes(query));
+            
+            if (filtered.length === 0) {
+                hideSuggestions();
+                return;
+            }
+
+            container.innerHTML = '';
+            filtered.forEach((c, idx) => {
+                const item = document.createElement('div');
+                item.className = "suggestion-item px-5 py-3 hover:bg-indigo-50 cursor-pointer text-xs font-bold text-slate-700 transition-all border-b border-slate-50 last:border-0";
+                item.innerText = c;
+                item.onclick = () => selectSuggestion(c, startPos);
+                container.appendChild(item);
+            });
+
+            container.classList.remove('hidden');
+            selectedSuggestionIndex = 0;
+            updateSelectedSuggestion(container.querySelectorAll('.suggestion-item'));
+        }
+
+        function hideSuggestions() {
+            document.getElementById('calc-suggestions').classList.add('hidden');
+            selectedSuggestionIndex = -1;
+        }
+
+        function updateSelectedSuggestion(items) {
+            items.forEach((item, idx) => {
+                item.classList.toggle('bg-indigo-100', idx === selectedSuggestionIndex);
+                if (idx === selectedSuggestionIndex) item.scrollIntoView({ block: 'nearest' });
+            });
+        }
+
+        function selectSuggestion(columnName, startPos) {
+            const textarea = document.getElementById('calc-formula');
+            const cursorPosition = textarea.selectionStart;
+            const textAfterCursor = textarea.value.substring(cursorPosition);
+            
+            textarea.value = textarea.value.substring(0, startPos) + `[${columnName}]` + textAfterCursor;
+            hideSuggestions();
+            textarea.focus();
+            const newPos = startPos + columnName.length + 2;
+            textarea.setSelectionRange(newPos, newPos);
+        }
+
+        window.setCalcType = function(type) {
+            currentCalcType = type;
+            const bMeas = document.getElementById('btn-calc-measure');
+            const bCol = document.getElementById('btn-calc-column');
+            const desc = document.getElementById('calc-desc');
+
+            if (type === 'MEASURE') {
+                bMeas.className = "group relative py-5 rounded-3xl border-2 border-indigo-500 bg-indigo-50 text-indigo-700 transition-all overflow-hidden";
+                bCol.className = "group relative py-5 rounded-3xl border-2 border-slate-100 text-slate-400 transition-all";
+                desc.innerText = "Measures are calculated after filtering (Aggregations like SUM, AVG).";
+            } else {
+                bCol.className = "group relative py-5 rounded-3xl border-2 border-indigo-500 bg-indigo-50 text-indigo-700 transition-all overflow-hidden";
+                bMeas.className = "group relative py-5 rounded-3xl border-2 border-slate-100 text-slate-400 transition-all";
+                desc.innerText = "Calculated Columns are computed row-by-row in the raw dataset.";
+            }
+        };
+
+        window.insertFormula = function(text) {
+            const textarea = document.getElementById('calc-formula');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const current = textarea.value;
+            textarea.value = current.substring(0, start) + text + current.substring(end);
+            textarea.focus();
+            textarea.selectionStart = textarea.selectionEnd = start + text.length - (text.endsWith('()') ? 1 : 0);
+            hideSuggestions();
+        };
+
+        window.saveCalculation = async function() {
+            const name = document.getElementById('calc-name').value;
+            const formula = document.getElementById('calc-formula').value;
+            const dsId = document.getElementById(`${currentCalcPrefix}-dataset`).value;
+            
+            if (!name || !formula) {
+                showToast("Vui lòng nhập tên và công thức!", "warning");
+                return;
+            }
+
+            const btn = document.getElementById('save-calc-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Saving...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('{% url "dashboard_manager" %}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                    body: JSON.stringify({
+                        action: 'add_calculation',
+                        dataset_id: dsId,
+                        name: name,
+                        formula: formula,
+                        type: currentCalcType
+                    })
+                });
+                
+                const data = await res.json();
+                if (res.ok) {
+                    showToast("Đã tạo phép tính thành công!");
+                    closeCalcModal();
+                    if (window.fetchDatasets) await window.fetchDatasets();
+                    if (window.loadDatasetColumns) await window.loadDatasetColumns(dsId, currentCalcPrefix);
+                } else {
+                    showToast(data.error || "Lỗi khi lưu phép tính", "error");
+                }
+            } catch(e) {
+                showToast("Lỗi kết nối máy chủ", "error");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        };
+</script>
+<!-- Upsell Modal (Standardized) -->
+<div id="upsell-overlay" class="upsell-overlay" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.8); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center; padding:1.5rem;">
+    <div class="upsell-content" style="background:white; padding:2.5rem; border-radius:2rem; max-width:400px; width:100%; text-align:center; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);">
+        <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6 text-indigo-600">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        </div>
+        <h3 class="text-xl font-extrabold text-slate-900 mb-2">Tính năng giới hạn</h3>
+        <p id="upsell-message" class="text-slate-500 text-sm mb-8 leading-relaxed"></p>
+        <div class="flex flex-col gap-3">
+            <a href="{% url 'upgrade_service' %}" class="bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all no-underline">Nâng cấp gói ngay</a>
+            <button onclick="document.getElementById('upsell-overlay').style.display='none'" class="text-slate-400 text-sm font-medium hover:text-slate-600 transition-colors">Để sau</button>
+        </div>
+    </div>
+</div>
+{% endblock %}

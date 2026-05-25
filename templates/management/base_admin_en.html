@@ -1,0 +1,249 @@
+{% extends 'base_en.html' %}
+{% load static humanize %}
+
+{% block title %}Mia Control - Management System{% endblock %}
+
+{% block content %}
+<div class="flex flex-col lg:flex-row gap-6 items-start relative z-0 min-h-screen">
+    
+    <!-- MOBILE HEADER - MIA CONTROL -->
+    <div class="lg:hidden w-full bg-[#0f172a] p-4 flex justify-between items-center sticky top-16 z-[40] border-b border-slate-800">
+        <div>
+            <h2 class="text-white font-black text-sm tracking-tight leading-none">Mia Control</h2>
+            <p class="text-slate-500 text-[6px] font-black mt-1 uppercase tracking-[2px]">Admin System</p>
+        </div>
+        <button onclick="toggleMobileAdminMenu()" class="p-2 bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-all">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+        </button>
+    </div>
+
+    <!-- MOBILE MENU OVERLAY -->
+    <div id="mobile-admin-menu" class="lg:hidden fixed inset-0 z-[100] hidden">
+        <div onclick="toggleMobileAdminMenu()" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+        <div class="absolute right-0 top-0 bottom-0 w-72 bg-[#0f172a] shadow-2xl p-6 overflow-y-auto animate-in slide-in-from-right">
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-white font-black text-xl tracking-tight leading-none">Mia Control</h2>
+                    <p class="text-slate-500 text-[8px] font-black mt-1.5 uppercase tracking-[3px]">Navigation</p>
+                </div>
+                <button onclick="toggleMobileAdminMenu()" class="p-2 text-slate-500 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <nav class="space-y-2" id="mobile-nav-clone">
+                <!-- Links will be cloned here via JS -->
+            </nav>
+        </div>
+    </div>
+
+    <!-- SIDEBAR - MIA CONTROL STYLE - COMPACT -->
+    <div class="w-full lg:w-64 flex-shrink-0 bg-[#0f172a] p-6 sticky top-16 z-10 hidden lg:block border-r border-slate-800 min-h-[calc(100vh-64px)] overflow-y-auto">
+        <div class="mb-8 pl-1">
+            <h2 class="text-white font-black text-xl tracking-tight leading-none">Mia Control</h2>
+            <p class="text-slate-500 text-[8px] font-black mt-1.5 uppercase tracking-[3px]">Admin System</p>
+        </div>
+        
+        <nav id="admin-sidebar-nav" class="space-y-1.5">
+            <!-- Overview -->
+            <a href="{% if user.is_superuser %}{% url 'super_admin_dashboard' %}{% else %}{% url 'admin_dashboard' %}{% endif %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group {% if request.resolver_match.url_name == 'super_admin_dashboard' or request.resolver_match.url_name == 'admin_dashboard' %}bg-slate-800 text-white shadow-lg shadow-indigo-500/5{% else %}text-slate-400 hover:text-white hover:bg-slate-800/40{% endif %}">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-all {% if request.resolver_match.url_name == 'super_admin_dashboard' or request.resolver_match.url_name == 'admin_dashboard' %}bg-indigo-600 text-white shadow-lg shadow-indigo-500/30{% else %}bg-slate-800/50 group-hover:bg-slate-700{% endif %}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                </div>
+                <span class="text-[12px] font-bold tracking-tight">Overview</span>
+            </a>
+
+            <!-- Content (Blog) -->
+            {% if user.is_superuser or admin_perms.can_view_blog %}
+            <div class="space-y-1">
+                <button onclick="toggleSubMenu('blog-sub-menu', this)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all group {% if 'blog' in request.path %}bg-slate-800 text-white{% else %}text-slate-400 hover:text-white hover:bg-slate-800/40{% endif %}">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-all {% if 'blog' in request.path %}bg-indigo-600 text-white shadow-lg shadow-indigo-500/30{% else %}bg-slate-800/50 group-hover:bg-slate-700{% endif %}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+                        </div>
+                        <span class="text-[12px] font-bold tracking-tight">Content (Blog)</span>
+                    </div>
+                    <svg class="w-3 h-3 text-slate-600 transition-transform" style="transform: {% if 'blog' in request.path %}rotate(90deg){% else %}rotate(0deg){% endif %};" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+                <div id="blog-sub-menu" class="{% if 'blog' in request.path %}{% else %}hidden{% endif %} pl-11 pr-2 space-y-1">
+                    <a href="{% url 'blog:manage_post_list' %}" class="block py-2 text-[11px] font-bold {% if request.resolver_match.url_name == 'manage_post_list' %}text-indigo-400{% else %}text-slate-500 hover:text-white{% endif %} transition-colors">All Posts</a>
+                    <a href="{% url 'blog:manage_post_create' %}" class="block py-2 text-[11px] font-bold {% if request.resolver_match.url_name == 'manage_post_create' %}text-indigo-400{% else %}text-slate-500 hover:text-white{% endif %} transition-colors">Create New</a>
+                    <a href="{% url 'blog:manage_blog_analytics' %}" class="block py-2 text-[11px] font-bold {% if request.resolver_match.url_name == 'manage_blog_analytics' %}text-indigo-400{% else %}text-slate-500 hover:text-white{% endif %} transition-colors">Blog Analytics</a>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Users -->
+            {% if user.is_superuser or admin_perms.can_view_users %}
+            <a href="{% if user.is_superuser %}{% url 'super_user_management' %}{% else %}{% url 'user_management' %}{% endif %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group {% if request.resolver_match.url_name == 'super_user_management' or request.resolver_match.url_name == 'user_management' %}bg-slate-800 text-white shadow-lg shadow-indigo-500/10{% else %}text-slate-400 hover:text-white hover:bg-slate-800/40{% endif %}">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-all {% if request.resolver_match.url_name == 'super_user_management' or request.resolver_match.url_name == 'user_management' %}bg-indigo-600 text-white shadow-lg shadow-indigo-500/30{% else %}bg-slate-800/50 group-hover:bg-slate-700{% endif %}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                </div>
+                <span class="text-[12px] font-bold tracking-tight">Users</span>
+            </a>
+            {% endif %}
+
+            <!-- API & Logs -->
+            {% if user.is_superuser or admin_perms.can_view_ai_logs %}
+            <a href="{% if user.is_superuser %}{% url 'super_ai_usage_stats' %}{% else %}{% url 'ai_usage_stats' %}{% endif %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group {% if request.resolver_match.url_name == 'super_ai_usage_stats' or request.resolver_match.url_name == 'ai_usage_stats' %}bg-slate-800 text-white shadow-lg shadow-indigo-500/10{% else %}text-slate-400 hover:text-white hover:bg-slate-800/40{% endif %}">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-all {% if request.resolver_match.url_name == 'super_ai_usage_stats' or request.resolver_match.url_name == 'ai_usage_stats' %}bg-indigo-600 text-white shadow-lg shadow-indigo-500/30{% else %}bg-slate-800/50 group-hover:bg-slate-700{% endif %}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                </div>
+                <span class="text-[12px] font-bold tracking-tight">API & Logs</span>
+            </a>
+            {% endif %}
+
+            <!-- Vouchers -->
+            {% if user.is_superuser or admin_perms.can_view_vouchers %}
+            <a href="{% if user.is_superuser %}{% url 'super_voucher_management' %}{% else %}{% url 'voucher_management' %}{% endif %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group {% if request.resolver_match.url_name == 'super_voucher_management' or request.resolver_match.url_name == 'voucher_management' %}bg-slate-800 text-white shadow-lg shadow-indigo-500/10{% else %}text-slate-400 hover:text-white hover:bg-slate-800/40{% endif %}">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-all {% if request.resolver_match.url_name == 'super_voucher_management' or request.resolver_match.url_name == 'voucher_management' %}bg-indigo-600 text-white shadow-lg shadow-indigo-500/30{% else %}bg-slate-800/50 group-hover:bg-slate-700{% endif %}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path></svg>
+                </div>
+                <span class="text-[12px] font-bold tracking-tight">Vouchers</span>
+            </a>
+            {% endif %}
+
+            <!-- Notifications -->
+            {% if user.is_superuser or admin_perms.can_view_notifications %}
+            <a href="{% if user.is_superuser %}{% url 'super_notification_management' %}{% else %}{% url 'notification_management' %}{% endif %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group {% if request.resolver_match.url_name == 'super_notification_management' or request.resolver_match.url_name == 'notification_management' %}bg-slate-800 text-white shadow-lg shadow-indigo-500/10{% else %}text-slate-400 hover:text-white hover:bg-slate-800/40{% endif %}">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-all {% if request.resolver_match.url_name == 'super_notification_management' or request.resolver_match.url_name == 'notification_management' %}bg-indigo-600 text-white shadow-lg shadow-indigo-500/30{% else %}bg-slate-800/50 group-hover:bg-slate-700{% endif %}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5l1.405-1.405A2.032 2.032 0 0111 14.158V11a6.002 6.002 0 004 0v3.158c0 .538.214 1.055.595 1.436L15 17zm-3 4a2 2 0 002-2H8a2 2 0 002 2z"></path></svg>
+                </div>
+                <span class="text-[12px] font-bold tracking-tight">Notifications</span>
+            </a>
+            {% endif %}
+
+            <!-- Finance -->
+            {% if user.is_superuser or admin_perms.can_view_finance %}
+            <a href="{% if user.is_superuser %}{% url 'super_finance_dashboard' %}{% else %}{% url 'finance_dashboard' %}{% endif %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group {% if request.resolver_match.url_name == 'super_finance_dashboard' or request.resolver_match.url_name == 'finance_dashboard' %}bg-slate-800 text-white shadow-lg shadow-indigo-500/10{% else %}text-slate-400 hover:text-white hover:bg-slate-800/40{% endif %}">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-all {% if request.resolver_match.url_name == 'super_finance_dashboard' or request.resolver_match.url_name == 'finance_dashboard' %}bg-indigo-600 text-white shadow-lg shadow-indigo-500/30{% else %}bg-slate-800/50 group-hover:bg-slate-700{% endif %}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <span class="text-[12px] font-bold tracking-tight">Finance</span>
+            </a>
+            {% endif %}
+
+            <div class="pt-3 mt-3 border-t border-slate-800/50">
+                <p class="px-3 text-[8px] font-black text-slate-600 uppercase tracking-[2px] mb-3">System & AI</p>
+                
+                {% if user.is_superuser %}
+                <!-- Permissions -->
+                <a href="{% url 'permissions_management' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group {% if request.resolver_match.url_name == 'permissions_management' %}bg-slate-800 text-white shadow-lg shadow-rose-500/30{% else %}text-slate-400 hover:text-white hover:bg-slate-800/40{% endif %}">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-all {% if request.resolver_match.url_name == 'permissions_management' %}bg-rose-600 text-white shadow-lg shadow-rose-500/30{% else %}bg-slate-800/50 group-hover:bg-slate-700{% endif %}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    </div>
+                    <span class="text-[12px] font-bold tracking-tight">Permissions</span>
+                </a>
+
+                <!-- System Management -->
+                {% if user.is_superuser or admin_perms.can_view_system %}
+                <a href="{% url 'system_management' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group {% if request.resolver_match.url_name == 'system_management' %}bg-slate-800 text-white shadow-lg shadow-blue-500/30{% else %}text-slate-400 hover:text-white hover:bg-slate-800/40{% endif %}">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-all {% if request.resolver_match.url_name == 'system_management' %}bg-blue-600 text-white shadow-lg shadow-blue-500/30{% else %}bg-slate-800/50 group-hover:bg-slate-700{% endif %}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+                    </div>
+                    <span class="text-[12px] font-bold tracking-tight">System Mgmt</span>
+                </a>
+                {% endif %}
+
+                <!-- Super AI Chat -->
+                <a href="{% url 'super_ai_chat' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group {% if request.resolver_match.url_name == 'super_ai_chat' %}bg-slate-800 text-white{% else %}text-slate-400 hover:text-white hover:bg-slate-800/40{% endif %}">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-all {% if request.resolver_match.url_name == 'super_ai_chat' %}bg-purple-600 text-white shadow-lg shadow-purple-500/30{% else %}bg-slate-800/50 group-hover:bg-slate-700{% endif %}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <span class="text-[12px] font-bold tracking-tight">Super AI Chat</span>
+                </a>
+                {% endif %}
+            </div>
+        </nav>
+
+        <div class="mt-auto pt-8">
+            <a href="{% url 'landing' %}" class="flex items-center justify-center gap-2 w-full py-3 bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-white rounded-xl transition-all border border-slate-800 text-[8px] font-black uppercase tracking-widest">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z"></path></svg>
+                Landing
+            </a>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT - COMPACT -->
+    <div class="flex-1 w-full space-y-6 min-w-0 pr-0 lg:pr-6">
+        {% block admin_content %}{% endblock %}
+    </div>
+
+</div>
+
+<script>
+    function toggleSubMenu(id, btn) {
+        const menu = document.getElementById(id);
+        const icon = btn.querySelector('svg:last-child');
+        
+        if (menu.classList.contains('hidden')) {
+            menu.classList.remove('hidden');
+            icon.style.transform = 'rotate(90deg)';
+        } else {
+            menu.classList.add('hidden');
+            icon.style.transform = 'rotate(0deg)';
+        }
+    }
+
+    function toggleMobileAdminMenu() {
+        const menu = document.getElementById('mobile-admin-menu');
+        const isHidden = menu.classList.contains('hidden');
+        
+        if (isHidden) {
+            // Clone links if not already done
+            const mobileNav = document.getElementById('mobile-nav-clone');
+            if (mobileNav && mobileNav.children.length === 0) {
+                const desktopNav = document.getElementById('admin-sidebar-nav');
+                if (desktopNav) {
+                    const clone = desktopNav.cloneNode(true);
+                    // Remove IDs from clones
+                    clone.removeAttribute('id');
+                    clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+                    mobileNav.appendChild(clone);
+                }
+            }
+            menu.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        } else {
+            menu.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+    }
+</script>
+<style>
+    body {
+        background-color: #f8fafc;
+    }
+    .animate-in {
+        animation-duration: 0.3s;
+        animation-fill-mode: forwards;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .slide-in-from-right {
+        animation-name: slide-in-from-right;
+    }
+    @keyframes slide-in-from-right {
+        from { transform: translateX(100%); }
+        to { transform: translateX(0); }
+    }
+    .animate-in {
+        animation-duration: 0.2s;
+        animation-fill-mode: forwards;
+        animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    }
+    .fade-in {
+        animation-name: fade-in;
+    }
+    .slide-in-from-left-2 {
+        animation-name: slide-in-from-left;
+    }
+    @keyframes fade-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    @keyframes slide-in-from-left {
+        from { transform: translateX(-0.5rem); }
+        to { transform: translateX(0); }
+    }
+</style>
+{% endblock %}

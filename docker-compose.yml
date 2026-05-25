@@ -1,0 +1,35 @@
+
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: mia_postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=mia_db
+      - POSTGRES_USER=mia_user
+      - POSTGRES_PASSWORD=mia_password
+    ports:
+      - "5432:5432"
+
+  web:
+    build: .
+    container_name: mia_web
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - DATABASE_URL=postgres://mia_user:mia_password@db:5432/mia_db
+      - SECRET_KEY=django-insecure-1q-#6kay=ly@!0z$$m)=tab^&ti85=hp06g#q#0r81zc)-)+m(x
+      - GEMINI_API_KEY=AIzaSyCnjMty4wBesIFNSy5Wu9z1PeUFNykpLcI
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:

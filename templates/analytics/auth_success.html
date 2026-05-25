@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kết nối Google Drive thành công</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 flex items-center justify-center h-screen">
+    <div class="bg-white p-10 rounded-3xl shadow-xl max-w-sm w-full text-center border border-slate-100">
+        <div class="bg-green-100 text-green-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+        </div>
+        <h1 class="text-2xl font-bold text-slate-900 mb-2">Đã kết nối Google!</h1>
+        <p class="text-slate-500 mb-8 text-sm">Mia đã có quyền tạo file trên Google Drive của bạn. Cửa sổ này sẽ tự đóng sau giây lát.</p>
+        <button onclick="window.close()" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold">Đóng cửa sổ</button>
+    </div>
+    <script>
+        // Notify the parent window if it exists
+        if (window.opener) {
+            window.opener.postMessage('google-auth-success', '*');
+        }
+        // Auto close after 3 seconds
+        setTimeout(() => {
+            window.close();
+        }, 3000);
+    </script>
+</body>
+</html>

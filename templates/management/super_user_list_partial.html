@@ -1,0 +1,92 @@
+{% load humanize %}
+{% for u in users %}
+<tr class="group hover:bg-slate-50/80 transition-all">
+    <td class="px-6 py-4">
+        <div class="flex flex-col">
+            <span class="text-[10px] font-black text-slate-900">#{{ u.id }}</span>
+            <span class="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">{{ u.userprofile.customer_code }}</span>
+        </div>
+    </td>
+    <td class="px-6 py-4">
+        <div class="flex items-center gap-3">
+            <div class="relative">
+                {% if u.userprofile.avatar %}
+                    <img src="{{ u.userprofile.avatar.url }}" class="w-10 h-10 rounded-xl object-cover shadow-sm border border-slate-100 group-hover:border-indigo-200 transition-all">
+                {% else %}
+                    <div class="w-10 h-10 bg-slate-900 text-white text-[10px] font-black rounded-xl flex items-center justify-center uppercase">
+                        {{ u.username|first }}
+                    </div>
+                {% endif %}
+                <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-white rounded-full flex items-center justify-center shadow-sm">
+                    <div class="w-1.5 h-1.5 {% if u.is_active %}bg-emerald-500{% else %}bg-slate-300{% endif %} rounded-full"></div>
+                </div>
+            </div>
+            <div>
+                <span class="text-sm font-bold text-slate-900 block leading-tight">{{ u.username }}</span>
+                <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mt-0.5">{{ u.email }}</span>
+            </div>
+        </div>
+    </td>
+    <td class="px-6 py-4">
+        {% if u.userprofile.first_name or u.userprofile.last_name %}
+            <p class="text-[11px] font-bold text-slate-700">{{ u.userprofile.first_name }} {{ u.userprofile.last_name }}</p>
+        {% else %}
+            <p class="text-[9px] text-slate-300 italic font-bold">Chưa cập nhật</p>
+        {% endif %}
+    </td>
+    <td class="px-6 py-4 text-center">
+        <button onclick="openModal({
+            id: {{ u.id }},
+            username: '{{ u.username|escapejs }}',
+            is_staff: {{ u.is_staff|yesno:'true,false' }},
+            is_superuser: {{ u.is_superuser|yesno:'true,false' }},
+            role_title: '{{ u.adminpermission.role_title|default:''|escapejs }}',
+            permissions: {
+                can_view_blog: {{ u.adminpermission.can_view_blog|yesno:'true,false' }},
+                can_view_users: {{ u.adminpermission.can_view_users|yesno:'true,false' }},
+                can_view_ai_logs: {{ u.adminpermission.can_view_ai_logs|yesno:'true,false' }},
+                can_view_vouchers: {{ u.adminpermission.can_view_vouchers|yesno:'true,false' }},
+                can_view_notifications: {{ u.adminpermission.can_view_notifications|yesno:'true,false' }},
+                can_view_finance: {{ u.adminpermission.can_view_finance|yesno:'true,false' }},
+                can_view_system: {{ u.adminpermission.can_view_system|yesno:'true,false' }}
+            }
+        })" class="flex flex-col items-center gap-1 group/role w-full">
+            {% if u.is_superuser %}
+                <span class="px-1.5 py-0.5 bg-rose-50 text-rose-600 rounded-lg text-[7px] font-black uppercase tracking-widest border border-rose-100 group-hover/role:bg-rose-600 group-hover/role:text-white transition-all shadow-sm shadow-rose-100">Founder</span>
+            {% elif u.is_staff %}
+                <span class="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded-lg text-[7px] font-black uppercase tracking-widest border border-indigo-100 group-hover/role:bg-indigo-600 group-hover/role:text-white transition-all shadow-sm shadow-indigo-100">Staff</span>
+            {% else %}
+                <span class="px-1.5 py-0.5 bg-slate-50 text-slate-400 rounded-lg text-[7px] font-black uppercase tracking-widest border border-slate-100 group-hover/role:bg-slate-900 group-hover/role:text-white transition-all">User</span>
+            {% endif %}
+            
+            {% if u.adminpermission.role_title %}
+                <span class="text-[8px] font-black text-slate-900 uppercase tracking-tighter">{{ u.adminpermission.role_title }}</span>
+            {% endif %}
+        </button>
+    </td>
+    <td class="px-6 py-4 text-center">
+        <form action="{% url 'update_user_tier' u.id %}" method="POST" class="inline-block">
+            {% csrf_token %}
+            <select name="tier" onchange="this.form.submit()" class="text-[9px] font-black bg-slate-50 border-transparent focus:border-indigo-500 focus:bg-white rounded-lg px-2 py-1 transition-all cursor-pointer outline-none w-28">
+                <option value="FREE" {% if u.userprofile.tier == 'FREE' %}selected{% endif %}>Miễn phí</option>
+                <option value="PLUS" {% if u.userprofile.tier == 'PLUS' %}selected{% endif %}>Nâng cao</option>
+                <option value="PREMIUM" {% if u.userprofile.tier == 'PREMIUM' %}selected{% endif %}>Doanh nghiệp</option>
+            </select>
+        </form>
+    </td>
+    <td class="px-6 py-4 text-right">
+        <div class="flex justify-end gap-2">
+            <a href="{% url 'toggle_staff_status' u.id %}" class="px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all shadow-sm
+                {% if u.is_staff %} bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-600 hover:text-white {% else %} bg-indigo-50 text-indigo-600 border border-indigo-100 hover:bg-indigo-600 hover:text-white {% endif %}">
+                {% if u.is_staff %}Gỡ Staff{% else %}Cấp Staff{% endif %}
+            </a>
+        </div>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="6" class="px-6 py-20 text-center text-slate-300 italic font-black uppercase tracking-widest text-[10px]">
+        Không tìm thấy người dùng nào phù hợp.
+    </td>
+</tr>
+{% endfor %}

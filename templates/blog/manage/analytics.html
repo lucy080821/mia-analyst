@@ -1,0 +1,122 @@
+{% extends 'management/base_admin.html' %}
+{% load static humanize %}
+{% block title %}Phân tích Blog - Mia Analyst{% endblock %}
+
+{% block admin_content %}
+    <div class="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+        <div class="p-10 border-b border-slate-50 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 bg-slate-900 text-white">
+            <div>
+                <h1 class="text-3xl font-black tracking-tight">Phân tích Blog</h1>
+                <p class="text-slate-400 text-sm mt-2 font-bold uppercase tracking-widest">Đo lường mức độ tương tác & hiệu quả nội dung</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <div class="bg-white/10 px-4 py-2 rounded-xl border border-white/10 text-xs font-bold">
+                    <span class="text-indigo-400 mr-2">●</span> Đang thu thập dữ liệu thực
+                </div>
+            </div>
+        </div>
+
+        <div class="p-8">
+            <!-- Search & Filter -->
+            <form method="GET" class="mb-10 flex flex-wrap gap-4">
+                <div class="relative flex-1 min-w-[300px]">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" name="q" value="{{ query }}" placeholder="Tìm kiếm bài viết để phân tích..." class="block w-full pl-12 pr-4 py-4 border border-slate-200 rounded-2xl leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+                </div>
+                <button type="submit" class="bg-slate-900 hover:bg-black text-white px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-slate-900/10">
+                    Lọc dữ liệu
+                </button>
+                <a href="?export=excel&q={{ query }}" class="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-emerald-600/10 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Xuất Excel
+                </a>
+            </form>
+
+            <!-- Table -->
+            <div class="overflow-x-auto rounded-[2rem] border border-slate-100 shadow-sm no-scrollbar">
+                <table class="min-w-[1000px] lg:min-w-full divide-y divide-slate-100">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th scope="col" class="px-8 py-5 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Bài viết</th>
+                            <th scope="col" class="px-8 py-5 text-center text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Lượt Click</th>
+                            <th scope="col" class="px-8 py-5 text-center text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Engaged</th>
+                            <th scope="col" class="px-8 py-5 text-center text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Thời gian (Median)</th>
+                            <th scope="col" class="px-8 py-5 text-center text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Độ sâu (Mean)</th>
+                            <th scope="col" class="px-8 py-5 text-right text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Hiệu quả</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-slate-50">
+                        {% for post in posts %}
+                        <tr class="hover:bg-slate-50/50 transition-colors">
+                            <td class="px-8 py-6">
+                                <div class="text-sm font-black text-slate-900 mb-1">{{ post.title }}</div>
+                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ post.author_pseudonym|default:post.author.username }}</div>
+                            </td>
+                            <td class="px-8 py-6 text-center">
+                                <span class="inline-flex items-center px-4 py-1.5 rounded-full bg-slate-100 text-slate-900 text-xs font-black">
+                                    {{ post.total_views }}
+                                </span>
+                            </td>
+                            <td class="px-8 py-6 text-center">
+                                <span class="inline-flex items-center px-4 py-1.5 rounded-full bg-slate-900 text-white text-xs font-black">
+                                    {{ post.engaged_readers }}
+                                </span>
+                            </td>
+                            <td class="px-8 py-6 text-center">
+                                <div class="text-sm font-black text-slate-700">
+                                    {{ post.median_duration|floatformat:0 }}s
+                                </div>
+                                <div class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Thời gian thực</div>
+                            </td>
+                            <td class="px-8 py-6 text-center">
+                                <div class="flex flex-col items-center">
+                                    <div class="text-sm font-black text-indigo-600 mb-2">{{ post.avg_scroll_depth|floatformat:0 }}%</div>
+                                    <div class="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                        <div class="h-full bg-indigo-500 rounded-full" style="width: {{ post.avg_scroll_depth }}%"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-8 py-6 text-right">
+                                {% if post.avg_scroll_depth > 70 %}
+                                <span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase rounded-lg">Xuất sắc</span>
+                                {% elif post.avg_scroll_depth > 40 %}
+                                <span class="px-3 py-1 bg-blue-100 text-blue-700 text-[10px] font-black uppercase rounded-lg">Ổn định</span>
+                                {% else %}
+                                <span class="px-3 py-1 bg-slate-100 text-slate-400 text-[10px] font-black uppercase rounded-lg">Cần cải thiện</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-8 py-20 text-center">
+                                <div class="flex flex-col items-center">
+                                    <svg class="w-12 h-12 text-slate-200 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                                    <p class="text-slate-400 font-bold">Chưa có dữ liệu phân tích nào được thu thập.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Stats Legend -->
+            <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                    <h4 class="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2">Trung vị (Median)</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed">Loại bỏ sai lệch từ các phiên truy cập quá dài hoặc quá ngắn, phản ánh thời gian đọc thực tế của đa số độc giả.</p>
+                </div>
+                <div class="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                    <h4 class="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2">Độ sâu (Scroll)</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed">Đo lường mức độ người dùng cuộn xem nội dung. Chỉ số cao chứng tỏ nội dung của bạn đủ hấp dẫn để giữ chân họ đến cuối.</p>
+                </div>
+                <div class="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                    <h4 class="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2">Đánh giá hiệu quả</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed">Phân loại tự động dựa trên mức độ hoàn thành bài viết để bạn biết nội dung nào cần tối ưu hóa.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

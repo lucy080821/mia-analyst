@@ -1,0 +1,273 @@
+{% extends 'base_en.html' %}
+
+{% block title %}{{ "Upgrade Service" }} - Mia Assistant{% endblock %}
+
+{% load humanize %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-16">
+        <h1 class="text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl">{{ "Elevate Your Experience" }}</h1>
+        <p class="mt-5 text-xl text-gray-500">{{ "Choose the right service plan to optimize your business efficiency with Mia Assistant." }}</p>
+    </div>
+
+    <div class="max-w-md mx-auto mb-10 bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col md:flex-row items-center gap-2 relative z-20">
+        <input type="text" id="voucherInput" class="flex-1 w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm" placeholder="{{ 'Enter promo code (if any)' }}">
+        <button type="button" onclick="applyVoucher()" class="w-full md:w-auto px-6 py-3 bg-slate-900 text-white text-sm font-bold rounded-lg hover:bg-black transition-all">{{ "Apply" }}</button>
+    </div>
+    <div id="voucherMsg" class="max-w-md mx-auto mt-[-1.5rem] mb-8 text-center text-sm font-bold"></div>
+
+    <div class="grid grid-cols-1 gap-8 md:grid-cols-3 max-w-6xl mx-auto">
+        <!-- FREE Tier -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 flex flex-col transition-transform hover:scale-105 h-full">
+            <div class="px-6 py-8 bg-gray-50 border-b border-gray-100">
+                <h3 class="text-xl font-bold text-gray-400 uppercase tracking-widest text-xs">{{ "Standard" }}</h3>
+                <p class="mt-4 text-sm text-gray-500">{{ "Basic for beginners." }}</p>
+                <p class="mt-8">
+                    <span class="text-4xl font-extrabold text-gray-900">0đ</span>
+                    <span class="text-base font-medium text-gray-500">/{{ "month" }}</span>
+                </p>
+            </div>
+            <div class="flex-1 px-6 py-8">
+                <ul class="space-y-4">
+                    <li class="flex items-start">
+                        <svg class="h-5 w-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg>
+                        <span class="text-gray-600 text-sm">{{ "20 analysis questions / month" }}</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-5 w-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg>
+                        <span class="text-gray-600 text-sm">{{ "Basic SQL Engine Queries" }}</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-5 w-5 text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="2"></path></svg>
+                        <span class="text-red-500 font-bold italic text-xs">{{ "Limited to 1,000 rows / dataset" }}</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-5 w-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg>
+                        <span class="text-gray-600 text-sm">{{ "Analyze a single Sheet" }}</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-5 w-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg>
+                        <span class="text-gray-600 text-sm">{{ "Export reports in Text format" }}</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="px-6 py-8 bg-gray-50 mt-auto">
+                {% if profile.tier == 'FREE' %}
+                    <button disabled class="w-full bg-gray-300 text-gray-600 px-4 py-3 rounded-xl font-bold cursor-not-allowed">{{ "Current Plan" }}</button>
+                {% else %}
+                    <button disabled class="w-full bg-gray-200 text-gray-500 px-4 py-3 rounded-xl font-bold cursor-not-allowed">{{ "Cannot Downgrade" }}</button>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- PLUS Tier -->
+        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden border-2 border-primary flex flex-col relative transform scale-105 z-10 h-full">
+            <div class="absolute top-0 right-0 bg-primary text-white px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded-bl-lg">{{ "Most Popular" }}</div>
+            <div class="px-6 py-8 bg-blue-50 border-b border-blue-100">
+                <h3 class="text-xl font-bold text-primary uppercase tracking-widest text-xs">{{ "Professional" }}</h3>
+                <p class="mt-4 text-sm text-gray-500">{{ "Comprehensive and optimal solution for individuals & enterprises." }}</p>
+                <p class="mt-8">
+                    <span class="text-4xl font-extrabold text-blue-600" id="plus_price">{{ 499000|intcomma }}đ</span>
+                    <span class="text-base font-medium text-gray-500">/{{ "month" }}</span>
+                </p>
+            </div>
+            <div class="flex-1 px-6 py-8">
+                <ul class="space-y-4">
+                    <li class="flex items-start">
+                        <svg class="h-5 w-5 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg>
+                        <span class="text-gray-900 font-bold text-sm">{{ "Unlimited analysis queries (Gemini 1.5 Pro)" }}</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-5 w-5 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg>
+                        <span class="text-gray-900 font-bold text-sm">{{ "In-depth AI Forecasting & Machine Learning" }}</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-5 w-5 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg>
+                        <span class="text-gray-900 font-bold text-sm">{{ "Real-time Google Sheets Sync" }}</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-5 w-5 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg>
+                        <span class="text-gray-900 font-bold text-sm">{{ "Direct Google Looker Studio Connection" }}</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-5 w-5 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg>
+                        <span class="text-gray-900 font-bold text-sm">{{ "Automated Telegram/Email Reporting" }}</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-5 w-5 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg>
+                        <span class="text-gray-900 font-bold text-sm">{{ "Professional Report Export (PDF/Word/Excel)" }}</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-5 w-5 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg>
+                        <span class="text-gray-900 font-black text-sm">{{ "Priority Resources & Speed Optimization" }}</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-5 w-5 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg>
+                        <span class="text-gray-900 font-bold text-sm">{{ "Multi-layer Enterprise Data Security" }}</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-5 w-5 text-blue-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg>
+                        <span class="text-gray-700 text-sm">{{ "Priority fast support" }}</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="px-6 py-8 bg-gray-50 mt-auto">
+                {% if profile.tier == 'PLUS' %}
+                    <button disabled class="w-full bg-gray-300 text-gray-600 px-4 py-3 rounded-xl font-bold cursor-not-allowed">{{ "Current Plan" }}</button>
+                {% elif profile.tier == 'PREMIUM' %}
+                    <button disabled class="w-full bg-gray-200 text-gray-500 px-4 py-3 rounded-xl font-bold cursor-not-allowed">{{ "Cannot Downgrade" }}</button>
+                {% else %}
+                    <!-- Payment Tabs -->
+                    <div class="mb-4">
+                        <div class="flex border-b border-gray-200">
+                            <button type="button" onclick="switchPaymentTab('international')" id="tab-international" class="flex-1 py-2 text-sm font-bold text-primary border-b-2 border-primary transition-colors">International Payment</button>
+                            <button type="button" onclick="switchPaymentTab('domestic')" id="tab-domestic" class="flex-1 py-2 text-sm font-bold text-gray-500 border-b-2 border-transparent transition-colors">Domestic (Vietnam)</button>
+                        </div>
+                    </div>
+                    
+                    <div id="content-international">
+                        <a href="https://{{ lemon_store_url }}/checkout/buy/{{ lemon_variant_id }}?checkout[custom][user_id]={{ request.user.id }}" class="lemonsqueezy-button w-full flex justify-center items-center gap-2 bg-slate-900 hover:bg-black text-white px-4 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                            Pay with Card / PayPal
+                        </a>
+                    </div>
+
+                    <div id="content-domestic" class="hidden">
+                        <form method="post" action="{% url 'upgrade_service' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="tier" value="PLUS">
+                            <button type="submit" class="w-full bg-primary hover:bg-secondary text-white px-4 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl">Pay with PayOS (VietQR)</button>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- PREMIUM Tier -->
+        <div class="rounded-2xl shadow-xl overflow-hidden border border-gray-100 flex flex-col transition-transform hover:scale-105 h-full bg-slate-900 relative">
+            <div class="absolute top-0 right-0 bg-amber-500 text-white px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded-bl-lg rounded-tr-2xl">Coming soon</div>
+            <div class="px-6 py-8 bg-slate-800 border-b border-slate-700">
+                <h3 class="text-xl font-bold text-white uppercase tracking-widest text-xs">{{ "Enterprise" }}</h3>
+                <p class="mt-4 text-sm text-gray-400">{{ "The ultimate solution for large-scale data management." }}</p>
+                <p class="mt-8">
+                    <span class="text-4xl font-extrabold text-white" id="premium_price">Contact us</span>
+                </p>
+            </div>
+            <div class="flex-1 px-6 py-8">
+                <ul class="space-y-4">
+                    <li class="flex items-start">
+                        <svg class="h-5 w-5 text-amber-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg>
+                        <span class="text-white font-black text-sm">{{ "All PLUS features" }}</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-5 w-5 text-amber-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg>
+                        <span class="text-gray-100 font-bold text-sm">{{ "Automated ETL Pipeline System" }}</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-5 w-5 text-amber-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg>
+                        <span class="text-gray-200 font-bold text-sm">{{ "Multi-source Smart Data Warehouse (DWH)" }}</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-5 w-5 text-amber-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg>
+                        <span class="text-gray-300 text-sm">{{ "Connect MySQL, PostgreSQL, SQL Server" }}</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-5 w-5 text-amber-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg>
+                        <span class="text-gray-400 text-sm">{{ "1:1 Data Consulting & Support" }}</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-5 w-5 text-amber-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg>
+                        <span class="text-gray-500 text-xs italic">{{ "Under development" }}</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="px-6 py-8 bg-slate-800 mt-auto">
+                <button disabled class="w-full bg-slate-700 text-slate-400 px-4 py-3 rounded-xl font-bold cursor-not-allowed">Pre-register (Soon)</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+function applyVoucher() {
+    const code = document.getElementById('voucherInput').value;
+    if(!code) return;
+    fetch("{% url 'apply_voucher' %}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+        body: JSON.stringify({ code: code })
+    })
+    .then(res => res.json())
+    .then(data => {
+        const msg = document.getElementById('voucherMsg');
+        if(data.error) {
+            msg.className = "max-w-md mx-auto mt-[-1.5rem] mb-8 text-center text-sm font-bold text-rose-500";
+            msg.innerText = data.error;
+        } else {
+            msg.className = "max-w-md mx-auto mt-[-1.5rem] mb-8 text-center text-sm font-bold text-emerald-600";
+            let type_text = "{{ '7 Days Free Plus'|escapejs }}";
+            if (data.voucher_type === 'DISCOUNT_PERCENT') type_text = `{{ 'Discount'|escapejs }} ${data.discount_val}%`;
+            if (data.voucher_type === 'FIXED_DISCOUNT') type_text = `{{ 'Fixed Discount'|escapejs }} ${data.discount_val.toLocaleString()}đ`;
+            msg.innerText = `{{ 'Voucher applied:'|escapejs }} ${type_text}`;
+            
+            // Add hidden inputs to all POST forms
+            document.querySelectorAll('form[method="post"]').forEach(f => {
+                let input = f.querySelector('input[name="voucher_code"]');
+                if(!input) {
+                    input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'voucher_code';
+                    f.appendChild(input);
+                }
+                input.value = code;
+            });
+            // Update prices visually
+            if(data.voucher_type === 'DISCOUNT_PERCENT') {
+                updatePrice('plus_price', 499000, 1 - data.discount_val/100, null);
+            } else if(data.voucher_type === 'FIXED_DISCOUNT') {
+                updatePrice('plus_price', 499000, null, data.discount_val);
+            } else if(data.voucher_type === 'FREE_PLUS_7_DAYS') {
+               updatePrice('plus_price', 499000, null, 499000); 
+            }
+        }
+    }).catch(err => {
+        console.error(err);
+        alert("{{ 'An error occurred, please try again.' }}");
+    });
+}
+function updatePrice(id, original, multiplier, fixedAmount) {
+    let p = document.getElementById(id);
+    if(p) {
+        let newPrice = original;
+        if(multiplier !== null) newPrice = original * multiplier;
+        else if (fixedAmount !== null) newPrice = Math.max(0, original - fixedAmount);
+        
+        p.innerHTML = `<span class='line-through text-gray-400 text-2xl mr-2'>${original.toLocaleString()}đ</span>${newPrice.toLocaleString()}đ`;
+    }
+}
+
+function switchPaymentTab(tab) {
+    const tabDomestic = document.getElementById('tab-domestic');
+    const tabIntl = document.getElementById('tab-international');
+    const contentDomestic = document.getElementById('content-domestic');
+    const contentIntl = document.getElementById('content-international');
+
+    if (tab === 'international') {
+        tabIntl.className = "flex-1 py-2 text-sm font-bold text-primary border-b-2 border-primary transition-colors";
+        tabDomestic.className = "flex-1 py-2 text-sm font-bold text-gray-500 border-b-2 border-transparent transition-colors";
+        contentIntl.classList.remove('hidden');
+        contentDomestic.classList.add('hidden');
+    } else {
+        tabDomestic.className = "flex-1 py-2 text-sm font-bold text-primary border-b-2 border-primary transition-colors";
+        tabIntl.className = "flex-1 py-2 text-sm font-bold text-gray-500 border-b-2 border-transparent transition-colors";
+        contentDomestic.classList.remove('hidden');
+        contentIntl.classList.add('hidden');
+    }
+}
+</script>
+<script src="https://app.lemonsqueezy.com/js/lemon.js" defer></script>
+<script>
+    window.lemonSqueezyAffiliateConfig = { store: "{{ lemon_store_url }}".split('.')[0] };
+</script>
+    {% include 'partials/sales_chat_en.html' %}
+{% endblock %}

@@ -1,0 +1,334 @@
+{% extends 'management/base_admin_en.html' %}
+{% load static humanize %}
+
+{% block title %}Super Admin - Command Center{% endblock %}
+
+{% block admin_content %}
+<div class="space-y-6 pb-16">
+    
+    <!-- Header Command Center - High Tech -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-900 p-8 rounded-[32px] text-white shadow-xl relative overflow-hidden">
+        <div class="relative z-10">
+            <h1 class="text-3xl font-black tracking-tight mb-1">Command Center</h1>
+            <p class="text-slate-400 font-bold uppercase text-[9px] tracking-[4px]">Supreme Control System • Founder Only</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center gap-4 mt-4 md:mt-0 relative z-10">
+            <div class="flex items-center gap-6 mr-6 border-r border-slate-800 pr-6 hidden xl:flex">
+                <div class="text-right">
+                    <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">Status</p>
+                    <div class="flex items-center gap-1.5 mt-0.5 justify-end">
+                        <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-lg shadow-emerald-500/50"></span>
+                        <span class="text-[9px] font-black text-emerald-400 uppercase tracking-tight">Operational</span>
+                    </div>
+                </div>
+                <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50 min-w-[80px]">
+                    <p class="text-[7px] font-black text-slate-500 uppercase mb-0.5">Latency</p>
+                    <p class="text-xs font-black text-white">24ms</p>
+                </div>
+            </div>
+
+            <!-- Date Filter inside Header -->
+            <form method="get" class="flex items-center gap-2 bg-slate-800/40 p-2 rounded-2xl border border-slate-700/50">
+                <input type="date" name="start_date" value="{{ start_date }}" class="bg-transparent text-[10px] font-bold text-slate-300 outline-none w-28">
+                <span class="text-slate-600 text-[10px] font-bold">→</span>
+                <input type="date" name="end_date" value="{{ end_date }}" class="bg-transparent text-[10px] font-bold text-slate-300 outline-none w-28">
+                <button type="submit" class="p-1.5 bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-all">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </button>
+            </form>
+        </div>
+        
+        <!-- Decorative background -->
+        <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-indigo-600/10 rounded-full blur-[100px]"></div>
+        <div class="absolute -left-10 -top-10 w-40 h-40 bg-emerald-600/5 rounded-full blur-[60px]"></div>
+    </div>
+
+    <!-- Master KPIs Row -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Revenue Card -->
+        <div class="bg-white p-6 rounded-[28px] border border-slate-100 shadow-lg shadow-slate-200/20 relative overflow-hidden group border-l-4 border-l-emerald-500">
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 cursor-help border-b border-dashed border-slate-200 w-fit" title="Total actual revenue calculated from all transactions with SUCCESS status.">Accumulated Cash Flow</p>
+            <h3 class="text-2xl font-black text-slate-900 tracking-tight">{{ total_revenue|intcomma }}đ</h3>
+            <div class="flex items-center gap-2 mt-2">
+                <span class="text-[8px] font-black text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded">-{{ total_expenses|intcomma }}đ expenses</span>
+                <span class="text-[8px] font-black text-emerald-600 italic">Net: {{ net_profit|intcomma }}đ</span>
+            </div>
+        </div>
+
+        <!-- Users Card -->
+        <div class="bg-white p-6 rounded-[28px] border border-slate-100 shadow-lg shadow-slate-200/20 relative overflow-hidden group border-l-4 border-l-indigo-500">
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 cursor-help border-b border-dashed border-slate-200 w-fit" title="Total registered users. Paid group includes Advanced and Enterprise tiers.">User Ecosystem</p>
+            <h3 class="text-2xl font-black text-slate-900 tracking-tight">{{ total_users|intcomma }}</h3>
+            <div class="flex items-center gap-2 mt-2">
+                <span class="text-[8px] font-black text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">{{ plus_users|add:premium_users }} Paid</span>
+                <span class="text-[8px] font-black text-emerald-600">+{{ new_users_today }} new today</span>
+            </div>
+        </div>
+
+        <!-- AI Performance -->
+        <div class="bg-white p-6 rounded-[28px] border border-slate-100 shadow-lg shadow-slate-200/20 relative overflow-hidden group border-l-4 border-l-amber-500">
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 cursor-help border-b border-dashed border-slate-200 w-fit" title="Successful AI requests / Total requests. Mirror AI ensures core system stability.">Mirror AI Core</p>
+            <h3 class="text-2xl font-black text-slate-900 tracking-tight">{{ ai_success_rate }}%</h3>
+            <div class="flex items-center gap-2 mt-2">
+                <span class="text-[8px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">{{ total_ai_calls|intcomma }} Total requests</span>
+                <span class="text-[8px] font-black text-slate-400 cursor-help border-b border-dashed border-slate-200" title="Time-To-Value: Average time for AI to process data and return results.">TTV: {{ engagement.avg_ttv|floatformat:1 }}s</span>
+            </div>
+        </div>
+
+        <!-- Data Warehouse -->
+        <div class="bg-white p-6 rounded-[28px] border border-slate-100 shadow-lg shadow-slate-200/20 relative overflow-hidden group border-l-4 border-l-rose-500">
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 cursor-help border-b border-dashed border-slate-200 w-fit" title="Total Datasets and total Rows currently managed and analyzed by AI.">Unified Data</p>
+            <h3 class="text-2xl font-black text-slate-900 tracking-tight">{{ total_datasets|intcomma }}</h3>
+            <div class="flex items-center gap-2 mt-2">
+                <span class="text-[8px] font-black text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">{{ total_rows|intcomma }} Rows</span>
+                <span class="text-[8px] font-black text-slate-400 italic">{{ total_connectors }} Global Sources</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actionable Metrics Grid - NEW -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <!-- Engagement -->
+        <div class="bg-slate-50/50 p-6 rounded-[28px] border border-slate-100 hover:bg-white hover:shadow-xl hover:shadow-indigo-500/5 transition-all group">
+            <div class="flex items-center gap-2 mb-4">
+                <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                </div>
+                <h4 class="text-[10px] font-black text-slate-800 uppercase tracking-widest">Engagement</h4>
+            </div>
+            <div class="space-y-2.5">
+                <div class="flex justify-between items-center">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase cursor-help border-b border-dashed border-slate-200" title="Average number of files uploaded per user (Excel/CSV/Sheets).">Upload Frequency</span>
+                    <span class="text-xs font-black text-slate-900">{{ engagement.avg_uploads|floatformat:2 }}</span>
+                </div>
+                <div class="flex justify-between items-center border-t border-slate-100 pt-2">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase cursor-help border-b border-dashed border-slate-200" title="Average number of AI queries per active user day.">Session Depth</span>
+                    <span class="text-xs font-black text-slate-900">{{ engagement.session_depth|floatformat:1 }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quality -->
+        <div class="bg-slate-50/50 p-6 rounded-[28px] border border-slate-100 hover:bg-white hover:shadow-xl hover:shadow-emerald-500/5 transition-all group">
+            <div class="flex items-center gap-2 mb-4">
+                <div class="p-2 bg-emerald-50 text-emerald-600 rounded-lg group-hover:bg-emerald-600 group-hover:text-white transition-all">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <h4 class="text-[10px] font-black text-slate-800 uppercase tracking-widest">Quality</h4>
+            </div>
+            <div class="space-y-2.5">
+                <div class="flex justify-between items-center">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase cursor-help border-b border-dashed border-slate-200" title="Percentage of users who Save Report or Download Chart after receiving AI results.">Insight Acceptance</span>
+                    <span class="text-xs font-black text-slate-900">{{ quality.acceptance_rate|floatformat:1 }}%</span>
+                </div>
+                <div class="flex justify-between items-center border-t border-slate-100 pt-2 text-rose-600">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase cursor-help border-b border-dashed border-rose-200" title="Percentage of users needing follow-up questions to correct AI results.">Correction Rate</span>
+                    <span class="text-xs font-black">{{ quality.correction_rate|floatformat:1 }}%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Growth -->
+        <div class="bg-slate-50/50 p-6 rounded-[28px] border border-slate-100 hover:bg-white hover:shadow-xl hover:shadow-amber-500/5 transition-all group">
+            <div class="flex items-center gap-2 mb-4">
+                <div class="p-2 bg-amber-50 text-amber-600 rounded-lg group-hover:bg-amber-600 group-hover:text-white transition-all">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                </div>
+                <h4 class="text-[10px] font-black text-slate-800 uppercase tracking-widest">Growth</h4>
+            </div>
+            <div class="space-y-2.5">
+                <div class="flex justify-between items-center">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase cursor-help border-b border-dashed border-slate-200" title="Percentage of users utilizing Share Link or Export features.">Share/Export Rate</span>
+                    <span class="text-xs font-black text-slate-900">{{ growth.share_rate|floatformat:1 }}%</span>
+                </div>
+                <div class="flex justify-between items-center border-t border-slate-100 pt-2">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase cursor-help border-b border-dashed border-slate-200" title="Percentage of returning users who used AI within the last 30 days.">Retention 30d</span>
+                    <span class="text-xs font-black text-slate-900">{{ growth.retention_30d|floatformat:1 }}%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content/Blog -->
+        <div class="bg-slate-50/50 p-6 rounded-[28px] border border-slate-100 hover:bg-white hover:shadow-xl hover:shadow-rose-500/5 transition-all group">
+            <div class="flex items-center gap-2 mb-4">
+                <div class="p-2 bg-rose-50 text-rose-600 rounded-lg group-hover:bg-rose-600 group-hover:text-white transition-all">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l4 4v10a2 2 0 01-2 2z"></path></svg>
+                </div>
+                <h4 class="text-[10px] font-black text-slate-800 uppercase tracking-widest">Content (Blog)</h4>
+            </div>
+            <div class="space-y-2.5">
+                <div class="flex justify-between items-center">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase cursor-help border-b border-dashed border-slate-200" title="Total views of all articles on Mia Blog.">Total Views</span>
+                    <span class="text-xs font-black text-slate-900">{{ total_blog_views|intcomma }}</span>
+                </div>
+                <div class="flex justify-between items-center border-t border-slate-100 pt-2">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase cursor-help border-b border-dashed border-slate-200" title="Average depth users scroll down while reading. Indicates content quality.">Avg Scroll Depth</span>
+                    <span class="text-xs font-black text-slate-900">{{ avg_scroll_depth }}%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secondary Stats & Charts -->
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+        
+        <!-- Trends Chart -->
+        <div class="xl:col-span-2 bg-white p-8 rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/20">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h3 class="text-xs font-black text-slate-900 uppercase tracking-widest">Activity Trend Analytics</h3>
+                    <p class="text-[8px] text-slate-400 font-bold uppercase mt-0.5">Queries & Revenue - Last 7 Days</p>
+                </div>
+                <div class="flex gap-2">
+                    <span class="flex items-center gap-1.5 text-[7px] font-black text-indigo-500 uppercase"><span class="w-1.5 h-1.5 bg-indigo-500 rounded-full"></span> Queries</span>
+                    <span class="flex items-center gap-1.5 text-[7px] font-black text-emerald-500 uppercase"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span> Revenue</span>
+                </div>
+            </div>
+            <div class="h-[240px]">
+                <canvas id="superTrendsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- System & Vouchers -->
+        <div class="space-y-4">
+            <!-- Pipeline Monitoring -->
+            <div class="bg-white rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/20 overflow-hidden">
+                <div class="px-6 py-4 bg-slate-50/50 border-b border-slate-50 flex justify-between items-center">
+                    <h3 class="text-[9px] font-black text-slate-900 uppercase tracking-widest">ETL & DWH Pipeline</h3>
+                    <span class="px-2 py-0.5 bg-emerald-100 text-emerald-600 rounded text-[7px] font-black">{{ pipeline_success_rate|floatformat:1 }}% HEALTH</span>
+                </div>
+                <div class="divide-y divide-slate-50">
+                    {% for log in recent_pipeline_logs|slice:":3" %}
+                    <div class="px-6 py-3 flex justify-between items-center hover:bg-slate-50 transition-all cursor-default">
+                        <div class="flex items-center gap-3">
+                            <div class="w-6 h-6 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            </div>
+                            <div>
+                                <p class="text-[9px] font-black text-slate-800 leading-none">{{ log.workflow.name }}</p>
+                                <p class="text-[7px] text-slate-400 font-bold uppercase mt-1">{{ log.workflow.user.username }}</p>
+                            </div>
+                        </div>
+                        <span class="text-[7px] font-black uppercase {% if log.status == 'SUCCESS' %}text-emerald-500{% else %}text-rose-500{% endif %}">{{ log.get_status_display }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Vouchers & Promos -->
+            <div class="bg-indigo-600 rounded-[32px] p-6 text-white shadow-xl shadow-indigo-200/50 relative overflow-hidden">
+                <div class="relative z-10">
+                    <h3 class="text-[9px] font-black uppercase tracking-widest opacity-60 mb-3">Vouchers & Notifications</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-white/10 p-3 rounded-2xl border border-white/10">
+                            <p class="text-[7px] font-black uppercase mb-1">Active Vouchers</p>
+                            <p class="text-xl font-black">{{ active_vouchers }} <span class="text-[8px] opacity-60">/ {{ total_vouchers }}</span></p>
+                            <p class="text-[7px] mt-1 opacity-80">{{ total_voucher_uses }} uses globally</p>
+                        </div>
+                        <div class="bg-white/10 p-3 rounded-2xl border border-white/10">
+                            <p class="text-[7px] font-black uppercase mb-1">Unread Alerts</p>
+                            <p class="text-xl font-black text-rose-300">{{ unread_notifications }} <span class="text-[8px] opacity-60 text-white">/ {{ total_notifications }}</span></p>
+                            <p class="text-[7px] mt-1 opacity-80">Sent to all users</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="absolute -right-10 -top-10 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Scripts for Charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('superTrendsChart').getContext('2d');
+        
+        // Custom gradient for charts
+        const indigoGradient = ctx.createLinearGradient(0, 0, 0, 400);
+        indigoGradient.addColorStop(0, 'rgba(99, 102, 241, 0.2)');
+        indigoGradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
+        
+        const emeraldGradient = ctx.createLinearGradient(0, 0, 0, 400);
+        emeraldGradient.addColorStop(0, 'rgba(16, 185, 129, 0.2)');
+        emeraldGradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ usage_labels|safe }},
+                datasets: [
+                    {
+                        label: 'Queries',
+                        data: {{ usage_counts|safe }},
+                        borderColor: '#6366f1',
+                        borderWidth: 3,
+                        backgroundColor: indigoGradient,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        pointHoverBackgroundColor: '#6366f1',
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 3,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Revenue',
+                        data: {{ revenue_amounts|safe }},
+                        borderColor: '#10b981',
+                        borderWidth: 3,
+                        backgroundColor: emeraldGradient,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        pointHoverBackgroundColor: '#10b981',
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 3,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index',
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#0f172a',
+                        titleFont: { size: 10, weight: 'bold' },
+                        bodyFont: { size: 10 },
+                        padding: 12,
+                        cornerRadius: 12,
+                        displayColors: false
+                    }
+                },
+                scales: {
+                    y: {
+                        display: false,
+                        beginAtZero: true,
+                    },
+                    y1: {
+                        display: false,
+                        beginAtZero: true,
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            font: { size: 8, weight: 'bold' },
+                            color: '#94a3b8'
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tài liệu hướng dẫn - Mia AI Data Analytics{% endblock %}
+
+{% block content %}
+<div class="bg-white min-h-screen pt-20">
+    <div class="max-w-6xl mx-auto py-20 px-6">
+        <div class="grid lg:grid-cols-12 gap-16">
+            <!-- Sidebar Navigation -->
+            <aside class="lg:col-span-3">
+                <div class="sticky top-32 space-y-10">
+                    <div>
+                        <h5 class="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-6">Bắt đầu nhanh</h5>
+                        <ul class="space-y-4 text-sm font-bold text-slate-500">
+                            <li><a href="#intro" class="hover:text-primary transition-colors block py-1 border-l-2 border-transparent hover:border-primary pl-4">Giới thiệu về Mia</a></li>
+                            <li><a href="#setup" class="hover:text-primary transition-colors block py-1 border-l-2 border-transparent hover:border-primary pl-4">Thiết lập tài khoản</a></li>
+                            <li><a href="#upload" class="hover:text-primary transition-colors block py-1 border-l-2 border-transparent hover:border-primary pl-4">Tải dữ liệu đầu tiên</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h5 class="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-6">Hướng dẫn sử dụng</h5>
+                        <ul class="space-y-4 text-sm font-bold text-slate-500">
+                            <li><a href="#chat" class="hover:text-primary transition-colors block py-1 border-l-2 border-transparent hover:border-primary pl-4">Chat với AI</a></li>
+                            <li><a href="#pipeline" class="hover:text-primary transition-colors block py-1 border-l-2 border-transparent hover:border-primary pl-4">Data Pipeline</a></li>
+                            <li><a href="#charts" class="hover:text-primary transition-colors block py-1 border-l-2 border-transparent hover:border-primary pl-4">Quản lý biểu đồ</a></li>
+                            <li><a href="#export" class="hover:text-primary transition-colors block py-1 border-l-2 border-transparent hover:border-primary pl-4">Xuất báo cáo</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="lg:col-span-9">
+                <header class="mb-16">
+                    <h1 class="text-4xl md:text-6xl font-black text-slate-900 mb-6 tracking-tight">Trung tâm Tài liệu</h1>
+                    <p class="text-xl text-slate-500 leading-relaxed max-w-2xl">Mọi thứ bạn cần biết để làm chủ dữ liệu của mình bằng AI. Từ những bước cơ bản đến các kỹ thuật phân tích nâng cao.</p>
+                </header>
+
+                <div class="prose prose-slate max-w-none prose-lg text-slate-600 leading-relaxed">
+                    <section id="intro" class="scroll-mt-32 mb-20">
+                        <h2 class="text-3xl font-black text-slate-900 mb-8 border-b border-slate-100 pb-4">Giới thiệu về Mia</h2>
+                        <p>Mia AI Data Analytics là trợ lý ảo thông minh được thiết kế để giúp bạn hiểu và khai thác tối đa giá trị từ dữ liệu kinh doanh mà không cần biết code. Chúng tôi sử dụng các mô hình ngôn ngữ lớn (LLM) hiện đại nhất để "đọc hiểu" bảng biểu và trả lời câu hỏi của bạn.</p>
+                        <div class="bg-blue-50 rounded-3xl p-8 my-8 border border-blue-100 flex items-start">
+                            <span class="text-3xl mr-6">💡</span>
+                            <div>
+                                <h4 class="text-blue-900 font-bold mb-2">Mẹo nhỏ:</h4>
+                                <p class="text-blue-800 text-sm mb-0">Bạn có thể hỏi Mia bằng bất kỳ ngôn ngữ nào bạn thích. Mia hỗ trợ hơn 100 ngôn ngữ bao gồm Tiếng Việt, Tiếng Anh, Tiếng Nhật...</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="setup" class="scroll-mt-32 mb-20">
+                        <h2 class="text-3xl font-black text-slate-900 mb-8 border-b border-slate-100 pb-4">Thiết lập tài khoản</h2>
+                        <p>Chỉ mất chưa đầy 30 giây để bắt đầu:</p>
+                        <ol class="space-y-4">
+                            <li>Nhấp vào nút <strong>"Bắt đầu"</strong> trên trang chủ.</li>
+                            <li>Cung cấp email và đặt mật khẩu bảo mật.</li>
+                            <li>Kích hoạt tài khoản qua email gửi đến (nếu được yêu cầu).</li>
+                            <li>Truy cập vào Dashboard để bắt đầu trải nghiệm.</li>
+                        </ol>
+                    </section>
+
+                    <section id="upload" class="scroll-mt-32 mb-20">
+                        <h2 class="text-3xl font-black text-slate-900 mb-8 border-b border-slate-100 pb-4">Tải dữ liệu đầu tiên</h2>
+                        <p>Mia hỗ trợ các định dạng tệp phổ biến nhất:</p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-8">
+                            <div class="p-6 bg-slate-50 rounded-2xl text-center">
+                                <div class="text-2xl font-bold text-primary mb-2">Excel</div>
+                                <div class="text-xs text-slate-400">.xlsx, .xls</div>
+                            </div>
+                            <div class="p-6 bg-slate-50 rounded-2xl text-center">
+                                <div class="text-2xl font-bold text-primary mb-2">CSV</div>
+                                <div class="text-xs text-slate-400">Dấu phẩy/Dấu chấm phẩy</div>
+                            </div>
+                            <div class="p-6 bg-slate-50 rounded-2xl text-center">
+                                <div class="text-2xl font-bold text-primary mb-2">SQL</div>
+                                <div class="text-xs text-slate-400">Kết nối trực tiếp</div>
+                            </div>
+                        </div>
+                        <p>Tại mục <strong>"Phân tích dữ liệu"</strong>, bạn chỉ cần kéo thả file vào vùng tải lên. Mia sẽ ngay lập tức phân loại các cột dữ liệu (Ngày tháng, Tiền tệ, Phân loại...) để chuẩn bị cho việc chat.</p>
+                    </section>
+
+                    <section id="chat" class="scroll-mt-32 mb-20">
+                        <h2 class="text-3xl font-black text-slate-900 mb-8 border-b border-slate-100 pb-4">Chat với AI</h2>
+                        <p>Thay vì viết công thức phức tạp, hãy hỏi như đang nói chuyện với đồng nghiệp:</p>
+                        <div class="space-y-4 my-8">
+                            <div class="p-4 bg-slate-50 rounded-2xl border-l-4 border-primary">
+                                <p class="text-sm font-bold mb-1 text-slate-400">Bạn hỏi:</p>
+                                <p class="text-slate-900 font-medium">"Cho tôi biết tổng doanh thu theo từng tháng trong năm 2023 và hiển thị dưới dạng biểu đồ đường."</p>
+                            </div>
+                            <div class="p-4 bg-primary/5 rounded-2xl border-l-4 border-primary">
+                                <p class="text-sm font-bold mb-1 text-primary">Mia đáp:</p>
+                                <p class="text-slate-700">"Chắc chắn rồi. Tổng doanh thu năm 2023 là 2.5 tỷ VNĐ. Dưới đây là biểu đồ chi tiết từng tháng..."</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="pipeline" class="scroll-mt-32 mb-20">
+                        <h2 class="text-3xl font-black text-slate-900 mb-8 border-b border-slate-100 pb-4">Data Pipeline (Luồng dữ liệu)</h2>
+                        <p>Quản lý tập trung các nguồn dữ liệu của bạn để cung cấp thông tin thống nhất cho AI và Dashboard:</p>
+                        <ul class="space-y-4 my-8 list-disc pl-6">
+                            <li><strong>Đa nguồn dữ liệu:</strong> Kết nối và hợp nhất nhiều bộ dữ liệu (dataset) khác nhau vào cùng một hệ thống.</li>
+                            <li><strong>Xử lý và làm sạch:</strong> Tự động chuẩn hóa các định dạng dữ liệu (ngày tháng, số liệu, văn bản) trước khi đưa vào phân tích.</li>
+                            <li><strong>Đồng bộ tự động:</strong> Cập nhật dữ liệu theo thời gian thực hoặc theo lịch trình thiết lập sẵn, đảm bảo báo cáo luôn phản ánh dữ liệu mới nhất.</li>
+                        </ul>
+                    </section>
+
+                    <section id="charts" class="scroll-mt-32 mb-20">
+                        <h2 class="text-3xl font-black text-slate-900 mb-8 border-b border-slate-100 pb-4">Quản lý biểu đồ (Dashboard Builder)</h2>
+                        <p>Mia cung cấp công cụ <strong>Visual Dashboard Builder</strong> chuyên nghiệp giúp bạn xây dựng các bảng điều khiển tùy chỉnh:</p>
+                        <ul class="space-y-4 my-8 list-disc pl-6">
+                            <li><strong>Kéo thả dễ dàng:</strong> Tạo và sắp xếp các widget biểu đồ (Thẻ, Bảng, Biểu đồ phân tán, Biểu đồ tần suất) một cách trực quan.</li>
+                            <li><strong>Bộ lọc thời gian toàn cục:</strong> Áp dụng bộ lọc thời gian để cập nhật đồng bộ tất cả các biểu đồ trên dashboard.</li>
+                            <li><strong>Tùy chỉnh linh hoạt:</strong> Thay đổi nguồn dữ liệu, hàm tổng hợp và loại biểu đồ trực tiếp trên giao diện.</li>
+                        </ul>
+                        <div class="bg-amber-50 rounded-3xl p-8 my-8 border border-amber-100 flex items-start">
+                            <span class="text-3xl mr-6">⭐</span>
+                            <div>
+                                <h4 class="text-amber-900 font-bold mb-2">Giới hạn tài khoản:</h4>
+                                <p class="text-amber-800 text-sm mb-0">Tài khoản <strong>Free</strong> và <strong>Plus</strong> sẽ có giới hạn về số lượng Dashboard và Widget. Hãy nâng cấp để trải nghiệm không giới hạn!</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="export" class="scroll-mt-32 mb-20">
+                        <h2 class="text-3xl font-black text-slate-900 mb-8 border-b border-slate-100 pb-4">Xuất báo cáo</h2>
+                        <p>Chia sẻ và trình bày dữ liệu của bạn một cách chuyên nghiệp với các tính năng xuất báo cáo nâng cao:</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
+                            <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                                <div class="text-xl font-bold text-slate-900 mb-3">Xuất PDF (Landscape)</div>
+                                <p class="text-sm text-slate-600">Lưu dashboard dưới dạng tài liệu PDF chất lượng cao, định dạng ngang chuẩn báo cáo, hỗ trợ phân trang tự động cho các bố cục dài.</p>
+                            </div>
+                            <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                                <div class="text-xl font-bold text-slate-900 mb-3">Looker Studio Bridge</div>
+                                <p class="text-sm text-slate-600">Xuất dữ liệu trực tiếp sang Google Looker Studio để tùy biến các báo cáo cao cấp và chuyên nghiệp hơn nữa.</p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+                
+                <div class="mt-24 pt-12 border-t border-slate-100 flex justify-between items-center">
+                    <p class="text-slate-400 text-sm">Bạn vẫn còn thắc mắc?</p>
+                    <a href="mailto:tahoanganhtuan1996@gmail.com" class="px-8 py-3 bg-dark text-white rounded-full font-bold text-sm hover:bg-slate-800 transition-all">Gửi yêu cầu hỗ trợ</a>
+                </div>
+            </main>
+        </div>
+    </div>
+</div>
+    {% include 'partials/sales_chat.html' %}
+{% endblock %}

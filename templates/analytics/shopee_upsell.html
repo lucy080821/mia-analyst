@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="card border-0 shadow-lg p-5" style="background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border-radius: 24px;">
+                <div class="mb-4">
+                    <div class="mb-4 d-inline-block p-3 rounded-circle" style="background: linear-gradient(135deg, #FF4D00, #FF8C00);">
+                        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="white"/>
+                        </svg>
+                    </div>
+                    <h1 class="fw-bold mb-3" style="color: #333;">Nâng cấp để mở khóa</h1>
+                    <p class="lead text-muted mb-5">
+                        Tính năng **Đồng bộ hóa Shopee tự động** chỉ dành riêng cho người dùng các gói <strong>Nâng cao</strong> và <strong>Doanh nghiệp</strong>. 
+                        Nâng cấp ngay để tận hưởng khả năng phân tích dữ liệu bán hàng chuyên sâu từ AI.
+                    </p>
+                </div>
+
+                <div class="row g-4 mb-5">
+                    <div class="col-md-6">
+                        <div class="p-4 border rounded-4 h-100 transition-all hover-shadow" style="background: white;">
+                            <h3 class="fw-bold">Gói Nâng cao</h3>
+                            <p class="text-primary fs-4 fw-bold">199k <small class="text-muted">/tháng</small></p>
+                            <ul class="list-unstyled text-start small mb-4">
+                                <li class="mb-2">✅ Tích hợp 1 Shop Shopee</li>
+                                <li class="mb-2">✅ Đồng bộ dữ liệu hàng ngày</li>
+                                <li class="mb-2">✅ 500 lượt hỏi AI / tháng</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-4 border rounded-4 h-100 transition-all hover-shadow" style="background: #f8f9fa; border: 2px solid #FF4D00 !important;">
+                            <div class="badge bg-warning text-dark mb-2">Phổ biến nhất</div>
+                            <h3 class="fw-bold">Gói Doanh nghiệp</h3>
+                            <p class="text-primary fs-4 fw-bold">499k <small class="text-muted">/tháng</small></p>
+                            <ul class="list-unstyled text-start small mb-4">
+                                <li class="mb-2">✅ Không giới hạn Shop Shopee</li>
+                                <li class="mb-2">✅ Đồng bộ thời gian thực</li>
+                                <li class="mb-2">✅ AI tư vấn chiến lược chuyên sâu</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+                    <a href="/pricing/" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-sm" style="background: linear-gradient(135deg, #FF4D00, #FF8C00); border: none;">
+                        Nâng cấp ngay
+                    </a>
+                    <a href="{% url 'analytics_dashboard' %}" class="btn btn-outline-secondary btn-lg px-5 py-3 rounded-pill">
+                        Quay lại Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .transition-all { transition: all 0.3s ease; }
+    .hover-shadow:hover { transform: translateY(-5px); box-shadow: 0 1rem 3rem rgba(0,0,0,.175)!important; }
+</style>
+{% endblock %}

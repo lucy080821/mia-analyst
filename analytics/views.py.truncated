@@ -1,0 +1,484 @@
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+from .services import TieredAnalyticsService
+from django.db import connection
+import json
+import os
+import sqlite3
+import decimal
+import pandas as pd
+from io import BytesIO
+from .shopee_sync import fetch_shopee_orders, convert_to_dataframe
+from datetime import datetime, date
+# Import thư viện Gemini API (cần pip install google-generativeai)
+# Import thư viện Gemini API (cần pip install google-generativeai)
+import google.genai as genai
+from management.models import AIUsageLog
+
+# Helper function: Convert datetime objects to string for JSON serialization
+def serialize_for_json(obj):
+    """Chuyển đổi datetime/date thành string, giữ nguyên các loại dữ liệu khác"""
+    if isinstance(obj, (datetime, date)):
+        return obj.isoformat()
+    return obj
+
+def convert_data_to_serializable(data):
+    """Convert toàn bộ list of dicts, chuyển datetime thành string"""
+    return [
+        {k: serialize_for_json(v) for k, v in row.items()}
+        for row in data
+    ]
+
+@login_required
+def dashboard(request):
+    return render(request, 'analytics/dashboard.html')
+
+@csrf_exempt
+def ai_chat_api(request):
+    """
+    View xử lý Chat AI:
+    1. Nhận câu hỏi
+    2. Trích xuất Schema
+    3. Gửi Gemini API để lấy SQL
+    4. Chạy lệnh SQL tại SQLite
+    5. Trả về dạng JSON (table/text)
+    """
+    if request.method == "POST":
+        try:
+            body = json.loads(request.body)
+            question = body.get("message", "")
+            table_name = body.get("table", "temp_shopee_orders")  # Bảng mặc định
+            conversation_context = body.get("context", [])
+
+            context_text = ""
+            if isinstance(conversation_context, list) and conversation_context:
+                lines = []
+                for item in conversation_context:
+                    role = item.get('role', '').capitalize()
+                    content = item.get('content', '')
+                    if role and content:
+                        lines.append(f"{role}: {content}")
+                if lines:
+                    context_text = "Lịch sử trò chuyện trước đó:\n" + "\n".join(lines) + "\n\n"
+
+            # Bảo mật: chỉ cho phép tên bảng tạm nội bộ (uploaded_* hoặc temp_shopee_orders/shopee_orders_*)
+            if not (table_name.startswith('uploaded_') or table_name == 'temp_shopee_orders' or table_name.startswith('shopee_orders_')):
+                return JsonResponse({"error": "Tên bảng không hợp lệ hoặc không được phép truy cập."}, status=403)
+            
+            # --- 1. Trích xuất Schema và cấu trúc bảng từ SQLite ---
+            schema_info = ""
+            column_info = []
+            with connection.cursor() as cursor:
+                # Lấy câu lệnh CREATE TABLE của SQLite
+                cursor.execute(f"SELECT sql FROM sqlite_master WHERE type='table' AND name='{table_name}';")
+                row = cursor.fetchone()
+                if row:
+                    schema_info = row[0]
+                else:
+                    return JsonResponse({"error": f"Không tìm thấy bảng '{table_name}' trong CSDL."}, status=400)
+
+                # Lấy danh sách cột chi tiết
+                cursor.execute(f"PRAGMA table_info('{table_name}')")
+                for col in cursor.fetchall():
+                    column_info.append({"name": col[1], "type": col[2]})
+            
+            # --- 2. Gửi Schema + Câu hỏi cho Gemini API ---
+            if not schema_info:
+                return JsonResponse({"error": f"Không thể trích xuất schema từ bảng '{table_name}'. Bảng có thể không tồn tại hoặc bị hỏng."}, status=400)
+            
+            prompt = f"""
+            Bạn là một chuyên gia Data Analyst & SQL. Dưới đây là cấu trúc bảng (schema) SQLite của tôi:
+            {schema_info}
+
+            Danh sách cột:
+            {json.dumps(column_info, ensure_ascii=False, indent=2)}
+
+            {context_text}
+
+            Dựa trên cấu trúc cột và dữ liệu, hãy viết MỘT CÂU LỆNH SQL DUY NHẤT để trả lời yêu cầu sau.
+            Chỉ trả về mã SQL chuẩn, không giải thích, không bọc trong markdown (```sql ... ```).
+            Nếu không rõ cấu trúc, vẫn trả về một lệnh SELECT hợp lệ từ bảng.
+            Không trả lời bằng các từ 'KHÔNG THỂ'.
+
+            Lưu ý: Kết quả định dạng báo cáo cuối cùng không được có markdown (**, ##, ###), chỉ dùng text thông thường có tiêu đề rõ ràng.
+
+            Câu hỏi: "{question}"
+            """
+            
+            try:
+                # Đoạn code sử dụng Gemini API thật (cần cung cấp API_KEY thực tế):
+                genai.configure(api_key="AIzaSyCnjMty4wBesIFNSy5Wu9z1PeUFNykpLcI")
+                model = genai.GenerativeModel('gemini-2.5-flash')
+                response = model.generate_content(prompt)
+                generated_sql = response.text.strip() if response.text else ""
+                
+                if not generated_sql:
+                    return JsonResponse({"error": "Gemini API không trả về kết quả. Vui lòng thử lại."}, status=500)
+            except Exception as api_error:
+                AIUsageLog.objects.create(
+                    user=request.user,
+                    model_name='gemini-2.5-flash',
+                    status='ERROR',
+                    error_message=str(api_error)
+                )
+                return JsonResponse({"error": f"Lỗi kết nối Gemini API: {str(api_error)}"}, status=500)
+            
+            # Log successful AI call
+            AIUsageLog.objects.create(
+                user=request.user,
+                model_name='gemini-2.5-flash',
+                status='SUCCESS',
+                total_tokens=len(prompt) // 4  # Rough estimation
+            )
+        
+            
+            if "KHÔNG THỂ" in generated_sql.upper() or len(generated_sql) < 10:
+                # Fallback khi AI chưa chuyển được rõ ràng, vẫn hiển thị dữ liệu tối thiểu
+                generated_sql = f"SELECT * FROM {table_name} LIMIT 100"
+                fallback_note = "⚠️ Lưu ý: AI không sinh được SQL chính xác, dùng truy vấn fallback."  # we can use it in phần giải thích
+            else:
+                fallback_note = ""
+
+            # Đảm bảo lệnh sạch sẽ (phòng trường hợp AI vẫn tự thêm thẻ markdown)
+            generated_sql = generated_sql.replace("```sql", "").replace("```", "").strip()
+            
+            # --- 3. Thực thi SQL ở Local DB ---
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute(generated_sql)
+                    columns = [col[0] for col in cursor.description] if cursor.description else []
+                    rows = cursor.fetchall()
+                    data = [dict(zip(columns, row)) for row in rows]
+            except Exception as sql_error:
+                return JsonResponse({
+                    "error": f"Lỗi thực thi SQL: {str(sql_error)}. Câu SQL được sinh: {generated_sql[:200]}..."
+                }, status=500)
+            
+            # Convert datetime objects / decimal objects để JSON serialize được
+            data = convert_data_to_serializable(data)
+            
+            # --- 4. Phân tích dữ liệu và tạo insight ---
+            if len(data) == 0:
+                answer = "Truy vấn thành công nhưng không có kết quả phù hợp. Dữ liệu bản có thể không chứa thông tin liên quan."
+                return JsonResponse({"reply": answer, "type": "text", "sql": generated_sql})
+            
+            # Tính toán thống kê cơ bản cho các cột số
+            stats = {}
+            for col in columns:
+                try:
+                    values = [row[col] for row in data if row[col] is not None and isinstance(row[col], (int, float, decimal.Decimal))]
+                    if values:
+                        stats[col] = {
+                            "count": len(values),
+                            "sum": float(sum(values)),
+                            "avg": float(sum(values) / len(values)),
+                            "min": float(min(values)),
+                            "max": float(max(values))
+                        }
+                except Exception:
+                    pass
+
+            # Chuẩn bị dữ liệu cho phân tích nội bộ
+            data_summary = {
+                "question": question,
+                "sql": generated_sql,
+                "columns": columns,
+                "row_count": len(data),
+                "statistics": stats,
+                "sample_data": data[:5],
+                "all_data": data
+            }
+
+            def local_analysis_fallback(summary):
+                base = []
+                base.append(f"Qua kết quả truy vấn, tìm thấy {summary['row_count']} dòng dữ liệu.")
+                if summary['statistics']:
+                    base.append("Thống kê các cột số:")
+                    for c, s in summary['statistics'].items():
+                        base.append(f"- {c}: count={s['count']}, min={s['min']}, max={s['max']}, avg={s['avg']:.2f}")
+                else:
+                    base.append("Không tìm thấy cột số để tính toán thống kê cụ thể.")
+
+                # 1-2 insights đơn giản từ dữ liệu sample
+                if summary['sample_data']:
+                    row0 = summary['sample_data'][0]
+                    base.append("Dữ liệu mẫu hàng đầu:")
+                    sample_items = ", ".join([f"{k}={v}" for k, v in list(row0.items())[:3]])
+                    base.append(f"- {sample_items}")
+                return "\n".join(base)
+            
+            # Câu prompt để AI phân tích dữ liệu CHUYÊN SÂU
+            stats_text = ""
+            if stats:
+                stats_text = "\n\n📈 THỐNG KÊ CÁC CỘT SỐ:\n"
+                for col, stat in stats.items():
+                    stats_text += f"\n{col}:\n"
+                    stats_text += f"  - Tổng: {stat.get('sum', 'N/A')}\n"
+                    try:
+                        avg_val = float(stat.get('avg', 0))
+                        stats_text += f"  - Trung bình: {avg_val:.2f}\n"
+                    except:
+                        stats_text += f"  - Trung bình: N/A\n"
+                    stats_text += f"  - Min: {stat.get('min', 'N/A')}\n"
+                    stats_text += f"  - Max: {stat.get('max', 'N/A')}\n"
+                    stats_text += f"  - Số giá trị hợp lệ: {stat.get('count', 'N/A')}\n"
+            
+            analysis_prompt = f"""
+Bạn là một Data Analyst & Business Consultant chuyên nghiệp. Người dùng đặt câu hỏi: "{question}"
+
+{context_text}
+
+Kết quả truy vấn SQL:
+- Số dòng: {len(data)}
+- Cột: {', '.join(columns)}{stats_text}
+
+DỮ LIỆU CHI TIẾT:
+{json.dumps(data, ensure_ascii=False, indent=2)}
+
+📋 HƯỚNG DẪN PHÂN TÍCH CHI TIẾT (Chỉ tập trung vào báo cáo dữ liệu; không đưa khuyến nghị / lời khuyên cá nhân):
+
+Yêu cầu: Trả lời dạng markdown chuyên nghiệp với cấu trúc sau:
+
+## Tiêu đề báo cáo
+### 1. Tổng quan
+- Tóm tắt ngắn gọn (1-2 câu).
+
+### 2. Số liệu chính
+- List số liệu dạng bullet (tính toán được từ dữ liệu, không thêm khuyến nghị).
+
+### 3. Insight kỹ thuật
+- Pattern/Xu hướng/Anomaly dựa trên dữ liệu.
+
+### 4. Cảnh báo dữ liệu
+- Hạn chế dữ liệu / giá trị thiếu / nghi ngờ.
+
+### 5. (Không cần khuyến nghị)
+- Không đưa phần khuyến nghị điều hành.
+
+---
+
+📌 FORMAT PHẢN HỒI (bắt buộc sử dụng):
+
+**🎯 TRỰC TIẾP TRẢ LỜI:**
+[Câu trả lời ngắn gọn, rõ ràng cho câu hỏi]
+
+**📊 SỐ LIỆU CHÍNH:**
+- [Metric 1]: [Giá trị] ([Giải thích ý nghĩa])
+- [Metric 2]: [Giá trị] ([Giải thích ý nghĩa])
+- [Metric 3]: [Giá trị] ([Giải thích ý nghĩa])
+
+**💡 INSIGHT QUAN TRỌNG:**
+- [Insight 1 - Cụ thể, có số liệu]
+- [Insight 2 - Cụ thể, có số liệu]
+- [Insight 3 - Cụ thể, có số liệu]
+- [Insight 4 nếu có - Cụ thể, có số liệu]
+
+**⚠️ LƯU Ý / CẢNH BÁO** (nếu có):
+[Nếu không có, ghi "Không có anormal"]
+
+---
+
+⚡ YÊU CẦU BẮT BUỘC:
+- Viết BẰNG TIẾNG VIỆT, dễ hiểu
+- Mỗi insight phải CÓ SỐ LIỆU CỤ THỂ hoặc ví dụ
+- Tránh đưa khuyến nghị hoặc lời khuyên hành động
+- Trừu tượng ít nhất, CỤ TIỂU NHẤT CÓ THỂ
+- Giải thích "TẠI SAO" không chỉ "LÀ CÁI GÌ"
+"""
+            
+            explanation = None
+            try:
+                # Gọi Gemini để phân tích dữ liệu
+                analysis_response = model.generate_content(analysis_prompt)
+                explanation = analysis_response.text.strip() if analysis_response.text else None
+                if not explanation:
+                    explanation = "Gemini trả về rỗng. Chuyển sang phân tích nội bộ."
+            except Exception as analysis_error:
+                # Fallback lên local analysis để tránh lỗi kết nối API làm gián đoạn toàn bộ feature
+                print(f"DEBUG: Gemini fallback due to: {analysis_error}")
+                explanation = f"Gemini API không khả dụng ({str(analysis_error)}). Đang dùng phân tích nội bộ dự phòng.\n\n{local_analysis_fallback(data_summary)}"
+
+            if explanation and explanation.startswith('Gemini API không khả dụng'):
+                # đã dùng fallback local
+                pass
+            else:
+                # nếu Gemini dùng được nhưng trả maybe error hay markdown thì không sao
+                explanation = explanation or local_analysis_fallback(data_summary)
+
+            # --- 5. Trả kết quả về Frontend ---
+            final_reply = f"{fallback_note}\n{explanation}".strip() if fallback_note else explanation
+            return JsonResponse({
+                "reply": final_reply,
+                "type": "table",
+                "data": data,
+                "columns": columns,
+                "sql": generated_sql,
+                "summary": {
+                    "question": question,
+                    "row_count": len(data)
+                }
+            })
+                
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+            
+    return JsonResponse({"error": "Method not allowed"}, status=405)
+
+@csrf_exempt
+def upload_excel(request):
+    """
+    API Upload File Excel:
+    1. Nhận file từ Frontend
+    2. Đọc bằng Pandas
+    3. Lưu vào SQLite tạm theo table name unique
+    4. Không để lại file gốc và không để dữ liệu cố định lâu.
+    """
+    if request.method == "POST" and request.FILES.get('file'):
+        conn = None
+        try:
+            excel_file = request.FILES['file']
+            filename = excel_file.name.lower()
+            if not filename.endswith(('.xlsx', '.xls', '.csv')):
+                return JsonResponse({"error": "Chỉ hỗ trợ file .xlsx/.xls/.csv"}, status=400)
+
+            # Đọc dữ liệu từ memory (BytesIO) để tránh file lock issues hoàn toàn
+            try:
+                try:
+                    raw_bytes = excel_file.read()
+                except (OSError, IOError) as io_err:
+                    print(f"DEBUG: IO error reading file: {str(io_err)}")
+                    return JsonResponse({"error": "Không thể đọc file. File có thể bị khóa hoặc hỏng. Hãy thử lại."}, status=409)
+                
+                if filename.endswith('.csv'):
+                    df = pd.read_csv(BytesIO(raw_bytes))
+                else:
+                    df = pd.read_excel(BytesIO(raw_bytes))
+            except (PermissionError, OSError) as read_err:
+                print(f"DEBUG: PermissionError/OSError: {str(read_err)}")
+                if 'in use' in str(read_err).lower() or 'permission denied' in str(read_err).lower():
+                    return JsonResponse({"error": "File đang được mở bởi chương trình khác hoặc bị khóa. Hãy đóng file và thử lại."}, status=409)
+                return JsonResponse({"error": f"Lỗi đọc file: {str(read_err)}"}, status=500)
+            except pd.errors.EmptyDataError:
+                return JsonResponse({"error": "File dữ liệu rỗng. Vui lòng kiểm tra lại."}, status=400)
+            except Exception as parse_err:
+                print(f"DEBUG: Parse error: {str(parse_err)}")
+                return JsonResponse({"error": f"Lỗi phân tích dữ liệu file: {str(parse_err)}"}, status=500)
+
+            # Chuẩn hóa cột
+            def normalize_column_name(col):
+                col = str(col).strip()
+                col = col.replace(' ', '_')
+                col = ''.join(c if c.isalnum() or c in '_-' else '' for c in col)
+                col = col.strip('_-')
+                return col if col else 'column_unknown'
+
+            df.columns = [normalize_column_name(col) for col in df.columns]
+
+            # Tạo table name ngẫu nhiên theo session, chỉ cho phép truy vấn nội bộ
+            import uuid
+            table_name = f"uploaded_{uuid.uuid4().hex[:12]}"
+
+            db_path = connection.settings_dict['NAME']
+            conn = sqlite3.connect(db_path)
+            df.to_sql(name=table_name, con=conn, if_exists="replace", index=False)
+
+            return JsonResponse({
+                "message": "Upload thành công!",
+                "table": table_name,
+                "rows": len(df),
+                "columns": list(df.columns)
+            })
+
+        except Exception as e:
+            return JsonResponse({"error": f"Lỗi xử lý file: {str(e)}"}, status=500)
+
+        finally:
+            if conn is not None:
+                conn.close()
+
+    return JsonResponse({"error": "Vui lòng chọn file hợp lệ"}, status=400)
+
+@csrf_exempt
+def sync_shopee_api(request):
+    """
+    API đồng bộ dữ liệu Shopee bằng thông tin người dùng nhập.
+    """
+    if request.method == "POST":
+        try:
+            body = json.loads(request.body)
+            partner_id = body.get('partner_id')
+            shop_id = body.get('shop_id')
+            access_token = body.get('access_token')
+            
+            if not partner_id or not shop_id or not access_token:
+                return JsonResponse({"error": "Vui lòng nhập đầy đủ thông tin API Shopee."}, status=400)
+                
+            # Fetch data (gọi hàm bạn đã có ở shopee_sync)
+            orders_data = fetch_shopee_orders(partner_id, shop_id, access_token)
+            
+            if not orders_data:
+                return JsonResponse({"error": "Không lấy được dữ liệu. Hãy kiểm tra lại API Key."}, status=400)
+                
+            # Đưa qua dataframe
+            df = convert_to_dataframe(orders_data)
+            
+            # Đặt tên bảng dựa trên shop id để "cá nhân hóa"
+            table_name = f"shopee_orders_{shop_id}"
+            
+            # Lưu CSDL
+            db_path = connection.settings_dict['NAME']
+            conn = sqlite3.connect(db_path)
+            df.to_sql(name=table_name, con=conn, if_exists="replace", index=False)
+            conn.close()
+            
+            return JsonResponse({
+                "message": "Đồng bộ API Shopee thành công!",
+                "table": table_name,
+                "rows": len(df)
+            })
+            
+        except Exception as e:
+            return JsonResponse({"error": f"Lỗi đồng bộ: {str(e)}"}, status=500)
+            
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+
+@login_required
+@csrf_exempt
+def process_tiered_data(request):
+    """
+    View xử lý dữ liệu theo tầng (Tự động lấy theo tài khoản: FREE/PLUS/PREMIUM).
+    """
+    if request.method == 'POST':
+        try:
+            # Tự động lấy Tier từ Profile người dùng
+            user_profile = getattr(request.user, 'userprofile', None)
+            tier = user_profile.tier if user_profile else 'FREE'
+            
+            files = request.FILES.getlist('files')
+            
+            if not files:
+                return JsonResponse({"error": "Chưa tải file lên."}, status=400)
+
+            dfs = []
+            for f in files:
+                df = TieredAnalyticsService.get_df_from_file(f.read(), f.name)
+                dfs.append(df)
+            
+            if tier == 'FREE':
+                result = TieredAnalyticsService.analyze_basic(dfs[0])
+            elif tier == 'PLUS':
+                result = TieredAnalyticsService.analyze_professional(dfs[0])
+            elif tier == 'PREMIUM':
+                result = TieredAnalyticsService.analyze_enterprise(dfs)
+            else:
+                result = {"error": "Gói dịch vụ không hợp lệ"}
+
+            TieredAnalyticsService.cleanup()
+            return JsonResponse(result)
+        except Exception as e:
+            return JsonResponse({"error": f"Lỗi xử lý: {str(e)}"}, status=500)
+    return JsonResponse({"error": "Chỉ chấp nhận phương thức POST"}, status=405)

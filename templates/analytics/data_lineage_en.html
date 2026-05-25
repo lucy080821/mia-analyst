@@ -1,0 +1,83 @@
+{% extends 'base_en.html' %}
+{% block title %}Data Lineage - Mia Analyst{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800">Data Lineage Diagram</h1>
+            <p class="text-sm text-slate-500 mt-1">Track the flow of data from Connectors through cleaning and aggregation steps.</p>
+        </div>
+        <button onclick="window.history.back()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition-colors">
+            Back to Dashboard
+        </button>
+    </div>
+
+    <!-- Overview Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <p class="text-xs text-slate-500 font-bold uppercase">Active Connectors</p>
+            <p class="text-2xl font-black text-indigo-600 mt-1">5</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <p class="text-xs text-slate-500 font-bold uppercase">Raw Tables (Bronze)</p>
+            <p class="text-2xl font-black text-amber-600 mt-1">12</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <p class="text-xs text-slate-500 font-bold uppercase">Clean Tables (Silver)</p>
+            <p class="text-2xl font-black text-slate-600 mt-1">8</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <p class="text-xs text-slate-500 font-bold uppercase">Report Tables (Gold)</p>
+            <p class="text-2xl font-black text-emerald-600 mt-1">3</p>
+        </div>
+    </div>
+
+    <!-- Data Lineage Visualization using Mermaid.js -->
+    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
+        <h2 class="text-lg font-bold text-slate-800 mb-4">Current ELT Automation Pipeline</h2>
+        
+        <div class="mermaid flex justify-center">
+            graph LR
+                classDef source fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#92400e;
+                classDef raw fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#075985;
+                classDef staging fill:#f3f4f6,stroke:#4b5563,stroke-width:2px,color:#1f2937;
+                classDef gold fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#166534;
+                
+                FB["API Facebook Ads"]:::source
+                KV["API KiotViet"]:::source
+                GS["Google Sheet"]:::source
+                
+                R_FB["raw_fb_ads"]:::raw
+                R_KV["raw_kv_orders"]:::raw
+                R_GS["raw_gs_targets"]:::raw
+                
+                S_FB["stg_fb_ads"]:::staging
+                S_KV["stg_kv_orders"]:::staging
+                S_GS["stg_gs_targets"]:::staging
+                
+                G_ROI["mart_daily_roi"]:::gold
+                G_REV["mart_revenue_tracking"]:::gold
+                
+                FB --> R_FB
+                KV --> R_KV
+                GS --> R_GS
+                
+                R_FB --> S_FB
+                R_KV --> S_KV
+                R_GS --> S_GS
+                
+                S_FB --> G_ROI
+                S_KV --> G_ROI
+                
+                S_KV --> G_REV
+                S_GS --> G_REV
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'base' });
+</script>
+{% endblock %}

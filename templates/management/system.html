@@ -1,0 +1,122 @@
+{% extends 'management/base_admin.html' %}
+{% load static humanize %}
+
+{% block admin_content %}
+<div class="space-y-10 pb-20">
+    <div class="flex justify-between items-center bg-slate-900 p-8 rounded-[32px] text-white shadow-2xl relative overflow-hidden">
+        <div class="relative z-10">
+            <h1 class="text-3xl font-black tracking-tight">Hệ Thống Dữ Liệu</h1>
+            <p class="text-slate-400 font-bold uppercase text-[10px] tracking-[4px] mt-2">Giám sát Connectors & Workflows toàn cục</p>
+        </div>
+        <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-indigo-500/20 rounded-full blur-[80px]"></div>
+    </div>
+
+    <!-- Connectors Section -->
+    <div class="bg-white p-8 rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40">
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight flex items-center gap-3">
+                <div class="w-2 h-8 bg-indigo-600 rounded-full"></div>
+                Tất cả Connectors ({{ connectors|length }})
+            </h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                        <th class="pb-4">Loại</th>
+                        <th class="pb-4">Tên Connector</th>
+                        <th class="pb-4">Chủ sở hữu</th>
+                        <th class="pb-4 text-right">Ngày tạo</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    {% for conn in connectors %}
+                    <tr class="group hover:bg-slate-50/50 transition-all">
+                        <td class="py-5">
+                            <span class="px-3 py-1 bg-slate-100 text-slate-600 text-[9px] font-black rounded-lg uppercase">
+                                {% if conn.host %}Database{% else %}API{% endif %}
+                            </span>
+                        </td>
+                        <td class="py-5">
+                            <p class="text-sm font-black text-slate-800">{{ conn.name }}</p>
+                            <p class="text-[10px] text-slate-400 font-bold">
+                                {% if conn.host %}{{ conn.host }}{% else %}{{ conn.platform }}{% endif %}
+                            </p>
+                        </td>
+                        <td class="py-5">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-black flex items-center justify-center">
+                                    {{ conn.user.username|first|upper }}
+                                </div>
+                                <p class="text-xs font-bold text-slate-500">{{ conn.user.username }}</p>
+                            </div>
+                        </td>
+                        <td class="py-5 text-right">
+                            <p class="text-[10px] text-slate-400 font-bold">{{ conn.created_at|date:"d/m/Y" }}</p>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="py-10 text-center text-slate-300 italic font-bold uppercase text-[10px]">Chưa có connector nào</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Workflows Section -->
+    <div class="bg-white p-8 rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40">
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight flex items-center gap-3">
+                <div class="w-2 h-8 bg-rose-600 rounded-full"></div>
+                Tất cả Workflows ({{ workflows|length }})
+            </h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                        <th class="pb-4">Workflow Name</th>
+                        <th class="pb-4">Chủ sở hữu</th>
+                        <th class="pb-4">Lịch trình</th>
+                        <th class="pb-4 text-right">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    {% for wf in workflows %}
+                    <tr class="group hover:bg-slate-50/50 transition-all">
+                        <td class="py-5">
+                            <p class="text-sm font-black text-slate-800">{{ wf.name }}</p>
+                            <div class="flex gap-1 mt-1">
+                                {% if wf.is_active %}
+                                <span class="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Active</span>
+                                {% else %}
+                                <span class="text-[8px] font-black text-slate-300 uppercase tracking-widest">Paused</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="py-5">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-full bg-rose-50 text-rose-600 text-[10px] font-black flex items-center justify-center">
+                                    {{ wf.user.username|first|upper }}
+                                </div>
+                                <p class="text-xs font-bold text-slate-500">{{ wf.user.username }}</p>
+                            </div>
+                        </td>
+                        <td class="py-5">
+                            <p class="text-[10px] text-slate-400 font-bold">{{ wf.schedule_interval|default:"Manual" }}</p>
+                        </td>
+                        <td class="py-5 text-right">
+                            <button class="px-3 py-1.5 bg-slate-100 text-slate-400 text-[9px] font-black rounded-lg uppercase hover:bg-rose-500 hover:text-white transition-all">
+                                View Details
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="py-10 text-center text-slate-300 italic font-bold uppercase text-[10px]">Chưa có workflow nào</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

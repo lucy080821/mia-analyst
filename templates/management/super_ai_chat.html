@@ -1,0 +1,311 @@
+{% extends 'management/base_admin.html' %}
+{% load static humanize %}
+
+{% block title %}Mia Control - Super AI Strategic Advisor{% endblock %}
+
+{% block admin_content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .super-chat-shell {
+        height: calc(100vh - 120px);
+        display: flex;
+        flex-direction: column;
+        background: #ffffff;
+        border-radius: 24px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 30px -5px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+    }
+    .report-content { 
+        background: #f8fafc; 
+        border-radius: 16px; 
+        padding: 1.75rem 2rem;
+        box-shadow: 0 1px 8px -2px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e8ecf4;
+        margin-bottom: 0.5rem;
+    }
+    .report-title { 
+        font-size: 1.15rem; 
+        font-weight: 800; 
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin: 0 0 1rem 0; 
+        padding-bottom: 0.85rem;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+    .report-title svg { flex-shrink: 0; color: #6366f1; -webkit-text-fill-color: initial; }
+    .report-section h3 { font-size: 1.05rem; font-weight: 800; color: #1e293b; margin-top: 1.25rem; margin-bottom: 0.5rem; }
+    .report-section h4 { font-size: 0.95rem; font-weight: 700; color: #334155; margin-top: 1rem; margin-bottom: 0.5rem; }
+    .report-section p { margin-bottom: 0.85rem; line-height: 1.9; color: #374151; font-size: 0.92rem; font-weight: 400; }
+    .metric-grid { 
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 1rem; 
+        margin: 1.25rem 0; 
+        width: 100%;
+        clear: both;
+    }
+    .metric-card { 
+        flex: 1;
+        min-width: 140px;
+        background: #ffffff; 
+        border: 1px solid #e2e8f0; 
+        padding: 1.25rem; 
+        border-radius: 14px; 
+        transition: all 0.3s ease; 
+    }
+    .metric-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px -5px rgba(99,102,241,0.1); border-color: #c7d2fe; }
+    .metric-label { font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.35rem; }
+    .metric-value { font-size: 1.3rem; font-weight: 900; color: #0f172a; }
+    .insight-box { background: #f5f3ff; border-left: 5px solid #8b5cf6; padding: 1.5rem; border-radius: 0 14px 14px 0; margin: 1.25rem 0; }
+    .chart-container { background: white; border: 1px solid #f1f5f9; border-radius: 16px; padding: 1.5rem; margin-top: 1.25rem; box-shadow: inset 0 2px 4px 0 rgba(0,0,0,0.02); }
+
+    .chat-messages-area {
+        flex: 1; overflow-y: auto; padding: 2rem 2.5rem;
+        background: #f8fafc; display: flex; flex-direction: column; gap: 1.5rem;
+    }
+    .chat-messages-area::-webkit-scrollbar { width: 5px; }
+    .chat-messages-area::-webkit-scrollbar-track { background: transparent; }
+    .chat-messages-area::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+    .bot-avatar {
+        width: 34px; height: 34px; min-width: 34px;
+        background: #eef2ff; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        color: #6366f1; border: 1px solid #e0e7ff; flex-shrink: 0; margin-top: 2px;
+    }
+    .bot-avatar svg { width: 17px; height: 17px; }
+
+    .user-avatar {
+        width: 34px; height: 34px; min-width: 34px;
+        background: #0f172a; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 9px; font-weight: 900; letter-spacing: 0.5px; flex-shrink: 0;
+    }
+    .user-bubble {
+        background: #0f172a; padding: 0.85rem 1.25rem;
+        border-radius: 16px 16px 4px 16px; color: white;
+        font-size: 0.88rem; font-weight: 500; line-height: 1.6;
+        box-shadow: 0 4px 15px -3px rgba(15,23,42,0.15);
+    }
+    .welcome-card {
+        background: #f8fafc; border-radius: 16px; padding: 1.5rem 1.75rem;
+        box-shadow: 0 1px 8px -2px rgba(0,0,0,0.05); border: 1px solid #e8ecf4;
+    }
+    .welcome-card h3 { font-size: 0.95rem; font-weight: 700; color: #1e293b; margin: 0 0 0.4rem 0; }
+    .welcome-card p { font-size: 0.85rem; color: #64748b; line-height: 1.7; margin: 0; }
+
+    .msg-ts {
+        font-size: 9px; font-weight: 700; color: #cbd5e1;
+        text-transform: uppercase; letter-spacing: 2px; margin-top: 6px; display: block; padding-left: 4px;
+    }
+    .chat-input-bar { flex-shrink: 0; padding: 1.25rem 2rem; background: white; border-top: 1px solid #f1f5f9; }
+    .chat-input-row { display: flex; align-items: flex-end; gap: 0.75rem; max-width: 900px; margin: 0 auto; }
+    .chat-input-row textarea {
+        flex: 1; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 16px;
+        padding: 0.85rem 1.2rem; font-size: 0.88rem; color: #334155;
+        outline: none; resize: none; transition: all 0.2s; line-height: 1.5;
+        min-height: 48px; max-height: 200px; font-family: inherit;
+    }
+    .chat-input-row textarea:focus { border-color: #818cf8; background: white; box-shadow: 0 0 0 4px rgba(99,102,241,0.08); }
+    .chat-input-row textarea::placeholder { color: #94a3b8; font-size: 0.85rem; }
+    .send-btn {
+        width: 48px; height: 48px; border-radius: 14px; background: #0f172a;
+        color: white; border: none; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.2s; flex-shrink: 0;
+    }
+    .send-btn:hover { background: #6366f1; transform: scale(1.05); }
+    .send-btn:active { transform: scale(0.95); }
+    .send-btn svg { width: 20px; height: 20px; }
+    .chat-footer-label {
+        text-align: center; font-size: 9px; color: #94a3b8; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 3px; margin-top: 0.65rem; opacity: 0.5;
+    }
+    .typing-dots { display: flex; gap: 5px; padding: 0.85rem 1.5rem; }
+    .typing-dots span {
+        width: 7px; height: 7px; background: #818cf8; border-radius: 50%;
+        animation: tdot 1.4s ease-in-out infinite;
+    }
+    .typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes tdot {
+        0%, 80%, 100% { transform: scale(0.5); opacity: 0.35; }
+        40% { transform: scale(1); opacity: 1; }
+    }
+    .error-bubble {
+        background: #fff1f2; border: 1px solid #fecdd3; border-radius: 14px;
+        padding: 1rem 1.5rem; color: #be123c; font-size: 0.8rem; font-weight: 600;
+        max-width: fit-content; margin: 0 auto;
+    }
+    .msg-in { animation: msgIn 0.35s ease-out; }
+    @keyframes msgIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+</style>
+
+<!-- Chat Shell -->
+<div class="super-chat-shell">
+    <!-- Messages Area -->
+    <div id="super-ai-messages" class="chat-messages-area">
+        <div style="display:flex; align-items:flex-start; gap:12px;" class="msg-in">
+            <div class="bot-avatar">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+            </div>
+            <div style="flex:1; max-width:85%;">
+                <div class="welcome-card">
+                    <h3>Chào mừng Sếp quay trở lại!</h3>
+                    <p>Tôi đã sẵn sàng phân tích các chỉ số vận hành và tư vấn chiến lược cho Mia Analyst. Sếp cần xem báo cáo về mảng nào hôm nay?</p>
+                </div>
+                <span class="msg-ts">MIA CONTROL SYSTEM • VỪA XONG</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="chat-input-bar">
+        <div class="chat-input-row">
+            <textarea id="ai-input" rows="1" placeholder="Hỏi tôi về doanh thu, khách hàng hoặc chiến lược tăng trưởng..."></textarea>
+            <button onclick="sendAIQuery()" class="send-btn" title="Gửi">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            </button>
+        </div>
+        <p class="chat-footer-label">Strategic Intelligence System • Powered by Gemini 2.5</p>
+    </div>
+</div>
+
+<script>
+    const aiInput = document.getElementById('ai-input');
+    const messagesContainer = document.getElementById('super-ai-messages');
+
+    aiInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+    });
+    aiInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAIQuery(); }
+    });
+
+    function renderChart(containerId, chartData) {
+        const ctx = document.createElement('canvas');
+        document.getElementById(containerId).appendChild(ctx);
+        
+        const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(99, 102, 241, 0.2)');
+        gradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
+
+        new Chart(ctx, {
+            type: chartData.type || 'bar',
+            data: {
+                labels: chartData.data.map(d => d.label),
+                datasets: [{ 
+                    label: chartData.label, 
+                    data: chartData.data.map(d => d.value),
+                    borderColor: '#6366f1',
+                    borderWidth: 2,
+                    fill: chartData.type === 'line',
+                    backgroundColor: chartData.type === 'line' ? gradient : (chartData.type === 'doughnut' ? ['#6366f1','#8b5cf6','#ec4899','#f43f5e','#f59e0b'] : '#6366f1'),
+                    borderRadius: 8,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { 
+                        display: chartData.type === 'doughnut', 
+                        position: 'bottom',
+                        labels: { usePointStyle: true, padding: 20, font: { weight: '600' } }
+                    } 
+                },
+                scales: chartData.type !== 'doughnut' ? { 
+                    y: { 
+                        beginAtZero: true, 
+                        grid: { color: '#f1f5f9', drawBorder: false },
+                        ticks: { font: { weight: '600' }, color: '#64748b' }
+                    }, 
+                    x: { 
+                        grid: { display: false },
+                        ticks: { font: { weight: '600' }, color: '#64748b' }
+                    } 
+                } : {}
+            }
+        });
+    }
+
+    async function sendAIQuery() {
+        const msg = aiInput.value.trim();
+        if (!msg) return;
+
+        const userHtml = `
+            <div style="display:flex; align-items:flex-start; justify-content:flex-end; gap:12px;" class="msg-in">
+                <div>
+                    <div class="user-bubble">${msg}</div>
+                    <span class="msg-ts" style="text-align:right;">FOUNDER MESSAGE</span>
+                </div>
+                <div class="user-avatar">BOSS</div>
+            </div>`;
+        messagesContainer.insertAdjacentHTML('beforeend', userHtml);
+        aiInput.value = ''; aiInput.style.height = 'auto';
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        const loadingId = 'loading-' + Date.now();
+        const loadingHtml = `
+            <div id="${loadingId}" style="display:flex; align-items:flex-start; gap:12px;" class="msg-in">
+                <div class="bot-avatar">
+                    <svg style="animation:spin 1s linear infinite;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                </div>
+                <div style="background:#fff; border-radius:16px; border:1px solid #e8ecf4; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
+                    <div class="typing-dots"><span></span><span></span><span></span></div>
+                </div>
+            </div>`;
+        messagesContainer.insertAdjacentHTML('beforeend', loadingHtml);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        try {
+            const response = await fetch('{% url "super_ai_chat_api" %}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({ message: msg })
+            });
+            const data = await response.json();
+            document.getElementById(loadingId).remove();
+
+            const chartId = 'chart-' + Date.now();
+            const botHtml = `
+                <div style="display:flex; align-items:flex-start; gap:12px;" class="msg-in">
+                    <div class="bot-avatar">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <div style="flex:1; max-width:95%;">
+                        <div class="report-content">
+                            <div class="report-title">
+                                <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                <span>AI Strategic Dashboard</span>
+                            </div>
+                            <div class="report-section">
+                                ${data.html || '<p>' + (data.error || 'Không có phân tích nào được tạo.') + '</p>'}
+                            </div>
+                            ${data.chart ? '<div id="' + chartId + '" class="chart-container" style="height:350px;width:100%;"></div>' : ''}
+                        </div>
+                        <span class="msg-ts">MIA STRATEGIC ENGINE • VER 2.5</span>
+                    </div>
+                </div>`;
+            messagesContainer.insertAdjacentHTML('beforeend', botHtml);
+            if (data.chart) renderChart(chartId, data.chart);
+        } catch (e) {
+            if(document.getElementById(loadingId)) document.getElementById(loadingId).remove();
+            messagesContainer.insertAdjacentHTML('beforeend', '<div class="error-bubble msg-in"><b>LỖI HỆ THỐNG:</b> ' + e.message + '</div>');
+        }
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+</script>
+{% endblock %}

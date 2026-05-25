@@ -1,0 +1,142 @@
+{% extends 'management/base_admin_en.html' %}
+{% load static humanize %}
+{% block title %}{{ "Voucher Management" }} - Admin{% endblock %}
+
+{% block admin_content %}
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-black text-slate-900 tracking-tight">{{ "Voucher Management" }}</h1>
+            <p class="text-slate-500 font-medium">{{ "Create and track promotional codes for the system." }}</p>
+        </div>
+    </div>
+
+    <!-- Create Voucher Form -->
+    <div class="bg-white p-6 rounded-[24px] border border-slate-200 shadow-sm">
+        <h2 class="text-xl font-black text-slate-800 mb-6">{{ "Create New Voucher" }}</h2>
+        <form action="{% url 'create_voucher' %}" method="post" class="space-y-4">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Mã code -->
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ "Voucher Code" }}</label>
+                    <div class="flex">
+                        <input type="text" id="voucherCode" name="code" required class="flex-1 text-sm font-bold bg-slate-50 border border-slate-200 rounded-l-lg px-4 py-3 outline-none focus:ring-2 focus:ring-primary/50" placeholder="MIA-XXXX">
+                        <button type="button" onclick="generateCode()" class="px-4 bg-slate-800 text-white rounded-r-lg font-bold text-xs hover:bg-black transition-all">{{ "Generate Random" }}</button>
+                    </div>
+                </div>
+
+                <!-- Loại Voucher -->
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ "Voucher Type" }}</label>
+                    <select name="voucher_type" id="voucherType" onchange="toggleDiscountInput()" class="w-full text-sm font-bold bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-primary/50">
+                        <option value="FREE_PLUS_7_DAYS">{{ "Free Plus 7 Days" }}</option>
+                        <option value="DISCOUNT_PERCENT">{{ "Percentage Discount for All Plans" }}</option>
+                        <option value="FIXED_DISCOUNT">{{ "Fixed Amount Discount" }}</option>
+                    </select>
+                </div>
+
+                <!-- Value giảm (Ẩn hiện theo Loại) -->
+                <div class="space-y-2" id="discountValContainer" style="display: none;">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest" id="discountLabel">{{ "Discount Value" }}</label>
+                    <input type="number" name="discount_val" id="discountVal" class="w-full text-sm font-bold bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-primary/50" placeholder="{{ 'e.g.: 10 (% or VND)' }}">
+                </div>
+
+                <!-- Max Uses -->
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ "Max Uses" }}</label>
+                    <input type="number" name="max_uses" value="1" required min="1" class="w-full text-sm font-bold bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-primary/50">
+                </div>
+            </div>
+            <div class="pt-4 border-t border-slate-100 flex justify-end">
+                <button type="submit" class="px-8 py-3 bg-primary text-white rounded-[16px] font-black hover:shadow-xl hover:shadow-primary/30 transition-all">{{ "Save Voucher" }}</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Voucher List -->
+    <div class="bg-white p-6 rounded-[24px] border border-slate-200 shadow-sm overflow-hidden">
+        <h2 class="text-xl font-black text-slate-800 mb-6">{{ "Issued Vouchers List" }}</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="text-[10px] font-black text-slate-400 uppercase tracking-[2px] border-b border-slate-100">
+                        <th class="pb-4 px-2">{{ "Code" }}</th>
+                        <th class="pb-4">{{ "Type / Value" }}</th>
+                        <th class="pb-4">{{ "Usage" }}</th>
+                        <th class="pb-4">{{ "Status" }}</th>
+                        <th class="pb-4">{{ "Created Date" }}</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    {% for v in vouchers %}
+                    <tr class="group hover:bg-slate-50 transition-colors">
+                        <td class="py-4 px-2">
+                            <span class="px-3 py-1.5 bg-slate-900 text-white rounded-lg font-black tracking-widest text-xs shadow-md">{{ v.code }}</span>
+                        </td>
+                        <td class="py-4 font-bold text-slate-800 text-sm">
+                            {{ v.get_voucher_type_display }}
+                            {% if v.voucher_type == 'DISCOUNT_PERCENT' %}
+                                <span class="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md ml-1">{{ v.discount_val }}%</span>
+                            {% elif v.voucher_type == 'FIXED_DISCOUNT' %}
+                                <span class="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md ml-1">{{ v.discount_val|intcomma }}đ</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-4">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-black {% if v.current_uses >= v.max_uses %}text-rose-600{% else %}text-primary{% endif %}">{{ v.current_uses }} / {{ v.max_uses }}</span>
+                                <span class="text-[10px] text-slate-400 italic">{{ "uses" }}</span>
+                            </div>
+                        </td>
+                        <td class="py-4">
+                            {% if v.is_active and v.current_uses < v.max_uses %}
+                                <span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-md text-[10px] font-black uppercase tracking-wider">{{ "Active" }}</span>
+                            {% else %}
+                                <span class="px-3 py-1 bg-rose-100 text-rose-700 rounded-md text-[10px] font-black uppercase tracking-wider">{{ "Exhausted" }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-4 text-xs font-bold text-slate-400">{{ v.created_at|date:"d/m/Y H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="py-12 text-center text-slate-400 font-bold italic">{{ "No vouchers have been created yet." }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+<script>
+function generateCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = 'MIA-';
+    for (let i = 0; i < 8; i++) {
+        if(i === 4) result += '-';
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    document.getElementById('voucherCode').value = result;
+}
+
+function toggleDiscountInput() {
+    const type = document.getElementById('voucherType').value;
+    const container = document.getElementById('discountValContainer');
+    const label = document.getElementById('discountLabel');
+    const input = document.getElementById('discountVal');
+    
+    if (type === 'DISCOUNT_PERCENT') {
+        container.style.display = 'block';
+        label.innerText = "{{ 'Percentage Discount (%)' }}";
+        input.placeholder = "{{ 'e.g.: 20' }}";
+        input.required = true;
+    } else if (type === 'FIXED_DISCOUNT') {
+        container.style.display = 'block';
+        label.innerText = "{{ 'Fixed Amount Discount (VND)' }}";
+        input.placeholder = "{{ 'e.g.: 50000' }}";
+        input.required = true;
+    } else {
+        container.style.display = 'none';
+        input.required = false;
+        input.value = '';
+    }
+}
+</script>
+{% endblock %}

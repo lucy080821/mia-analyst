@@ -1,0 +1,229 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ report.title }} - Báo cáo tương tác</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --primary: #6366f1;
+            --primary-light: #e0e7ff;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        .report-header {
+            background-color: var(--bg-card);
+            padding: 2rem;
+            border-bottom: 1px solid var(--border);
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .report-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+
+        .report-meta {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        /* Layout Grid */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.5rem;
+            grid-auto-rows: minmax(100px, auto);
+        }
+
+        .widget-card {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-md);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .widget-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        .widget-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        .widget-content {
+            flex: 1;
+            position: relative;
+            min-height: 250px;
+        }
+
+        /* Metric Widget */
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        /* Text Widget (AI Insight) */
+        .text-content {
+            font-size: 1rem;
+            color: var(--text-main);
+            white-space: pre-wrap;
+        }
+        
+        .insight-box {
+            background: linear-gradient(145deg, #f8fafc, #f1f5f9);
+            border-left: 4px solid var(--primary);
+            padding: 1.25rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .insight-box h4 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .grid-container {
+                display: flex;
+                flex-direction: column;
+            }
+            .widget-content {
+                min-height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="report-header">
+        <h1 class="report-title">{{ report.title }}</h1>
+        <div class="report-meta">
+            Chia sẻ bởi {{ report.user.username }} • Cập nhật lúc {{ report.created_at|date:"H:i d/m/Y" }}
+        </div>
+    </header>
+
+    <main class="container">
+        <div id="report-grid" class="grid-container">
+            <!-- Widgets will be rendered here via JS -->
+        </div>
+    </main>
+
+    <!-- Passing JSON data safely -->
+    {{ config_json|json_script:"configData" }}
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const configStr = document.getElementById('configData').textContent;
+            let widgets = [];
+            try {
+                widgets = JSON.parse(configStr);
+            } catch (e) {
+                console.error("Lỗi parse config:", e);
+            }
+
+            const grid = document.getElementById('report-grid');
+
+            // Map gridstack x, y, w, h to CSS Grid (approximation)
+            // Gridstack uses 12 columns
+            widgets.forEach((w, index) => {
+                const card = document.createElement('div');
+                card.className = 'widget-card';
+                
+                // CSS Grid Mapping
+                card.style.gridColumn = `${(w.x || 0) + 1} / span ${w.w || 4}`;
+                card.style.gridRow = `${(w.y || 0) + 1} / span ${w.h || 3}`;
+
+                let innerHtml = '';
+                if (w.title) {
+                    innerHtml += `<h3 class="widget-title">${w.title}</h3>`;
+                }
+
+                innerHtml += `<div class="widget-content" id="widget-content-${index}">`;
+
+                if (w.type === 'metric') {
+                    // Assuming w.data contains the value
+                    const val = w.data ? parseFloat(w.data).toLocaleString() : 'N/A';
+                    innerHtml += `<div class="metric-value">${val}</div>`;
+                } else if (w.type === 'text') {
+                    // Check if it looks like AI insight HTML
+                    if (w.content && w.content.includes('<div class="insight-box">')) {
+                        innerHtml += `<div class="text-content">${w.content}</div>`;
+                    } else {
+                        innerHtml += `<div class="insight-box"><h4>💡 Insight</h4><div class="text-content">${w.content || 'Không có nội dung.'}</div></div>`;
+                    }
+                } else {
+                    // Chart container
+                    innerHtml += `<canvas id="chart-${index}"></canvas>`;
+                }
+                
+                innerHtml += `</div>`;
+                card.innerHTML = innerHtml;
+                grid.appendChild(card);
+
+                // Render Chart if applicable
+                if (['bar', 'line', 'pie', 'doughnut'].includes(w.type) && w.chartData) {
+                    const ctx = document.getElementById(`chart-${index}`).getContext('2d');
+                    new Chart(ctx, {
+                        type: w.type,
+                        data: w.chartData,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'bottom' }
+                            }
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

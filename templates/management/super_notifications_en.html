@@ -1,0 +1,122 @@
+{% extends 'management/base_admin_en.html' %}
+{% load static humanize %}
+
+{% block title %}Mia Control - Notification Center{% endblock %}
+
+{% block admin_content %}
+<div class="space-y-6 pb-16">
+    
+    <!-- Header Command Center - Compact -->
+    <div class="flex justify-between items-center bg-slate-900 p-8 rounded-[32px] text-white shadow-xl relative overflow-hidden">
+        <div class="relative z-10">
+            <h1 class="text-2xl font-black tracking-tight mb-1">Notification Center</h1>
+            <p class="text-slate-400 font-bold uppercase text-[8px] tracking-[4px]">System-wide Communication • Control</p>
+        </div>
+        
+        <div class="flex gap-3 relative z-10">
+            <div class="bg-slate-800/50 px-4 py-2 rounded-xl border border-slate-700/50 backdrop-blur-xl">
+                <p class="text-[7px] font-black text-indigo-400 uppercase tracking-widest">Total Users</p>
+                <p class="text-sm font-black text-white">{{ total_users|intcomma }}</p>
+            </div>
+            <div class="bg-slate-800/50 px-4 py-2 rounded-xl border border-slate-700/50 backdrop-blur-xl">
+                <p class="text-[7px] font-black text-amber-400 uppercase tracking-widest">Expiring</p>
+                <p class="text-sm font-black text-white">{{ expiring_users|intcomma }}</p>
+            </div>
+            <div class="bg-slate-800/50 px-4 py-2 rounded-xl border border-slate-700/50 backdrop-blur-xl">
+                <p class="text-[7px] font-black text-emerald-400 uppercase tracking-widest">Sent</p>
+                <p class="text-sm font-black text-white">{{ total_notifications_sent|intcomma }}</p>
+            </div>
+        </div>
+        <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-indigo-600/10 rounded-full blur-[100px]"></div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Manual Send Form Compact -->
+        <div class="lg:col-span-2">
+            <div class="bg-white p-8 rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/30">
+                <h2 class="text-sm font-black text-slate-900 uppercase tracking-tight mb-6 flex items-center gap-2">
+                    <div class="w-6 h-6 bg-indigo-600 rounded-lg flex items-center justify-center text-white">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    </div>
+                    Draft New Notification
+                </h2>
+                <form action="{% url 'super_notification_management' %}" method="POST" class="space-y-4">
+                    {% csrf_token %}
+                    <div>
+                        <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Title</label>
+                        <input type="text" name="title" required placeholder="Engaging title..." 
+                            class="w-full px-5 py-2.5 bg-slate-50 border border-slate-100 rounded-xl focus:ring-1 focus:ring-indigo-500 outline-none transition-all font-bold text-xs text-slate-800 placeholder:text-slate-300">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Content</label>
+                        <textarea name="message" required rows="3" placeholder="Message content..." 
+                            class="w-full px-5 py-2.5 bg-slate-50 border border-slate-100 rounded-xl focus:ring-1 focus:ring-indigo-500 outline-none transition-all font-bold text-xs text-slate-800 placeholder:text-slate-300"></textarea>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Target</label>
+                            <select name="target_group" class="w-full px-5 py-2.5 bg-slate-50 border border-slate-100 rounded-xl focus:ring-1 focus:ring-indigo-500 outline-none transition-all font-bold text-xs text-slate-800 appearance-none cursor-pointer">
+                                <option value="ALL">All Users</option>
+                                <option value="FREE">Free</option>
+                                <option value="PLUS">Plus</option>
+                                <option value="PREMIUM">Enterprise</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Attached URL</label>
+                            <input type="text" name="link" placeholder="/dashboard" 
+                                class="w-full px-5 py-2.5 bg-slate-50 border border-slate-100 rounded-xl focus:ring-1 focus:ring-indigo-500 outline-none transition-all font-bold text-xs text-slate-800 placeholder:text-slate-300">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-500/30 transform transition-all active:scale-[0.98] mt-2 flex justify-center items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                        Publish Now
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Automation Settings Side Compact -->
+        <div class="space-y-6">
+            <div class="bg-slate-900 p-8 rounded-[32px] shadow-xl text-white relative overflow-hidden">
+                <h2 class="text-xs font-black mb-6 flex items-center gap-2 uppercase tracking-widest">
+                    <div class="w-6 h-6 bg-emerald-600 rounded-lg flex items-center justify-center text-white">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    Automation
+                </h2>
+                <div class="space-y-3 relative z-10">
+                    <div class="flex items-start p-4 bg-white/5 rounded-2xl border border-white/10 group hover:bg-white/10 transition-all cursor-help">
+                        <div class="w-8 h-8 bg-indigo-500/20 rounded-lg flex items-center justify-center mr-3 mt-0.5">
+                            <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        </div>
+                        <div>
+                            <div class="font-black text-[11px]">Welcome Email</div>
+                            <div class="text-[8px] font-black text-indigo-400 uppercase tracking-widest mt-0.5">Status: Active</div>
+                        </div>
+                    </div>
+                    <div class="flex items-start p-4 bg-white/5 rounded-2xl border border-white/10 group hover:bg-white/10 transition-all cursor-help">
+                        <div class="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center mr-3 mt-0.5">
+                            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <div>
+                            <div class="font-black text-[11px]">Payment Success</div>
+                            <div class="text-[8px] font-black text-emerald-400 uppercase tracking-widest mt-0.5">Status: Active</div>
+                        </div>
+                    </div>
+                    <div class="flex items-start p-4 bg-white/5 rounded-2xl border border-white/10 group hover:bg-white/10 transition-all cursor-help">
+                        <div class="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center mr-3 mt-0.5">
+                            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 17c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        </div>
+                        <div>
+                            <div class="font-black text-[11px]">Renewal Notice</div>
+                            <div class="text-[8px] font-black text-amber-400 uppercase tracking-widest mt-0.5">Auto-Trigger</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="absolute -left-20 -bottom-20 w-64 h-64 bg-emerald-600/10 rounded-full blur-[80px]"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

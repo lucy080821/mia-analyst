@@ -1,0 +1,152 @@
+{% extends 'management/base_admin_en.html' %}
+{% load static humanize %}
+
+{% block title %}Mia Control - Voucher Management{% endblock %}
+
+{% block admin_content %}
+<div class="space-y-6 pb-16">
+    
+    <!-- Header Command Center - Compact -->
+    <div class="flex justify-between items-center bg-slate-900 p-8 rounded-[32px] text-white shadow-xl relative overflow-hidden">
+        <div class="relative z-10">
+            <h1 class="text-2xl font-black tracking-tight mb-1">Voucher System</h1>
+            <p class="text-slate-400 font-bold uppercase text-[8px] tracking-[4px]">Supreme Control • Issue Promo Codes</p>
+        </div>
+        <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-indigo-600/10 rounded-full blur-[100px]"></div>
+    </div>
+
+    <!-- Create Voucher Form Compact -->
+    <div class="bg-white p-8 rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/30">
+        <h2 class="text-sm font-black text-slate-900 uppercase tracking-tight mb-6 flex items-center gap-2">
+            <div class="w-6 h-6 bg-indigo-600 rounded-lg flex items-center justify-center text-white">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+            </div>
+            Issue New Promo Code
+        </h2>
+        <form action="{% url 'create_voucher' %}" method="post">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div>
+                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Voucher Code</label>
+                    <div class="flex">
+                        <input type="text" id="voucherCode" name="code" required class="flex-1 bg-slate-50 border border-slate-100 rounded-l-xl px-4 py-2 text-xs font-black focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all" placeholder="MIA-XXXX">
+                        <button type="button" onclick="generateCode()" class="px-3 bg-slate-900 text-white rounded-r-xl font-black text-[9px] uppercase hover:bg-black transition-all">Random</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Voucher Type</label>
+                    <select name="voucher_type" id="voucherType" onchange="toggleDiscountInput()" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-xs font-black focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all cursor-pointer">
+                        <option value="FREE_PLUS_7_DAYS">Free Plus 7 Days</option>
+                        <option value="DISCOUNT_PERCENT">Percent Discount (%)</option>
+                        <option value="FIXED_DISCOUNT">Fixed Amount Discount</option>
+                    </select>
+                </div>
+
+                <div id="discountValContainer" style="display: none;">
+                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5" id="discountLabel">Value</label>
+                    <input type="number" name="discount_val" id="discountVal" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-xs font-black focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all">
+                </div>
+
+                <div>
+                    <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Usage Limit</label>
+                    <input type="number" name="max_uses" value="1" required min="1" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-xs font-black focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all">
+                </div>
+            </div>
+            <div class="flex justify-end">
+                <button type="submit" class="px-8 py-2.5 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-500/30 hover:bg-indigo-700 transition-all">Save & Issue</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Voucher List Compact -->
+    <div class="bg-white rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/30 overflow-hidden">
+        <div class="px-8 py-5 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+            <h3 class="text-[11px] font-black text-slate-900 uppercase tracking-widest">Issued Vouchers ({{ vouchers|length }})</h3>
+        </div>
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-slate-50/20 text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                    <th class="px-8 py-4">Voucher Code</th>
+                    <th class="px-6 py-4">Type / Value</th>
+                    <th class="px-6 py-4">Status</th>
+                    <th class="px-6 py-4">State</th>
+                    <th class="px-8 py-4 text-right">Issued Date</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+                {% for v in vouchers %}
+                <tr class="group hover:bg-slate-50/80 transition-all">
+                    <td class="px-8 py-4">
+                        <span class="px-2 py-1 bg-slate-900 text-white rounded-lg font-black tracking-widest text-[9px]">{{ v.code }}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <p class="text-[10px] font-black text-slate-800 leading-tight">{{ v.get_voucher_type_display }}</p>
+                        {% if v.voucher_type == 'DISCOUNT_PERCENT' %}
+                            <span class="text-emerald-600 text-[8px] font-black uppercase mt-0.5 inline-block">+{{ v.discount_val }}% Discount</span>
+                        {% elif v.voucher_type == 'FIXED_DISCOUNT' %}
+                            <span class="text-emerald-600 text-[8px] font-black uppercase mt-0.5 inline-block">+{{ v.discount_val|intcomma }}đ Discount</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex flex-col">
+                            <span class="text-[10px] font-black {% if v.current_uses >= v.max_uses %}text-rose-500{% else %}text-indigo-600{% endif %}">{{ v.current_uses }} / {{ v.max_uses }}</span>
+                            <div class="w-16 h-0.5 bg-slate-100 rounded-full mt-1.5 overflow-hidden">
+                                <div class="h-full bg-indigo-500" style="width: {% widthratio v.current_uses v.max_uses 100 %}%"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if v.is_active and v.current_uses < v.max_uses %}
+                            <span class="px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-lg text-[7px] font-black uppercase tracking-widest border border-emerald-100">Active</span>
+                        {% else %}
+                            <span class="px-1.5 py-0.5 bg-rose-50 text-rose-500 rounded-lg text-[7px] font-black uppercase tracking-widest border border-rose-100">Depleted</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-8 py-4 text-right">
+                        <p class="text-[9px] font-bold text-slate-400 italic">{{ v.created_at|date:"d/m/Y H:i" }}</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</div>
+
+<script>
+function generateCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = 'MIA-';
+    for (let i = 0; i < 8; i++) {
+        if(i === 4) result += '-';
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    document.getElementById('voucherCode').value = result;
+}
+
+function toggleDiscountInput() {
+    const type = document.getElementById('voucherType').value;
+    const container = document.getElementById('discountValContainer');
+    const label = document.getElementById('discountLabel');
+    const input = document.getElementById('discountVal');
+    
+    if (type === 'DISCOUNT_PERCENT') {
+        container.style.display = 'block';
+        label.innerText = "Discount Percent (%)";
+        input.placeholder = "e.g., 20";
+        input.required = true;
+    } else if (type === 'FIXED_DISCOUNT') {
+        container.style.display = 'block';
+        label.innerText = "Discount Amount (VND)";
+        input.placeholder = "e.g., 50000";
+        input.required = true;
+    } else {
+        container.style.display = 'none';
+        input.required = false;
+        input.value = '';
+    }
+}
+</script>
+{% endblock %}

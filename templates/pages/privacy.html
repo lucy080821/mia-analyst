@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Chính sách bảo mật - Mia AI Data Analytics{% endblock %}
+
+{% block content %}
+<div class="bg-white min-h-screen pt-20">
+    <div class="max-w-4xl mx-auto py-20 px-6">
+        <header class="mb-20 text-center">
+            <h1 class="text-4xl md:text-6xl font-black text-slate-900 mb-6 tracking-tight">Chính sách Bảo mật</h1>
+            <p class="text-slate-500 font-medium">Cập nhật lần cuối: 27 tháng 4, 2026</p>
+        </header>
+
+        <div class="prose prose-slate max-w-none prose-lg text-slate-600 leading-relaxed">
+            <div class="bg-slate-50 rounded-3xl p-8 md:p-12 mb-12 border border-slate-100">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4 flex items-center">
+                    <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm mr-4">!</span>
+                    Cam kết của chúng tôi
+                </h2>
+                <p class="mb-0">Tại <strong>Mia AI Data Analytics</strong>, chúng tôi coi trọng sự riêng tư của bạn hơn bất cứ điều gì. Dữ liệu kinh doanh của bạn là tài sản quý giá nhất, và mục tiêu của chúng tôi là bảo vệ nó bằng những công nghệ bảo mật tiên tiến nhất hiện nay.</p>
+            </div>
+
+            <h3 class="text-2xl font-black text-slate-900 mt-12 mb-6 uppercase tracking-wider text-sm text-primary">1. Thu thập thông tin</h3>
+            <p>Chúng tôi chỉ thu thập những thông tin cần thiết để cung cấp dịch vụ tốt nhất cho bạn:</p>
+            <ul class="list-disc pl-6 space-y-2">
+                <li>Thông tin tài khoản: Tên, email, và mật khẩu đã mã hóa.</li>
+                <li>Dữ liệu tải lên: Các tệp Excel, CSV bạn chủ động tải lên để phân tích.</li>
+                <li>Thông tin thanh toán: Được xử lý bởi các đối tác thanh toán bảo mật, chúng tôi không lưu giữ thông tin thẻ tín dụng của bạn.</li>
+            </ul>
+
+            <h3 class="text-2xl font-black text-slate-900 mt-12 mb-6 uppercase tracking-wider text-sm text-primary">2. Sử dụng dữ liệu</h3>
+            <p>Dữ liệu của bạn được sử dụng duy nhất cho các mục đích:</p>
+            <ul class="list-disc pl-6 space-y-2">
+                <li>Thực hiện các yêu cầu phân tích và báo cáo của bạn.</li>
+                <li>Cải thiện độ chính xác của phản hồi AI đối với riêng tài khoản của bạn.</li>
+                <li>Gửi thông báo về tài khoản và các cập nhật quan trọng của hệ thống.</li>
+            </ul>
+            <div class="bg-red-50 border-l-4 border-red-500 p-6 my-8">
+                <p class="text-red-700 font-bold mb-0">Lưu ý quan trọng: Chúng tôi tuyệt đối không sử dụng dữ liệu kinh doanh của khách hàng để huấn luyện các mô hình AI công khai.</p>
+            </div>
+
+            <h3 class="text-2xl font-black text-slate-900 mt-12 mb-6 uppercase tracking-wider text-sm text-primary">3. Bảo mật và Lưu trữ</h3>
+            <p>Chúng tôi áp dụng các tiêu chuẩn bảo mật chuẩn doanh nghiệp:</p>
+            <ul class="list-disc pl-6 space-y-2">
+                <li><strong>Mã hóa đầu cuối:</strong> Dữ liệu được truyền tải qua giao thức HTTPS và mã hóa lúc nghỉ bằng chuẩn AES-256.</li>
+                <li><strong>Phân quyền truy cập:</strong> Chỉ bạn mới có quyền truy cập vào dữ liệu và kết quả phân tích của mình.</li>
+                <li><strong>Xóa dữ liệu:</strong> Bạn có quyền xóa vĩnh viễn các file và lịch sử chat bất cứ lúc nào.</li>
+            </ul>
+
+            <h3 class="text-2xl font-black text-slate-900 mt-12 mb-6 uppercase tracking-wider text-sm text-primary">4. Liên hệ</h3>
+            <p>Nếu bạn có bất kỳ câu hỏi nào về chính sách này, vui lòng liên hệ với chúng tôi qua email: <a href="mailto:security@mia.ai" class="text-primary font-bold decoration-primary/30 underline-offset-4 underline">security@mia.ai</a></p>
+        </div>
+        
+        <div class="mt-24 pt-12 border-t border-slate-100 text-center">
+            <a href="{% url 'home' %}" class="inline-flex items-center text-slate-400 hover:text-primary transition-colors font-bold text-sm uppercase tracking-widest">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10 19l-7-7m0 0l7-7m-7 7h18" stroke-width="3"></path></svg>
+                Quay lại trang chủ
+            </a>
+        </div>
+    </div>
+</div>
+    {% include 'partials/sales_chat.html' %}
+{% endblock %}

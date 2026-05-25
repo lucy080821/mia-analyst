@@ -1,0 +1,40 @@
+{% extends "base_en.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="card border-0 shadow-lg p-5" style="background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border-radius: 24px;">
+                <div class="mb-4">
+                    <div class="mb-4 d-inline-block p-4 rounded-circle bg-success bg-opacity-10">
+                        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5 13L9 17L19 7" stroke="#28a745" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <h1 class="fw-bold mb-3" style="color: #333;">Connection Successful!</h1>
+                    <p class="lead text-muted mb-5">
+                        Your Shopee Shop (ID: <strong>{{ shop_id }}</strong>) has been successfully linked to your account. 
+                        The system is now synchronizing your initial order data. This process may take a few minutes.
+                    </p>
+                </div>
+
+                <div class="alert alert-info border-0 rounded-4 p-4 text-start mb-5" style="background: rgba(13, 202, 240, 0.1);">
+                    <h5 class="fw-bold"><i class="bi bi-info-circle-fill me-2"></i> What's Next?</h5>
+                    <ul class="mb-0">
+                        <li>Data will appear in your Dashboard once synchronization is complete (approximately 3-5 minutes).</li>
+                        <li>Shopee automatically refreshes the connection daily; no further action is required from your side.</li>
+                        <li>You can immediately start asking AI questions about your Shop's revenue and fees.</li>
+                    </ul>
+                </div>
+
+                <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+                    <a href="{% url 'analytics_dashboard' %}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-sm" style="background: #28a745; border: none;">
+                        Go to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

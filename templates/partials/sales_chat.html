@@ -1,0 +1,219 @@
+    <!-- Sales Chatbot Widget -->
+    <div id="sales-chat-widget" class="fixed bottom-6 right-6 z-50 font-sans">
+        <!-- Floating Button -->
+        <button id="sales-chat-btn" class="w-14 h-14 bg-indigo-600 rounded-full shadow-2xl flex items-center justify-center text-white hover:bg-indigo-700 hover:scale-105 transition-all focus:outline-none ring-4 ring-indigo-600/20">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+        </button>
+
+        <!-- Chat Window -->
+        <div id="sales-chat-window" class="hidden absolute bottom-20 right-0 w-[calc(100vw-3rem)] sm:w-[320px] bg-white rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.3)] border border-gray-100 overflow-hidden flex flex-col" style="height: 400px; max-height: 70vh; transform-origin: bottom right; animation: scaleIn 0.2s ease-out;">
+            <style>
+                @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+                @keyframes slideUpFade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+                .chat-msg-anim { animation: slideUpFade 0.3s ease-out forwards; }
+                .chat-msg-text p { margin-bottom: 0.5rem; }
+                .chat-msg-text p:last-child { margin-bottom: 0; }
+                .chat-msg-text ul { list-style-type: disc; padding-left: 1.25rem; margin-bottom: 0.5rem; }
+                .chat-msg-text strong { font-weight: 600; color: #334155; }
+                .btn-cta { display: inline-block; background-color: #4f46e5; color: white !important; padding: 0.5rem 1rem; border-radius: 9999px; text-decoration: none; font-size: 0.875rem; font-weight: 500; transition: background-color 0.2s; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1); }
+                .btn-cta:hover { background-color: #4338ca; }
+            </style>
+            
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-indigo-600 to-violet-600 p-4 shrink-0 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white font-bold relative">
+                        M
+                        <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400 border-2 border-indigo-600 rounded-full"></span>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-semibold text-sm">Mia Assistant</h3>
+                        <p class="text-[10px] text-indigo-100 font-medium">Trợ lý Tư vấn 24/7</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="sales-chat-reset" class="text-indigo-100 hover:text-white focus:outline-none transition-colors" title="Bắt đầu phiên chat mới">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    </button>
+                    <button id="sales-chat-close" class="text-indigo-100 hover:text-white focus:outline-none transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Messages Area -->
+            <div id="sales-chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-[#f8fafc] text-[13.5px]">
+                <!-- Welcome Message -->
+                <div class="flex gap-2">
+                    <div class="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs shrink-0 mt-1 shadow-sm">M</div>
+                    <div class="flex-1">
+                        <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-200 text-slate-700 leading-relaxed chat-msg-text">
+                            Chào bạn! 👋 Mình là trợ lý AI của Mia Analyst.<br><br>Bạn đang tìm hiểu về tính năng phần mềm hay muốn nhận tư vấn chọn gói cước phù hợp?
+                        </div>
+                        <div class="mt-2 flex flex-wrap gap-2">
+                            <button class="suggestion-chip text-left text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-1.5 rounded-full transition-colors border border-indigo-100" onclick="document.getElementById('sales-chat-input').value='Mình muốn biết về các tính năng nổi bật'; document.getElementById('sales-chat-form').dispatchEvent(new Event('submit'));">Mình muốn biết về các tính năng nổi bật</button>
+                            <button class="suggestion-chip text-left text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-1.5 rounded-full transition-colors border border-indigo-100" onclick="document.getElementById('sales-chat-input').value='Tư vấn cho mình gói cước phù hợp nhé'; document.getElementById('sales-chat-form').dispatchEvent(new Event('submit'));">Tư vấn cho mình gói cước phù hợp nhé</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="p-3 bg-white border-t border-slate-100 shrink-0">
+                <form id="sales-chat-form" class="flex items-center gap-2">
+                    <input type="text" id="sales-chat-input" placeholder="Nhập tin nhắn..." class="flex-1 bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-slate-700 placeholder-slate-400" autocomplete="off">
+                    <button type="submit" class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white hover:bg-indigo-700 focus:outline-none shrink-0 transition-all hover:scale-105 active:scale-95 shadow-md shadow-indigo-600/20">
+                        <svg class="w-4 h-4 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                    </button>
+                </form>
+                <div class="text-center mt-2">
+                    <span class="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">Powered by Gemini AI</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const btn = document.getElementById('sales-chat-btn');
+            const win = document.getElementById('sales-chat-window');
+            const closeBtn = document.getElementById('sales-chat-close');
+            const resetBtn = document.getElementById('sales-chat-reset');
+            const form = document.getElementById('sales-chat-form');
+            const input = document.getElementById('sales-chat-input');
+            const messages = document.getElementById('sales-chat-messages');
+            
+            // Auto open logic
+            setTimeout(() => {
+                if(win.classList.contains('hidden')) {
+                    win.classList.remove('hidden');
+                }
+            }, 1000);
+
+            // Session ID setup
+            let sessionId = localStorage.getItem('mia_sales_session_id');
+            if (!sessionId) {
+                sessionId = 'ses_' + Math.random().toString(36).substr(2, 9) + Date.now();
+                localStorage.setItem('mia_sales_session_id', sessionId);
+            }
+
+            // Reset Chat
+            resetBtn.addEventListener('click', () => {
+                localStorage.removeItem('mia_sales_session_id');
+                sessionId = 'ses_' + Math.random().toString(36).substr(2, 9) + Date.now();
+                localStorage.setItem('mia_sales_session_id', sessionId);
+                
+                // Clear UI
+                messages.innerHTML = `
+                <div class="flex gap-2 chat-msg-anim">
+                    <div class="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs shrink-0 mt-1 shadow-sm">M</div>
+                    <div class="flex-1">
+                        <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-200 text-slate-700 leading-relaxed chat-msg-text">
+                            Phiên chat đã được làm mới! Bạn cần hỗ trợ gì thêm không?
+                        </div>
+                    </div>
+                </div>`;
+            });
+
+            // Toggle
+            btn.addEventListener('click', () => {
+                win.classList.toggle('hidden');
+                if(!win.classList.contains('hidden')) {
+                    input.focus();
+                    messages.scrollTop = messages.scrollHeight;
+                }
+            });
+            closeBtn.addEventListener('click', () => win.classList.add('hidden'));
+
+            function appendMessage(role, text, ctaHtml = '', suggestionsHtml = '') {
+                const isUser = role === 'user';
+                let formattedText = text;
+                if(!text.includes('<') && text.includes('\n')) {
+                    formattedText = text.replace(/\n/g, '<br>');
+                }
+
+                const msgId = 'msg-' + Date.now() + Math.random().toString(36).substr(2, 5);
+                const msgHtml = `
+                    <div id="${msgId}" class="flex gap-2 chat-msg-anim ${isUser ? 'flex-row-reverse' : ''}">
+                        ${!isUser ? `<div class="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs shrink-0 mt-1 shadow-sm">M</div>` : ''}
+                        <div class="flex-1 ${isUser ? 'flex justify-end' : ''}">
+                            <div class="${isUser ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white text-slate-700 border border-slate-200 rounded-tl-none'} p-3 rounded-2xl shadow-sm max-w-[85%] leading-relaxed chat-msg-text ${isUser ? 'ml-auto' : ''}">
+                                ${formattedText}
+                                ${ctaHtml ? `<div class="mt-3">${ctaHtml}</div>` : ''}
+                            </div>
+                            ${suggestionsHtml}
+                        </div>
+                    </div>
+                `;
+                messages.insertAdjacentHTML('beforeend', msgHtml);
+                
+                const newEl = document.getElementById(msgId);
+                if (newEl && !isUser) {
+                     newEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else {
+                     messages.scrollTop = messages.scrollHeight;
+                }
+            }
+
+            function appendLoading() {
+                const id = 'loading-' + Date.now();
+                const html = `
+                    <div id="${id}" class="flex gap-2 chat-msg-anim">
+                        <div class="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs shrink-0 mt-1 shadow-sm">M</div>
+                        <div class="bg-white p-3.5 rounded-2xl rounded-tl-none shadow-sm border border-slate-200 flex gap-1.5 items-center h-10">
+                            <div class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce"></div>
+                            <div class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style="animation-delay: 0.15s"></div>
+                            <div class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style="animation-delay: 0.3s"></div>
+                        </div>
+                    </div>
+                `;
+                messages.insertAdjacentHTML('beforeend', html);
+                messages.scrollTop = messages.scrollHeight;
+                return id;
+            }
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const msg = input.value.trim();
+                if (!msg) return;
+                
+                input.value = '';
+                appendMessage('user', msg);
+                const loadingId = appendLoading();
+
+                try {
+                    const res = await fetch('/sales_chat_api/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({ message: msg, session_id: sessionId })
+                    });
+                    const data = await res.json();
+                    document.getElementById(loadingId)?.remove();
+                    
+                    if(data.error) {
+                        appendMessage('bot', '<span class="text-rose-500 font-medium">Lỗi kết nối: ' + data.error + '</span>');
+                    } else {
+                        let cleanReply = data.reply || '';
+                        cleanReply = cleanReply.replace(/^```json\s*/, '').replace(/```$/, '');
+                        
+                        let suggHtml = '';
+                        if (data.suggested_questions && data.suggested_questions.length > 0) {
+                            suggHtml = '<div class="mt-2 flex flex-wrap gap-2">';
+                            data.suggested_questions.forEach(q => {
+                                suggHtml += `<button class="suggestion-chip text-left text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-1.5 rounded-full transition-colors border border-indigo-100" onclick="document.getElementById('sales-chat-input').value='${q.replace(/'/g, "\\\'") }'; document.getElementById('sales-chat-form').dispatchEvent(new Event('submit'));">${q}</button>`;
+                            });
+                            suggHtml += '</div>';
+                        }
+
+                        appendMessage('bot', cleanReply, data.cta_html || '', suggHtml);
+                    }
+                } catch(err) {
+                    document.getElementById(loadingId)?.remove();
+                    appendMessage('bot', '<span class="text-rose-500 font-medium">Đã có lỗi xảy ra. Xin thử lại sau.</span>');
+                }
+            });
+        });
+    </script>

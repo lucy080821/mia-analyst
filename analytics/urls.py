@@ -1,0 +1,58 @@
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    # Main Dashboard Builder (Experimental Drag & Drop)
+    path('builder/', views.dashboard_builder, name='analytics_dashboard_builder'),
+    path('api/dashboard-builder/save/', views.save_builder_layout, name='save_builder_layout_api'),
+    
+    path('', views.dashboard, name='analytics_dashboard'),
+    path('api/ai-chat/', views.ai_chat_api, name='ai_chat_api'),
+    path('api/upload-excel/', views.upload_excel, name='upload_excel'),
+    path('api/confirm-upload/', views.confirm_upload, name='confirm_upload'),
+    path('api/sync-shopee/', views.sync_shopee_api, name='sync_shopee_api'),
+    path('api/process-tiered-data/', views.process_tiered_data, name='process_tiered_data'),
+    path('api/export-report/', views.export_report, name='export_report'),
+    path('api/dashboard-manager/', views.dashboard_manager, name='dashboard_manager'),
+    path('api/analyze-dataset/', views.analyze_dataset, name='analyze_dataset'),
+    path('api/clean-dataset/', views.clean_dataset, name='clean_dataset'),
+    path('api/import-gsheet/', views.import_gsheet, name='import_gsheet'),
+    path('api/datasets/', views.dataset_manager_api, name='dataset_manager_api'),
+    path('api/relationships/', views.relationship_manager_api, name='relationship_manager_api'),
+    path('api/relationships/suggest/', views.suggest_relationships_api, name='suggest_relationships_api'),
+    path('api/automation/tasks/', views.automation_tasks_api, name='automation_tasks_api'),
+    path('api/automation/history/', views.automation_history_api, name='automation_history_api'),
+    path('api/automation/test-task/', views.test_automation_task_api, name='test_automation_task_api'),
+    path('api/automation/telegram-settings/', views.telegram_settings_api, name='telegram_settings_api'),
+    path('api/chat-history/', views.get_chat_history_api, name='get_chat_history_api'),
+    path('api/chat-history/clear/', views.clear_chat_history_api, name='clear_chat_history_api'),
+    path('api/log-action/', views.log_user_action_api, name='log_user_action_api'),
+    path('api/submit-feedback/', views.submit_feedback_api, name='submit_feedback_api'),
+    path('api/export-table/', views.export_table_api, name='export_table_api'),
+    path('api/track-visit/', views.track_visit_api, name='track_visit_api'),
+    path('api/looker/export/', views.export_to_looker_bridge, name='looker_export'),
+    path('api/looker/files/', views.list_looker_files_api, name='looker_files_api'),
+    path('api/looker/<str:token>/data.csv', views.looker_csv_endpoint, name='looker_csv_endpoint'),
+    path('api/google/auth/', views.google_auth_init, name='google_auth_init'),
+    path('api/google/callback/', views.google_auth_callback, name='google_auth_callback'),
+    path('api/dataset-columns/', views.get_dataset_columns, name='get_dataset_columns'),
+    path('api/widget-data/<int:widget_id>/', views.get_widget_data, name='get_widget_data'),
+    path('api/materialize-pipeline/', views.materialize_pipeline_api, name='materialize_pipeline_api'),
+    path('api/preview-pipeline/', views.preview_pipeline_api, name='preview_pipeline_api'),
+    path('lineage/', views.data_lineage_view, name='analytics_data_lineage'),
+    # Shopee OAuth
+    path('shopee/connect/', views.shopee_connect, name='shopee_connect'),
+    path('api/connectors/', views.connector_manager_api, name='connector_manager_api'),
+    path('api/connectors/<int:connector_id>/tables/', views.connector_tables_api, name='connector_tables_api'),
+    path('api/test-connector/', views.test_connector_api, name='test_connector_api'),
+    path('api/workflows/', views.workflow_manager_api, name='workflow_manager_api'),
+    path('shopee/callback/', views.shopee_callback, name='shopee_callback'),
+    
+    # Advanced Analytics
+    path('api/dataset/<int:dataset_id>/cleaning-suggestions/', views.cleaning_suggestions_api, name='cleaning_suggestions_api'),
+    path('api/dataset/<int:dataset_id>/apply-cleaning/', views.apply_cleaning_api, name='apply_cleaning_api'),
+    path('api/dataset/<int:dataset_id>/rca/', views.rca_api, name='rca_api'),
+    path('api/onboarding-suggestions/', views.get_onboarding_suggestions, name='onboarding_suggestions'),
+    path('api/shared-report/create/', views.create_shared_report_api, name='create_shared_report_api'),
+    path('report/<uuid:uuid>/', views.shared_report_view, name='shared_report_view'),
+]

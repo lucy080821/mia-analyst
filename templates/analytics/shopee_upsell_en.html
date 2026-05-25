@@ -1,0 +1,65 @@
+{% extends "base_en.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="card border-0 shadow-lg p-5" style="background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border-radius: 24px;">
+                <div class="mb-4">
+                    <div class="mb-4 d-inline-block p-3 rounded-circle" style="background: linear-gradient(135deg, #FF4D00, #FF8C00);">
+                        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="white"/>
+                        </svg>
+                    </div>
+                    <h1 class="fw-bold mb-3" style="color: #333;">Upgrade to Unlock</h1>
+                    <p class="lead text-muted mb-5">
+                        The **Automatic Shopee Sync** feature is exclusively available to <strong>Plus</strong> and <strong>Premium</strong> plan users. 
+                        Upgrade now to enjoy in-depth sales data analysis powered by AI.
+                    </p>
+                </div>
+
+                <div class="row g-4 mb-5">
+                    <div class="col-md-6">
+                        <div class="p-4 border rounded-4 h-100 transition-all hover-shadow" style="background: white;">
+                            <h3 class="fw-bold">Plus Plan</h3>
+                            <p class="text-primary fs-4 fw-bold">199k <small class="text-muted">/month</small></p>
+                            <ul class="list-unstyled text-start small mb-4">
+                                <li class="mb-2">✅ Integrate 1 Shopee Shop</li>
+                                <li class="mb-2">✅ Daily Data Sync</li>
+                                <li class="mb-2">✅ 500 AI Queries / month</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-4 border rounded-4 h-100 transition-all hover-shadow" style="background: #f8f9fa; border: 2px solid #FF4D00 !important;">
+                            <div class="badge bg-warning text-dark mb-2">Most Popular</div>
+                            <h3 class="fw-bold">Premium Plan</h3>
+                            <p class="text-primary fs-4 fw-bold">499k <small class="text-muted">/month</small></p>
+                            <ul class="list-unstyled text-start small mb-4">
+                                <li class="mb-2">✅ Unlimited Shopee Shops</li>
+                                <li class="mb-2">✅ Real-time Sync</li>
+                                <li class="mb-2">✅ In-depth AI Strategic Consulting</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+                    <a href="/pricing/" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-sm" style="background: linear-gradient(135deg, #FF4D00, #FF8C00); border: none;">
+                        Upgrade Now
+                    </a>
+                    <a href="{% url 'analytics_dashboard' %}" class="btn btn-outline-secondary btn-lg px-5 py-3 rounded-pill">
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .transition-all { transition: all 0.3s ease; }
+    .hover-shadow:hover { transform: translateY(-5px); box-shadow: 0 1rem 3rem rgba(0,0,0,.175)!important; }
+</style>
+{% endblock %}

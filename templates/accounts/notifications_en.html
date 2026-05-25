@@ -1,0 +1,115 @@
+{% extends 'base_en.html' %}
+{% load static %}
+{% block title %}{{ "Notification Center" }} - Mia Assistant{% endblock %}
+
+{% block content %}
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<div class="min-h-screen bg-[#05060f] text-slate-200 font-['Inter',sans-serif] py-10 px-4 md:px-8 relative overflow-hidden">
+    <!-- Animated Background Glows -->
+    <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/10 rounded-full blur-[120px] animate-pulse"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/10 rounded-full blur-[120px] animate-pulse" style="animation-delay: 2s;"></div>
+
+    <div class="max-w-4xl mx-auto relative z-10 animate-fade-in">
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h1 class="text-4xl font-black text-white tracking-tight mb-2">{{ "Notifications" }}</h1>
+                <p class="text-slate-400 text-sm">{{ "Manage and review all your updates." }}</p>
+            </div>
+            <button onclick="markAllReadPage()" class="px-6 py-2.5 bg-indigo-600/10 hover:bg-indigo-600/20 border border-indigo-500/20 rounded-xl text-indigo-400 text-sm font-bold transition-all">{{ "Mark all as read" }}</button>
+        </header>
+
+        <div class="space-y-4">
+            {% if notifications %}
+                {% for notif in notifications %}
+                <div id="notif-card-{{ notif.id }}" class="group relative bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-3xl p-6 transition-all hover:bg-white/[0.05] hover:border-white/20 shadow-xl {% if notif.is_read %}opacity-60{% endif %}">
+                    <div class="flex justify-between items-start gap-4">
+                        <div class="flex-grow">
+                            <div class="flex items-center gap-3 mb-2">
+                                <h3 class="text-lg font-bold text-white tracking-tight">{{ notif.title }}</h3>
+                                {% if not notif.is_read %}
+                                <span class="px-2 py-0.5 bg-indigo-500 text-[10px] font-black uppercase tracking-widest rounded-full">{{ "New" }}</span>
+                                {% endif %}
+                            </div>
+                            <p class="text-slate-300 text-sm leading-relaxed mb-4">{{ notif.message }}</p>
+                            
+                            <div class="flex items-center gap-4">
+                                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    {{ notif.created_at|timesince }} {{ "ago" }}
+                                </span>
+                                
+                                {% if notif.link %}
+                                <a href="{{ notif.link }}" class="text-[11px] font-bold text-indigo-400 hover:text-indigo-300 uppercase tracking-wider flex items-center gap-1.5 transition-colors">
+                                    {{ "Details" }}
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {% if not notif.is_read %}
+                        <button onclick="markReadPage({{ notif.id }})" class="p-2.5 bg-white/5 hover:bg-indigo-500/20 border border-white/10 rounded-xl text-slate-400 hover:text-indigo-400 transition-all opacity-0 group-hover:opacity-100 shadow-lg" title="{{ "Mark as read" }}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-20 text-center">
+                    <div class="w-20 h-20 bg-slate-800/30 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/5">
+                        <svg class="w-10 h-10 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5l1.405-1.405A2.032 2.032 0 0111 14.158V11a6.002 6.002 0 004 0v3.158c0 .538.214 1.055.595 1.436L15 17zm-3 4a2 2 0 002-2H8a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <h2 class="text-xl font-bold text-slate-400">{{ "Your notification inbox is currently empty" }}</h2>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    async function markReadPage(id) {
+        try {
+            const response = await fetch(`/auth/api/notifications/${id}/read/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            });
+            if (response.ok) {
+                const card = document.getElementById(`notif-card-${id}`);
+                card.classList.add('opacity-60');
+                const badge = card.querySelector('span.px-2');
+                if (badge) badge.remove();
+                const btn = card.querySelector('button[onclick^="markReadPage"]');
+                if (btn) btn.remove();
+                
+                // Update Badge in Navbar if exists
+                let navBadge = document.getElementById('notif-badge');
+                if (navBadge) {
+                    let curr = parseInt(navBadge.innerText);
+                    if (curr > 1) navBadge.innerText = curr - 1;
+                    else navBadge.remove();
+                }
+            }
+        } catch(e) {}
+    }
+
+    async function markAllReadPage() {
+        try {
+            const response = await fetch(`/auth/api/notifications/read-all/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            });
+            if (response.ok) {
+                location.reload();
+            }
+        } catch(e) {}
+    }
+</script>
+
+<style>
+    @keyframes fade-in { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fade-in { animation: fade-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+</style>
+{% endblock %}

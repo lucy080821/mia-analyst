@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="card border-0 shadow-lg p-5" style="background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border-radius: 24px;">
+                <div class="mb-4">
+                    <div class="mb-4 d-inline-block p-4 rounded-circle bg-success bg-opacity-10">
+                        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5 13L9 17L19 7" stroke="#28a745" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <h1 class="fw-bold mb-3" style="color: #333;">Kết nối thành công!</h1>
+                    <p class="lead text-muted mb-5">
+                        Shop Shopee (ID: <strong>{{ shop_id }}</strong>) đã được liên kết thành công với tài khoản của bạn. 
+                        Hệ thống đang tiến hành đồng bộ hóa dữ liệu đơn hàng đầu tiên. Quá trình này có thể mất vài phút.
+                    </p>
+                </div>
+
+                <div class="alert alert-info border-0 rounded-4 p-4 text-start mb-5" style="background: rgba(13, 202, 240, 0.1);">
+                    <h5 class="fw-bold"><i class="bi bi-info-circle-fill me-2"></i> Tiếp theo là gì?</h5>
+                    <ul class="mb-0">
+                        <li>Dữ liệu sẽ xuất hiện trong Dashboard sau khi đồng bộ hoàn tất (khoảng 3-5 phút).</li>
+                        <li>Shopee tự động làm mới kết nối hàng ngày, bạn không cần phải thao tác lại.</li>
+                        <li>Bạn có thể bắt đầu đặt câu hỏi cho AI về doanh thu và phí của Shop ngay lập tức.</li>
+                    </ul>
+                </div>
+
+                <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+                    <a href="{% url 'analytics_dashboard' %}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-sm" style="background: #28a745; border: none;">
+                        Về Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

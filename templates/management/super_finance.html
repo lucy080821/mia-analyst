@@ -1,0 +1,361 @@
+{% extends 'management/base_admin.html' %}
+{% load static humanize %}
+
+{% block title %}Mia Control - Quản trị Tài chính{% endblock %}
+
+{% block admin_content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="space-y-6 pb-16">
+    
+    <!-- Header Command Center - Compact -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-900 p-8 rounded-[32px] text-white shadow-xl relative overflow-hidden">
+        <div class="relative z-10">
+            <h1 class="text-2xl font-black tracking-tight mb-1">Trung tâm Tài chính</h1>
+            <p class="text-slate-400 font-bold uppercase text-[8px] tracking-[4px]">Giám sát Dòng tiền & Lợi nhuận Hệ thống</p>
+        </div>
+        
+        <div class="flex items-center gap-3 mt-4 md:mt-0 relative z-10">
+            <!-- Date Filter Compact -->
+            <form method="GET" class="flex items-center gap-1.5 bg-slate-800/50 p-1.5 rounded-xl border border-slate-700/50">
+                <input type="date" name="start_date" value="{{ start_date }}" class="bg-transparent text-white text-[10px] font-bold focus:outline-none px-1 cursor-pointer">
+                <span class="text-slate-600 text-[10px]">→</span>
+                <input type="date" name="end_date" value="{{ end_date }}" class="bg-transparent text-white text-[10px] font-bold focus:outline-none px-1 cursor-pointer">
+                <button type="submit" class="p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-all">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </button>
+            </form>
+
+            <a href="?start_date={{ start_date }}&end_date={{ end_date }}&export=excel" class="px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-[10px] font-black shadow-lg shadow-emerald-500/20 hover:scale-[1.02] transition-all flex items-center gap-1.5 uppercase tracking-wider">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                Excel
+            </a>
+        </div>
+        <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-emerald-600/10 rounded-full blur-[100px]"></div>
+    </div>
+
+    <!-- KPI Grid Compact -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-white p-6 rounded-[28px] border border-slate-100 shadow-lg shadow-slate-200/20 group border-l-4 border-l-emerald-500">
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 cursor-help border-b border-dashed border-slate-200 w-fit" title="Tổng doanh thu thực tế được tính từ tất cả giao dịch có trạng thái SUCCESS.">Tổng Thu (Income)</p>
+            <h3 class="text-xl font-black text-emerald-600 tracking-tight">{{ total_income|intcomma }}đ</h3>
+            <p class="text-[8px] font-black text-slate-400 mt-1 uppercase tracking-tighter italic">Doanh thu gói dịch vụ</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-[28px] border border-slate-100 shadow-lg shadow-slate-200/20 group border-l-4 border-l-rose-500">
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 cursor-help border-b border-dashed border-slate-200 w-fit" title="Tổng các khoản chi phí vận hành, server, API và marketing đã được ghi nhận trong hệ thống.">Tổng Chi (Expense)</p>
+            <h3 class="text-xl font-black text-rose-600 tracking-tight">{{ total_expense|intcomma }}đ</h3>
+            <p class="text-[8px] font-black text-slate-400 mt-1 uppercase tracking-tighter italic">Vận hành & API costs</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-[28px] border border-slate-100 shadow-lg shadow-slate-200/20 group border-l-4 {% if profit >= 0 %}border-l-indigo-500{% else %}border-l-orange-500{% endif %}">
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 cursor-help border-b border-dashed border-slate-200 w-fit" title="Lợi nhuận ròng sau khi trừ các khoản chi phí (Net Profit = Income - Expense).">Lợi nhuận ròng (Profit)</p>
+            <h3 class="text-xl font-black {% if profit >= 0 %}text-indigo-600{% else %}text-orange-600{% endif %} tracking-tight">{% if profit >= 0 %}+{% endif %}{{ profit|intcomma }}đ</h3>
+            <p class="text-[8px] font-black text-slate-400 mt-1 uppercase tracking-tighter italic">Net Profit Margin</p>
+        </div>
+    </div>
+
+    <!-- Charts Section - Compact -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="lg:col-span-2 bg-white p-8 rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/30">
+            <h2 class="text-[11px] font-black text-slate-900 uppercase tracking-widest mb-6">Xu hướng dòng tiền</h2>
+            <div class="h-[240px]">
+                <canvas id="financeChart"></canvas>
+            </div>
+        </div>
+        <div class="bg-white p-8 rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/30">
+            <h2 class="text-[11px] font-black text-slate-900 uppercase tracking-widest mb-6">Cơ cấu chi phí</h2>
+            <div class="relative aspect-square max-w-[220px] mx-auto">
+                {% if category_amounts != "[]" %}
+                <canvas id="categoryChart"></canvas>
+                {% else %}
+                <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-200">
+                    <p class="text-[8px] font-black uppercase tracking-widest">No Data</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Expense Form Compact -->
+    <div class="bg-slate-900 p-8 rounded-[32px] shadow-2xl relative overflow-hidden">
+        <h2 class="text-sm font-black text-white uppercase tracking-wider mb-6 flex items-center gap-2">
+            <div class="w-6 h-6 bg-indigo-600 rounded-lg flex items-center justify-center text-white">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+            </div>
+            Ghi nhận khoản chi mới
+        </h2>
+        <form action="{% url 'add_expense' %}" method="POST" class="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-4">
+            {% csrf_token %}
+            <div class="md:col-span-5">
+                <label class="block text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Mục tiêu / Khoản chi</label>
+                <input type="text" name="title" required placeholder="VD: Google Cloud tháng 5"
+                    class="w-full bg-slate-800 border border-slate-700/50 rounded-xl px-4 py-2.5 text-[11px] text-white focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all placeholder:text-slate-600">
+            </div>
+            <div class="md:col-span-3">
+                <label class="block text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Danh mục</label>
+                <select name="category" class="w-full bg-slate-800 border border-slate-700/50 rounded-xl px-4 py-2.5 text-[11px] text-white focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all appearance-none cursor-pointer">
+                    {% for val, label in expense_categories %}
+                    <option value="{{ val }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="md:col-span-4">
+                <label class="block text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Số tiền (VNĐ)</label>
+                <input type="number" name="amount" required min="0" placeholder="0"
+                    class="w-full bg-slate-800 border border-slate-700/50 rounded-xl px-4 py-2.5 text-[11px] text-white focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all placeholder:text-slate-600 font-bold">
+            </div>
+            <div class="md:col-span-3">
+                <label class="block text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Ngày chi</label>
+                <input type="date" name="expense_date" required value="{% now 'Y-m-d' %}"
+                    class="w-full bg-slate-800 border border-slate-700/50 rounded-xl px-4 py-2.5 text-[11px] text-white focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all cursor-pointer">
+            </div>
+            <div class="md:col-span-6">
+                <label class="block text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Ghi chú</label>
+                <input type="text" name="note" placeholder="Thêm chi tiết..."
+                    class="w-full bg-slate-800 border border-slate-700/50 rounded-xl px-4 py-2.5 text-[11px] text-white focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all placeholder:text-slate-600">
+            </div>
+            <div class="md:col-span-3 flex items-end">
+                <button type="submit" class="w-full py-2.5 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-wider shadow-lg shadow-indigo-500/20 hover:bg-indigo-500 transition-all">
+                    Lưu dữ liệu
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Data Tables Row - Compact -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <!-- Expenses Table -->
+        <div class="bg-white rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/30 overflow-hidden">
+            <div class="px-8 py-5 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
+                <h3 class="text-[10px] font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 bg-rose-500 rounded-full"></span>
+                    Danh sách chi phí
+                </h3>
+                <span class="text-[10px] font-black text-rose-500">-{{ total_expense|intcomma }}đ</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="text-[8px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50">
+                            <th class="px-8 py-3">Mô tả</th>
+                            <th class="px-4 py-3">Ngày</th>
+                            <th class="px-8 py-3 text-right">Số tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        {% for exp in expenses %}
+                        <tr class="group hover:bg-slate-50/50 transition-all">
+                            <td class="px-8 py-4">
+                                <p class="text-[11px] font-black text-slate-800">{{ exp.title }}</p>
+                                <p class="text-[8px] font-bold text-slate-400 uppercase mt-0.5 tracking-tighter">{{ exp.get_category_display }}</p>
+                            </td>
+                            <td class="px-4 py-4 text-[10px] font-bold text-slate-400 italic">{{ exp.expense_date|date:"d/m/Y" }}</td>
+                            <td class="px-8 py-4 text-right">
+                                <span class="text-[11px] font-black text-rose-500">{{ exp.amount|intcomma }}đ</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Income Table -->
+        <div class="bg-white rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/30 overflow-hidden">
+            <div class="px-8 py-5 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
+                <h3 class="text-[10px] font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                    Dòng tiền nạp (Income)
+                </h3>
+                <span class="text-[10px] font-black text-emerald-500">+{{ total_income|intcomma }}đ</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="text-[8px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50">
+                            <th class="px-8 py-3">Khách hàng</th>
+                            <th class="px-4 py-3">Gói</th>
+                            <th class="px-8 py-3 text-right">Số tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        {% for tx in transactions %}
+                        <tr class="group hover:bg-slate-50/50 transition-all">
+                            <td class="px-8 py-4">
+                                <p class="text-[11px] font-black text-slate-800">{{ tx.user.username }}</p>
+                                <p class="text-[8px] font-bold text-slate-400 mt-0.5 tracking-tighter">{{ tx.reference_code }}</p>
+                            </td>
+                            <td class="px-4 py-4">
+                                <span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-md text-[8px] font-black uppercase border border-indigo-100">{{ tx.tier_requested }}</span>
+                            </td>
+                            <td class="px-8 py-4 text-right">
+                                <span class="text-[11px] font-black text-emerald-500">{{ tx.amount|intcomma }}đ</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+
+<script>
+    // Line Chart
+    const fCtx = document.getElementById('financeChart').getContext('2d');
+    
+    // Create Gradients
+    const incGradient = fCtx.createLinearGradient(0, 0, 0, 400);
+    incGradient.addColorStop(0, 'rgba(16, 185, 129, 0.2)');
+    incGradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
+
+    const expGradient = fCtx.createLinearGradient(0, 0, 0, 400);
+    expGradient.addColorStop(0, 'rgba(244, 63, 94, 0.2)');
+    expGradient.addColorStop(1, 'rgba(244, 63, 94, 0)');
+
+    new Chart(fCtx, {
+        type: 'line',
+        data: {
+            labels: {{ chart_labels|safe }},
+            datasets: [
+                {
+                    label: 'Thu nhập (Income)',
+                    data: {{ chart_income|safe }},
+                    borderColor: '#10b981',
+                    backgroundColor: incGradient,
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#10b981',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                },
+                {
+                    label: 'Chi phí (Expense)',
+                    data: {{ chart_expense|safe }},
+                    borderColor: '#f43f5e',
+                    backgroundColor: expGradient,
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#f43f5e',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index',
+            },
+            plugins: {
+                legend: { 
+                    display: true,
+                    position: 'top',
+                    align: 'end',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20,
+                        font: { size: 11, weight: 'bold', family: 'Plus Jakarta Sans' }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                    padding: 12,
+                    cornerRadius: 12,
+                    titleFont: { size: 13, weight: 'bold' },
+                    bodyFont: { size: 13 },
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) label += ': ';
+                            if (context.parsed.y !== null) {
+                                label += new Intl.NumberFormat('vi-VN').format(context.parsed.y) + 'đ';
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: {
+                        font: { size: 10, weight: 'bold' },
+                        color: '#94a3b8'
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#f1f5f9' },
+                    ticks: {
+                        font: { size: 10, weight: 'bold' },
+                        color: '#94a3b8',
+                        callback: function(value) {
+                            if (value >= 1000000) return (value / 1000000) + 'M';
+                            if (value >= 1000) return (value / 1000) + 'K';
+                            return value;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Doughnut Chart
+    {% if category_amounts != "[]" %}
+    const cCtx = document.getElementById('categoryChart').getContext('2d');
+    new Chart(cCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ category_labels|safe }},
+            datasets: [{
+                data: {{ category_amounts|safe }},
+                backgroundColor: ['#6366f1','#f43f5e','#f59e0b','#10b981','#3b82f6','#8b5cf6'],
+                hoverBackgroundColor: ['#4f46e5','#e11d48','#d97706','#059669','#2563eb','#7c3aed'],
+                borderWidth: 4,
+                borderColor: '#ffffff',
+                hoverOffset: 15
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            cutout: '75%',
+            plugins: {
+                legend: { 
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20,
+                        font: { size: 10, weight: 'bold' }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                    padding: 12,
+                    cornerRadius: 12,
+                    callbacks: {
+                        label: function(context) {
+                            const val = context.raw;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const perc = ((val / total) * 100).toFixed(1);
+                            return ` ${context.label}: ${new Intl.NumberFormat('vi-VN').format(val)}đ (${perc}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+</script>
+{% endblock %}

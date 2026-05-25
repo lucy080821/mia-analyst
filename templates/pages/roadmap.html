@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Lộ trình phát triển - Mia AI Data Analytics{% endblock %}
+
+{% block content %}
+<div class="bg-white min-h-screen pt-20">
+    <!-- Header -->
+    <section class="py-24 text-center">
+        <div class="max-w-4xl mx-auto px-6">
+            <h1 class="text-[10px] font-black uppercase tracking-[0.4em] text-primary mb-6">Đang được kiến tạo</h1>
+            <h2 class="text-4xl md:text-6xl font-black text-slate-900 mb-8 tracking-tight">Lộ trình Phát triển</h2>
+            <p class="text-xl text-slate-500 leading-relaxed">Chúng tôi không ngừng tiến hóa để mang lại trải nghiệm phân tích dữ liệu đột phá nhất. Dưới đây là những gì đang diễn ra tại Mia.</p>
+        </div>
+    </section>
+
+    <!-- Roadmap Timeline -->
+    <section class="py-12 pb-32">
+        <div class="max-w-4xl mx-auto px-6">
+            <div class="space-y-24 relative">
+                <!-- Vertical Line -->
+                <div class="absolute left-8 md:left-1/2 top-0 bottom-0 w-px bg-slate-100 -translate-x-1/2 hidden md:block"></div>
+
+                <!-- Q1 2026 - Done -->
+                <div class="relative grid md:grid-cols-2 gap-12 items-center">
+                    <div class="md:text-right">
+                        <span class="inline-block px-4 py-1.5 bg-green-50 text-green-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">Hoàn thành</span>
+                        <h3 class="text-3xl font-black text-slate-900 mb-4 tracking-tight">Q1 / 2026</h3>
+                        <p class="text-slate-500 font-medium">Nâng cấp lõi AI sang Gemini 1.5 Pro và 2.5 Flash, triển khai tính năng Automation với Telegram và hệ thống bảo mật doanh nghiệp.</p>
+                    </div>
+                    <div class="hidden md:flex justify-start">
+                        <div class="w-16 h-16 bg-white border-2 border-green-500 rounded-full flex items-center justify-center relative z-10 shadow-xl shadow-green-100">
+                            <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Q2 2026 - In Progress -->
+                <div class="relative grid md:grid-cols-2 gap-12 items-center">
+                    <div class="hidden md:flex justify-end order-1 md:order-none">
+                        <div class="w-16 h-16 bg-white border-2 border-primary rounded-full flex items-center justify-center relative z-10 shadow-xl shadow-primary/20 animate-pulse">
+                            <div class="w-3 h-3 bg-primary rounded-full"></div>
+                        </div>
+                    </div>
+                    <div class="order-2 md:order-none">
+                        <span class="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-[10px] font-black uppercase tracking-widest mb-4">Đang thực hiện</span>
+                        <h3 class="text-3xl font-black text-slate-900 mb-4 tracking-tight">Q2 / 2026</h3>
+                        <p class="text-slate-500 font-medium">Tích hợp API trực tiếp với Shopee Seller, TikTok Shop & Lazada để tự động kéo dữ liệu đơn hàng. Ra mắt tính năng "Smart Data Cleaning" – tự động sửa lỗi chính tả và định dạng dữ liệu thô.</p>
+                    </div>
+                </div>
+
+                <!-- Q3 2026 - Planned -->
+                <div class="relative grid md:grid-cols-2 gap-12 items-center">
+                    <div class="md:text-right">
+                        <span class="inline-block px-4 py-1.5 bg-slate-50 text-slate-400 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">Sắp tới</span>
+                        <h3 class="text-3xl font-black text-slate-900 mb-4 tracking-tight">Q3 / 2026</h3>
+                        <p class="text-slate-500 font-medium">Hệ thống dự báo AI (Predictive Forecasting) – dự đoán doanh thu và tồn kho cho 3-6 tháng tới dựa trên dữ liệu lịch sử. Hỗ trợ kết nối BigQuery & Amazon Redshift.</p>
+                    </div>
+                    <div class="hidden md:flex justify-start">
+                        <div class="w-16 h-16 bg-white border border-slate-200 rounded-full flex items-center justify-center relative z-10 shadow-sm">
+                            <div class="w-2 h-2 bg-slate-200 rounded-full"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2027+ Vision -->
+                <div class="relative grid md:grid-cols-2 gap-12 items-center">
+                    <div class="hidden md:flex justify-end order-1 md:order-none">
+                        <div class="w-16 h-16 bg-white border border-slate-200 rounded-full flex items-center justify-center relative z-10 shadow-sm">
+                             <svg class="w-6 h-6 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9s2.015-9 4.5-9m0 0a9.015 9.015 0 018.716 2.253M12 3a9.015 9.015 0 00-8.716 2.253" stroke-width="2"></path></svg>
+                        </div>
+                    </div>
+                    <div class="order-2 md:order-none">
+                        <span class="inline-block px-4 py-1.5 bg-slate-50 text-slate-400 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">Tầm nhìn</span>
+                        <h3 class="text-3xl font-black text-slate-900 mb-4 tracking-tight">2027 & Xa hơn</h3>
+                        <p class="text-slate-500 font-medium">Hệ sinh thái AI tích hợp hoàn toàn vào ERP doanh nghiệp toàn cầu. Mia trở thành bộ não của mọi quyết định kinh doanh dữ liệu.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <div class="py-20 bg-slate-50 border-t border-slate-100">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h4 class="text-2xl font-bold text-slate-900 mb-6">Bạn có gợi ý tính năng nào cho chúng tôi?</h4>
+            <a href="mailto:feedback@mia.ai" class="inline-block px-10 py-4 bg-primary text-white font-bold rounded-2xl shadow-xl shadow-primary/30 hover:shadow-primary/50 transition-all">Gửi ý tưởng của bạn</a>
+        </div>
+    </div>
+</div>
+    {% include 'partials/sales_chat.html' %}
+{% endblock %}

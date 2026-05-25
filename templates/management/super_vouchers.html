@@ -1,0 +1,167 @@
+{% extends 'management/base_admin.html' %}
+{% load static humanize %}
+
+{% block title %}Mia Control - Quản lý Voucher{% endblock %}
+
+{% block admin_content %}
+<div class="space-y-6 pb-16">
+    
+    <!-- Header Command Center - Compact -->
+    <div class="flex justify-between items-center bg-slate-900 p-8 rounded-[32px] text-white shadow-xl relative overflow-hidden">
+        <div class="relative z-10">
+            <h1 class="text-2xl font-black tracking-tight mb-1">Hệ thống Voucher</h1>
+            <p class="text-slate-400 font-bold uppercase text-[8px] tracking-[4px]">Phát hành & Theo dõi Mã khuyến mãi</p>
+        </div>
+        <div class="hidden md:flex items-center gap-6 relative z-10">
+            <div class="text-right border-r border-slate-800 pr-6">
+                <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">Active Vouchers</p>
+                <div class="flex items-center gap-1.5 mt-0.5 justify-end">
+                    <span class="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse shadow-lg shadow-indigo-500/50"></span>
+                    <span class="text-[9px] font-black text-indigo-400 uppercase tracking-tight">{{ vouchers|length }} Codes</span>
+                </div>
+            </div>
+            <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50 min-w-[80px]">
+                <p class="text-[7px] font-black text-slate-500 uppercase mb-0.5">Voucher Health</p>
+                <p class="text-xs font-black text-white">Optimal</p>
+            </div>
+        </div>
+        <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-indigo-600/10 rounded-full blur-[100px]"></div>
+    </div>
+
+    <!-- Create Voucher Form Compact -->
+    <div class="bg-white p-8 rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/30">
+        <h2 class="text-sm font-black text-slate-900 uppercase tracking-wider mb-6 flex items-center gap-2">
+            <div class="w-6 h-6 bg-indigo-600 rounded-lg flex items-center justify-center text-white">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+            </div>
+            Tạo Mã Phát Hành Mới
+        </h2>
+        <form action="{% url 'create_voucher' %}" method="post" class="grid grid-cols-1 md:grid-cols-12 gap-4">
+            {% csrf_token %}
+            <div class="md:col-span-4">
+                <label class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Mã voucher</label>
+                <div class="flex">
+                    <input type="text" id="voucherCode" name="code" required class="flex-1 bg-slate-50 border border-slate-100 rounded-l-xl px-4 py-2.5 text-[11px] font-black focus:outline-none focus:ring-1 focus:ring-indigo-500/20 transition-all placeholder:text-slate-300" placeholder="MIA-XXXX">
+                    <button type="button" onclick="generateCode()" class="px-3 bg-slate-900 text-white rounded-r-xl font-black text-[9px] uppercase hover:bg-black transition-all">Random</button>
+                </div>
+            </div>
+
+            <div class="md:col-span-3">
+                <label class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Loại Voucher</label>
+                <select name="voucher_type" id="voucherType" onchange="toggleDiscountInput()" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 text-[11px] font-black focus:outline-none focus:ring-1 focus:ring-indigo-500/20 transition-all appearance-none cursor-pointer">
+                    <option value="FREE_PLUS_7_DAYS">Miễn phí Plus 7 ngày</option>
+                    <option value="DISCOUNT_PERCENT">Giảm % cho tất cả gói</option>
+                    <option value="FIXED_DISCOUNT">Giảm số tiền cố định</option>
+                </select>
+            </div>
+
+            <div class="md:col-span-3" id="discountValContainer" style="display: none;">
+                <label class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1" id="discountLabel">Giá trị giảm</label>
+                <input type="number" name="discount_val" id="discountVal" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 text-[11px] font-black focus:outline-none focus:ring-1 focus:ring-indigo-500/20 transition-all placeholder:text-slate-300">
+            </div>
+
+            <div class="md:col-span-2">
+                <label class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Giới hạn</label>
+                <input type="number" name="max_uses" value="1" required min="1" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 text-[11px] font-black focus:outline-none focus:ring-1 focus:ring-indigo-500/20 transition-all">
+            </div>
+
+            <div class="md:col-span-12 flex justify-end mt-2">
+                <button type="submit" class="px-8 py-2.5 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-wider shadow-lg shadow-indigo-500/20 hover:scale-[1.02] transition-all">Lưu & Phát hành</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Voucher List Compact -->
+    <div class="bg-white rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/30 overflow-hidden">
+        <div class="px-8 py-5 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
+            <h3 class="text-[10px] font-black text-slate-900 uppercase tracking-widest">Danh sách đã phát hành ({{ vouchers|length }})</h3>
+            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Voucher Inventory</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50/20 text-[8px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50">
+                        <th class="px-8 py-3">Mã Code</th>
+                        <th class="px-6 py-3">Loại hình / Giá trị</th>
+                        <th class="px-6 py-3">Tình trạng (Lượt)</th>
+                        <th class="px-6 py-3">Trạng thái</th>
+                        <th class="px-8 py-3 text-right">Ngày tạo</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    {% for v in vouchers %}
+                    <tr class="group hover:bg-slate-50/50 transition-all">
+                        <td class="px-8 py-4">
+                            <span class="px-2.5 py-1.5 bg-slate-900 text-white rounded-lg font-black tracking-widest text-[10px] shadow-sm border border-slate-800">{{ v.code }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <p class="text-[11px] font-black text-slate-800">{{ v.get_voucher_type_display }}</p>
+                            {% if v.voucher_type == 'DISCOUNT_PERCENT' %}
+                                <span class="text-emerald-500 text-[8px] font-black uppercase mt-0.5 inline-block tracking-tighter">Giảm {{ v.discount_val }}%</span>
+                            {% elif v.voucher_type == 'FIXED_DISCOUNT' %}
+                                <span class="text-emerald-500 text-[8px] font-black uppercase mt-0.5 inline-block tracking-tighter">Giảm {{ v.discount_val|intcomma }}đ</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex flex-col">
+                                <span class="text-[10px] font-black {% if v.current_uses >= v.max_uses %}text-rose-500{% else %}text-indigo-600{% endif %}">{{ v.current_uses }} / {{ v.max_uses }}</span>
+                                <div class="w-16 h-1 bg-slate-100 rounded-full mt-1.5 overflow-hidden">
+                                    <div class="h-full bg-indigo-500" style="width: {% widthratio v.current_uses v.max_uses 100 %}%"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if v.is_active and v.current_uses < v.max_uses %}
+                                <span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-lg text-[7px] font-black uppercase tracking-widest border border-emerald-100">Hoạt động</span>
+                            {% else %}
+                                <span class="px-2 py-0.5 bg-rose-50 text-rose-500 rounded-lg text-[7px] font-black uppercase tracking-widest border border-rose-100">Hết lượt</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-8 py-4 text-right text-[10px] font-bold text-slate-400 italic">
+                            {{ v.created_at|date:"d/m/Y H:i" }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+</div>
+
+<script>
+function generateCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = 'MIA-';
+    for (let i = 0; i < 8; i++) {
+        if(i === 4) result += '-';
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    document.getElementById('voucherCode').value = result;
+}
+
+function toggleDiscountInput() {
+    const type = document.getElementById('voucherType').value;
+    const container = document.getElementById('discountValContainer');
+    const label = document.getElementById('discountLabel');
+    const input = document.getElementById('discountVal');
+    
+    if (type === 'DISCOUNT_PERCENT') {
+        container.style.display = 'block';
+        label.innerText = "Phần trăm giảm (%)";
+        input.placeholder = "Ví dụ: 20";
+        input.required = true;
+    } else if (type === 'FIXED_DISCOUNT') {
+        container.style.display = 'block';
+        label.innerText = "Số tiền giảm (VND)";
+        input.placeholder = "Ví dụ: 50000";
+        input.required = true;
+    } else {
+        container.style.display = 'none';
+        input.required = false;
+        input.value = '';
+    }
+}
+</script>
+{% endblock %}

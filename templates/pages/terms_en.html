@@ -1,0 +1,49 @@
+{% extends 'base_en.html' %}
+{% load static %}
+
+{% block title %}Terms of Service - Mia AI Data Analytics{% endblock %}
+
+{% block content %}
+<div class="bg-white min-h-screen pt-20">
+    <div class="max-w-4xl mx-auto py-20 px-6">
+        <header class="mb-20 text-center">
+            <h1 class="text-4xl md:text-6xl font-black text-slate-900 mb-6 tracking-tight">Terms of Service</h1>
+            <p class="text-slate-500 font-medium">Last updated: April 27, 2026</p>
+        </header>
+
+        <div class="prose prose-slate max-w-none prose-lg text-slate-600 leading-relaxed">
+            <p class="lead text-xl text-slate-500 mb-12">Welcome to Mia AI Data Analytics. By accessing or using our services, you agree to comply with the terms and conditions outlined below.</p>
+
+            <h3 class="text-2xl font-black text-slate-900 mt-12 mb-6 uppercase tracking-wider text-sm text-primary">1. Acceptance of Terms</h3>
+            <p>Using the service indicates you have read, understood, and accepted these Terms. If you represent a business, you commit to having sufficient authority to bind that business.</p>
+
+            <h3 class="text-2xl font-black text-slate-900 mt-12 mb-6 uppercase tracking-wider text-sm text-primary">2. User Accounts</h3>
+            <ul class="list-disc pl-6 space-y-2">
+                <li>You are responsible for keeping your login credentials secure.</li>
+                <li>Any activities occurring under your account are considered your responsibility.</li>
+                <li>You agree to provide accurate and up-to-date information upon registration.</li>
+            </ul>
+
+            <h3 class="text-2xl font-black text-slate-900 mt-12 mb-6 uppercase tracking-wider text-sm text-primary">3. Intellectual Property Rights</h3>
+            <p>All content, source code, AI algorithms, and UI on the platform are exclusively owned by <strong>Mia AI Data Analytics</strong>. However, the reports and analytical results generated from your data remain entirely yours.</p>
+
+            <h3 class="text-2xl font-black text-slate-900 mt-12 mb-6 uppercase tracking-wider text-sm text-primary">4. Limitation of Liability</h3>
+            <p>Although we strive to provide the most accurate analysis possible, Mia AI Data Analytics is a decision-support tool. We are not liable for any business losses arising from decisions based on AI analysis results.</p>
+
+            <h3 class="text-2xl font-black text-slate-900 mt-12 mb-6 uppercase tracking-wider text-sm text-primary">5. Termination of Service</h3>
+            <p>We reserve the right to suspend or terminate access if you severely violate these terms or use the system for illegal purposes.</p>
+
+            <h3 class="text-2xl font-black text-slate-900 mt-12 mb-6 uppercase tracking-wider text-sm text-primary">6. Changes to Terms</h3>
+            <p>We may update these Terms over time. Continued use of the service after changes implies your acceptance of the new terms.</p>
+        </div>
+        
+        <div class="mt-24 pt-12 border-t border-slate-100 text-center">
+            <a href="{% url 'home' %}" class="inline-flex items-center text-slate-400 hover:text-primary transition-colors font-bold text-sm uppercase tracking-widest">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10 19l-7-7m0 0l7-7m-7 7h18" stroke-width="3"></path></svg>
+                Go Back trang chủ
+            </a>
+        </div>
+    </div>
+</div>
+    {% include 'partials/sales_chat_en.html' %}
+{% endblock %}

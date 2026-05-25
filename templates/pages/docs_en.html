@@ -1,0 +1,151 @@
+{% extends 'base_en.html' %}
+{% load static %}
+
+{% block title %}Documentation - Mia AI Data Analytics{% endblock %}
+
+{% block content %}
+<div class="bg-white min-h-screen pt-20">
+    <div class="max-w-6xl mx-auto py-20 px-6">
+        <div class="grid lg:grid-cols-12 gap-16">
+            <!-- Sidebar Navigation -->
+            <aside class="lg:col-span-3">
+                <div class="sticky top-32 space-y-10">
+                    <div>
+                        <h5 class="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-6">Quick Start</h5>
+                        <ul class="space-y-4 text-sm font-bold text-slate-500">
+                            <li><a href="#intro" class="hover:text-primary transition-colors block py-1 border-l-2 border-transparent hover:border-primary pl-4">About Mia</a></li>
+                            <li><a href="#setup" class="hover:text-primary transition-colors block py-1 border-l-2 border-transparent hover:border-primary pl-4">Account Setup</a></li>
+                            <li><a href="#upload" class="hover:text-primary transition-colors block py-1 border-l-2 border-transparent hover:border-primary pl-4">Upload Your First Data</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h5 class="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-6">Usage Guide</h5>
+                        <ul class="space-y-4 text-sm font-bold text-slate-500">
+                            <li><a href="#chat" class="hover:text-primary transition-colors block py-1 border-l-2 border-transparent hover:border-primary pl-4">Chat with AI</a></li>
+                            <li><a href="#pipeline" class="hover:text-primary transition-colors block py-1 border-l-2 border-transparent hover:border-primary pl-4">Data Pipeline</a></li>
+                            <li><a href="#charts" class="hover:text-primary transition-colors block py-1 border-l-2 border-transparent hover:border-primary pl-4">Manage Charts</a></li>
+                            <li><a href="#export" class="hover:text-primary transition-colors block py-1 border-l-2 border-transparent hover:border-primary pl-4">Export Reports</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="lg:col-span-9">
+                <header class="mb-16">
+                    <h1 class="text-4xl md:text-6xl font-black text-slate-900 mb-6 tracking-tight">Documentation Hub</h1>
+                    <p class="text-xl text-slate-500 leading-relaxed max-w-2xl">Everything you need to know to master your data with AI. From basic steps to advanced analytical techniques.</p>
+                </header>
+
+                <div class="prose prose-slate max-w-none prose-lg text-slate-600 leading-relaxed">
+                    <section id="intro" class="scroll-mt-32 mb-20">
+                        <h2 class="text-3xl font-black text-slate-900 mb-8 border-b border-slate-100 pb-4">About Mia</h2>
+                        <p>Mia AI Data Analytics is an intelligent virtual assistant designed to help you understand and extract maximum value from your business data without needing to code. We use the latest large language models (LLMs) to "comprehend" tables and answer your questions.</p>
+                        <div class="bg-blue-50 rounded-3xl p-8 my-8 border border-blue-100 flex items-start">
+                            <span class="text-3xl mr-6">💡</span>
+                            <div>
+                                <h4 class="text-blue-900 font-bold mb-2">Pro Tip:</h4>
+                                <p class="text-blue-800 text-sm mb-0">You can ask Mia in any language you prefer. Mia supports over 100 languages including Vietnamese, English, Japanese...</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="setup" class="scroll-mt-32 mb-20">
+                        <h2 class="text-3xl font-black text-slate-900 mb-8 border-b border-slate-100 pb-4">Account Setup</h2>
+                        <p>It takes less than 30 seconds to get started:</p>
+                        <ol class="space-y-4">
+                            <li>Click the <strong>"Get Started"</strong> button on the homepage.</li>
+                            <li>Provide your email and set a secure password.</li>
+                            <li>Activate your account via the email sent (if required).</li>
+                            <li>Access the Dashboard to begin your experience.</li>
+                        </ol>
+                    </section>
+
+                    <section id="upload" class="scroll-mt-32 mb-20">
+                        <h2 class="text-3xl font-black text-slate-900 mb-8 border-b border-slate-100 pb-4">Upload Your First Data</h2>
+                        <p>Mia supports the most common file formats:</p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-8">
+                            <div class="p-6 bg-slate-50 rounded-2xl text-center">
+                                <div class="text-2xl font-bold text-primary mb-2">Excel</div>
+                                <div class="text-xs text-slate-400">.xlsx, .xls</div>
+                            </div>
+                            <div class="p-6 bg-slate-50 rounded-2xl text-center">
+                                <div class="text-2xl font-bold text-primary mb-2">CSV</div>
+                                <div class="text-xs text-slate-400">Comma/Semicolon delimited</div>
+                            </div>
+                            <div class="p-6 bg-slate-50 rounded-2xl text-center">
+                                <div class="text-2xl font-bold text-primary mb-2">SQL</div>
+                                <div class="text-xs text-slate-400">Direct Connection</div>
+                            </div>
+                        </div>
+                        <p>In the <strong>"Data Analysis"</strong> section, simply drag and drop your file into the upload area. Mia will immediately classify data columns (Date, Currency, Category...) to prepare for chatting.</p>
+                    </section>
+
+                    <section id="chat" class="scroll-mt-32 mb-20">
+                        <h2 class="text-3xl font-black text-slate-900 mb-8 border-b border-slate-100 pb-4">Chat with AI</h2>
+                        <p>Instead of writing complex formulas, ask as if you're talking to a colleague:</p>
+                        <div class="space-y-4 my-8">
+                            <div class="p-4 bg-slate-50 rounded-2xl border-l-4 border-primary">
+                                <p class="text-sm font-bold mb-1 text-slate-400">You ask:</p>
+                                <p class="text-slate-900 font-medium">"Tell me the total revenue by month for 2023 and display it as a line chart."</p>
+                            </div>
+                            <div class="p-4 bg-primary/5 rounded-2xl border-l-4 border-primary">
+                                <p class="text-sm font-bold mb-1 text-primary">Mia replies:</p>
+                                <p class="text-slate-700">"Certainly. The total revenue for 2023 is 2.5 billion VND. Here is the detailed monthly chart..."</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="pipeline" class="scroll-mt-32 mb-20">
+                        <h2 class="text-3xl font-black text-slate-900 mb-8 border-b border-slate-100 pb-4">Data Pipeline</h2>
+                        <p>Centrally manage your data sources to provide unified information for AI and Dashboards:</p>
+                        <ul class="space-y-4 my-8 list-disc pl-6">
+                            <li><strong>Multi-Dataset Support:</strong> Connect and consolidate multiple datasets into a single system.</li>
+                            <li><strong>Processing & Cleaning:</strong> Automatically standardize data formats (dates, metrics, text) before analysis.</li>
+                            <li><strong>Automated Sync:</strong> Update data in real-time or on a pre-set schedule, ensuring reports always reflect the latest information.</li>
+                        </ul>
+                    </section>
+
+                    <section id="charts" class="scroll-mt-32 mb-20">
+                        <h2 class="text-3xl font-black text-slate-900 mb-8 border-b border-slate-100 pb-4">Manage Charts (Dashboard Builder)</h2>
+                        <p>Mia provides a professional <strong>Visual Dashboard Builder</strong> to help you construct custom dashboards:</p>
+                        <ul class="space-y-4 my-8 list-disc pl-6">
+                            <li><strong>Drag-and-Drop:</strong> Intuitively create and arrange chart widgets (Cards, Tables, Scatter, Histogram).</li>
+                            <li><strong>Global Time Filters:</strong> Apply time filters to synchronously update all widgets on the dashboard.</li>
+                            <li><strong>Flexible Customization:</strong> Modify data sources, aggregation functions, and visualization types directly via the interface.</li>
+                        </ul>
+                        <div class="bg-amber-50 rounded-3xl p-8 my-8 border border-amber-100 flex items-start">
+                            <span class="text-3xl mr-6">⭐</span>
+                            <div>
+                                <h4 class="text-amber-900 font-bold mb-2">Account Limits:</h4>
+                                <p class="text-amber-800 text-sm mb-0"><strong>Free</strong> and <strong>Plus</strong> accounts have hard limits on the number of Dashboards and Widgets. Upgrade for an unlimited experience!</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="export" class="scroll-mt-32 mb-20">
+                        <h2 class="text-3xl font-black text-slate-900 mb-8 border-b border-slate-100 pb-4">Export Reports</h2>
+                        <p>Share and present your data professionally with advanced reporting features:</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
+                            <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                                <div class="text-xl font-bold text-slate-900 mb-3">PDF Export (Landscape)</div>
+                                <p class="text-sm text-slate-600">Save dashboards as high-quality PDF documents in a landscape format, supporting automatic pagination for long layouts.</p>
+                            </div>
+                            <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                                <div class="text-xl font-bold text-slate-900 mb-3">Looker Studio Bridge</div>
+                                <p class="text-sm text-slate-600">Export data directly to Google Looker Studio for further high-end and professional report customization.</p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+                
+                <div class="mt-24 pt-12 border-t border-slate-100 flex justify-between items-center">
+                    <p class="text-slate-400 text-sm">Still have questions?</p>
+                    <a href="mailto:tahoanganhtuan1996@gmail.com" class="px-8 py-3 bg-dark text-white rounded-full font-bold text-sm hover:bg-slate-800 transition-all">Send a support request</a>
+                </div>
+            </main>
+        </div>
+    </div>
+</div>
+    {% include 'partials/sales_chat_en.html' %}
+{% endblock %}

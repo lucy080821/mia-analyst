@@ -1,0 +1,419 @@
+{% extends 'management/base_admin.html' %}
+{% load static humanize %}
+
+{% block admin_content %}
+<!-- Full Width Style Override -->
+<style>
+    /* Expand main content area for this page only */
+    .lg\:pr-6 { pr-0 !important; }
+    .space-y-6 { space-y-0 !important; }
+    
+    .dashboard-container {
+        height: calc(100vh - 84px);
+        display: flex;
+        flex-direction: column;
+        background: #f8fafc;
+        margin: -24px -24px -24px -24px; /* Offset parent padding */
+        position: relative;
+        overflow: hidden;
+    }
+
+    .chat-header {
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 1.25rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        items-center: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        z-index: 20;
+    }
+
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 2rem;
+        scroll-behavior: smooth;
+        background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.03), transparent),
+                    radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.03), transparent);
+    }
+
+    .chat-input-container {
+        background: white;
+        border-top: 1px solid #e2e8f0;
+        padding: 1.5rem 2rem;
+        z-index: 20;
+    }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        border-radius: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    }
+
+    /* Dashboard Rendering Styles */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .metric-card {
+        background: white;
+        padding: 1.25rem;
+        border-radius: 20px;
+        border: 1px solid #f1f5f9;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        transition: transform 0.2s;
+    }
+
+    .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(99, 102, 241, 0.1);
+        border-color: #e2e8f0;
+    }
+
+    .metric-value {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #1e293b;
+        letter-spacing: -0.02em;
+    }
+
+    .metric-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.25rem;
+    }
+
+    .chart-box {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 24px;
+        border: 1px solid #f1f5f9;
+        margin-top: 1rem;
+        height: 320px;
+    }
+
+    .insight-box {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        padding: 1.5rem;
+        border-radius: 24px;
+        border-left: 4px solid #6366f1;
+        margin-top: 1rem;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        color: #334155;
+    }
+
+    /* Message Bubbles */
+    .msg-bot {
+        max-width: 90%;
+        margin-bottom: 2rem;
+    }
+
+    .msg-user {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 2rem;
+    }
+
+    .user-bubble {
+        background: #1e293b;
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 20px 20px 0 20px;
+        max-width: 70%;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+
+    .animate-reveal {
+        animation: reveal 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+
+    @keyframes reveal {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="dashboard-container">
+    <!-- Header -->
+    <div class="chat-header">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            </div>
+            <div>
+                <h1 class="text-white text-xl font-black tracking-tight leading-none">Super AI Dashboard</h1>
+                <p class="text-slate-500 font-bold uppercase text-[9px] tracking-[3px] mt-1.5">Mia Strategic Command Center</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="flex flex-col items-end">
+                <span class="text-emerald-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+                    Hệ thống Trực tuyến
+                </span>
+                <span class="text-slate-500 text-[9px] font-bold uppercase mt-0.5">Gemini 1.5 Flash Active</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages Area -->
+    <div id="chat-messages" class="chat-messages custom-scrollbar">
+        <!-- Initial Message -->
+        <div class="msg-bot">
+            <div class="flex items-start gap-4">
+                <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-slate-400 border border-slate-100">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </div>
+                <div class="flex-1 max-w-3xl">
+                    <div class="bg-white p-6 rounded-[24px] rounded-tl-none shadow-sm border border-slate-100">
+                        <h3 class="text-lg font-black text-slate-800 mb-2">Xin chào Sếp!</h3>
+                        <p class="text-slate-600 leading-relaxed font-medium">Tôi đã sẵn sàng phân tích toàn bộ hệ thống Mia Analyst. Sếp có thể yêu cầu tôi vẽ Dashboard doanh thu, phân tích tăng trưởng người dùng hoặc đánh giá hiệu quả Marketing ngay tại đây.</p>
+                        
+                        <div class="grid grid-cols-2 gap-3 mt-6">
+                            <button onclick="quickQuery('Vẽ dashboard tổng quan kinh doanh')" class="p-3 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-200 border border-slate-100 rounded-xl text-left transition-all group">
+                                <p class="text-[10px] font-black text-indigo-600 uppercase mb-1">Kinh doanh</p>
+                                <p class="text-xs font-bold text-slate-600 group-hover:text-slate-900">Dashboard tổng quan doanh thu & lợi nhuận</p>
+                            </button>
+                            <button onclick="quickQuery('Phân tích tăng trưởng người dùng và vẽ biểu đồ')" class="p-3 bg-slate-50 hover:bg-purple-50 hover:border-purple-200 border border-slate-100 rounded-xl text-left transition-all group">
+                                <p class="text-[10px] font-black text-purple-600 uppercase mb-1">Người dùng</p>
+                                <p class="text-xs font-bold text-slate-600 group-hover:text-slate-900">Tăng trưởng User & Breakdown các gói</p>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="chat-input-container">
+        <div class="max-w-4xl mx-auto relative">
+            <textarea id="chat-input" rows="1" class="w-full bg-slate-50 border border-slate-200 rounded-[24px] py-4 pl-6 pr-16 text-sm text-slate-700 placeholder-slate-400 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all resize-none shadow-inner" placeholder="Nhập yêu cầu phân tích hoặc vẽ dashboard..."></textarea>
+            <button onclick="handleSubmit()" id="send-btn" class="absolute right-2 top-2 bottom-2 w-12 bg-slate-900 text-white rounded-[18px] flex items-center justify-center hover:bg-indigo-600 transition-all shadow-lg hover:shadow-indigo-500/30 active:scale-95 disabled:opacity-50">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const chatInput = document.getElementById('chat-input');
+    const messagesArea = document.getElementById('chat-messages');
+    let isProcessing = false;
+
+    // Auto resize textarea
+    chatInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    });
+
+    chatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSubmit();
+        }
+    });
+
+    function quickQuery(text) {
+        chatInput.value = text;
+        handleSubmit();
+    }
+
+    async function handleSubmit() {
+        const text = chatInput.value.trim();
+        if (!text || isProcessing) return;
+
+        isProcessing = true;
+        chatInput.value = '';
+        chatInput.style.height = 'auto';
+        
+        // Append User Message
+        const userHtml = `
+            <div class="msg-user animate-reveal">
+                <div class="user-bubble">${text}</div>
+            </div>
+        `;
+        messagesArea.insertAdjacentHTML('beforeend', userHtml);
+        scrollToBottom();
+
+        // Loading
+        const loadingId = 'loading-' + Date.now();
+        const loadingHtml = `
+            <div id="${loadingId}" class="msg-bot animate-reveal">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-indigo-500 border border-indigo-50">
+                        <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-indigo-100 animate-pulse">
+                        <div class="flex gap-1.5">
+                            <div class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
+                            <div class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-100"></div>
+                            <div class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-200"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        messagesArea.insertAdjacentHTML('beforeend', loadingHtml);
+        scrollToBottom();
+
+        try {
+            const response = await fetch('{% url "super_ai_chat_api" %}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({ message: text })
+            });
+            const data = await response.json();
+            document.getElementById(loadingId).remove();
+
+            if (data.html || data.dashboard) {
+                renderBotResponse(data);
+            } else {
+                throw new Error(data.error || 'Lỗi không xác định');
+            }
+        } catch (e) {
+            if (document.getElementById(loadingId)) document.getElementById(loadingId).remove();
+            messagesArea.insertAdjacentHTML('beforeend', `<div class="p-4 bg-rose-50 text-rose-600 rounded-xl border border-rose-100 text-center text-xs font-bold mx-auto w-fit mb-6 animate-reveal">⚠️ Lỗi: ${e.message}</div>`);
+        } finally {
+            isProcessing = false;
+            scrollToBottom();
+        }
+    }
+
+    function renderBotResponse(data) {
+        const botId = 'bot-' + Date.now();
+        let contentHtml = '';
+        
+        if (data.dashboard) {
+            contentHtml = renderDashboard(data.dashboard);
+        } else {
+            contentHtml = `<div class="prose prose-sm max-w-none text-slate-700 font-medium">${data.html}</div>`;
+        }
+
+        const botHtml = `
+            <div id="${botId}" class="msg-bot animate-reveal">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-slate-400 border border-slate-100">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <div class="flex-1 max-w-4xl">
+                        <div class="bg-white p-6 rounded-[24px] rounded-tl-none shadow-sm border border-slate-100">
+                            ${contentHtml}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        messagesArea.insertAdjacentHTML('beforeend', botHtml);
+
+        // Initialize charts if any
+        if (data.dashboard && data.dashboard.charts) {
+            data.dashboard.charts.forEach(chart => {
+                setTimeout(() => initChart(chart), 100);
+            });
+        }
+        scrollToBottom();
+    }
+
+    function formatValue(val) {
+        if (typeof val === 'number') {
+            return new Intl.NumberFormat('vi-VN').format(val);
+        }
+        if (typeof val === 'string') {
+            if (!isNaN(val) && val.trim() !== '') {
+                return new Intl.NumberFormat('vi-VN').format(Number(val));
+            }
+            return val.replace(/(-?\d{4,})/g, function(match, p1) {
+                return new Intl.NumberFormat('vi-VN').format(Number(p1));
+            });
+        }
+        return val === null || val === undefined ? '' : val;
+    }
+
+    function renderDashboard(db) {
+        let html = '';
+        
+        if (db.title) html += `<h3 class="text-xl font-black text-slate-800 mb-4">${db.title}</h3>`;
+        
+        // Metrics
+        if (db.metrics) {
+            html += `<div class="dashboard-grid">`;
+            db.metrics.forEach(m => {
+                html += `
+                    <div class="metric-card">
+                        <p class="metric-label">${m.label}</p>
+                        <p class="metric-value">${formatValue(m.value)}</p>
+                        ${m.trend ? `<p class="text-[10px] font-bold mt-1 ${m.trend > 0 ? 'text-emerald-500' : 'text-rose-500'}">${m.trend > 0 ? '▲' : '▼'} ${Math.abs(m.trend)}%</p>` : ''}
+                    </div>
+                `;
+            });
+            html += `</div>`;
+        }
+
+        // Charts
+        if (db.charts) {
+            db.charts.forEach(chart => {
+                const chartId = 'chart-' + Math.random().toString(36).substr(2, 9);
+                chart.canvasId = chartId;
+                html += `<div class="chart-box"><canvas id="${chartId}"></canvas></div>`;
+            });
+        }
+
+        // Summary/Insight
+        if (db.insight) {
+            html += `<div class="insight-box">
+                <p class="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-2">💡 AI Strategic Insight</p>
+                ${db.insight}
+            </div>`;
+        }
+
+        return html;
+    }
+
+    function initChart(chart) {
+        const ctx = document.getElementById(chart.canvasId).getContext('2d');
+        new Chart(ctx, {
+            type: chart.type || 'bar',
+            data: {
+                labels: chart.data.map(d => d.label),
+                datasets: [{
+                    label: chart.title,
+                    data: chart.data.map(d => d.value),
+                    backgroundColor: chart.type === 'pie' ? ['#6366f1', '#ec4899', '#3b82f6', '#f59e0b', '#10b981'] : '#6366f1',
+                    borderRadius: 12,
+                    barThickness: chart.type === 'bar' ? 30 : undefined
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10, weight: 'bold' } } },
+                    title: { display: true, text: chart.title, font: { size: 14, weight: 'bold' } }
+                },
+                scales: chart.type !== 'pie' ? {
+                    y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+                    x: { grid: { display: false } }
+                } : {}
+            }
+        });
+    }
+
+    function scrollToBottom() {
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+</script>
+{% endblock %}

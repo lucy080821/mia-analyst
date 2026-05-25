@@ -1,0 +1,5 @@
+auth_user: ['id', 'password', 'last_login', 'is_superuser', 'username', 'last_name', 'email', 'is_staff', 'is_active', 'date_joined', 'first_name']
+accounts_userprofile: ['id', 'first_name', 'last_name', 'email', 'phone', 'address', 'bio', 'avatar', 'date_of_birth', 'created_at', 'updated_at', 'user_id', 'auto_renew', 'subscription_end_date', 'gender', 'subscription_start_date', 'tier']
+management_aiusagelog: ['id', 'model_name', 'prompt_tokens', 'completion_tokens', 'total_tokens', 'status', 'timestamp', 'error_message', 'user_id', 'error_type', 'feedback_stars', 'file_size_kb', 'is_correction', 'is_regenerated', 'processing_time']
+accounts_transaction: ['id', 'amount', 'tier_requested', 'reference_code', 'status', 'created_at', 'updated_at', 'user_id']
+management_platformexpense: ['id', 'title', 'category', 'amount', 'note', 'expense_date', 'created_at', 'created_by_id']

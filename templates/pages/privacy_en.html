@@ -1,0 +1,63 @@
+{% extends 'base_en.html' %}
+{% load static %}
+
+{% block title %}Privacy Policy - Mia AI Data Analytics{% endblock %}
+
+{% block content %}
+<div class="bg-white min-h-screen pt-20">
+    <div class="max-w-4xl mx-auto py-20 px-6">
+        <header class="mb-20 text-center">
+            <h1 class="text-4xl md:text-6xl font-black text-slate-900 mb-6 tracking-tight">Privacy Policy</h1>
+            <p class="text-slate-500 font-medium">Last updated: April 27, 2026</p>
+        </header>
+
+        <div class="prose prose-slate max-w-none prose-lg text-slate-600 leading-relaxed">
+            <div class="bg-slate-50 rounded-3xl p-8 md:p-12 mb-12 border border-slate-100">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4 flex items-center">
+                    <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm mr-4">!</span>
+                    Our Commitment
+                </h2>
+                <p class="mb-0">At <strong>Mia AI Data Analytics</strong>, we value your privacy above all else. Your business data is your most precious asset, and our goal is to protect it using the most advanced security technologies.</p>
+            </div>
+
+            <h3 class="text-2xl font-black text-slate-900 mt-12 mb-6 uppercase tracking-wider text-sm text-primary">1. Information Collection</h3>
+            <p>We only collect necessary information to provide you with the best service:</p>
+            <ul class="list-disc pl-6 space-y-2">
+                <li>Account information: Name, email, and encrypted password.</li>
+                <li>Uploaded data: Excel, CSV files you actively upload for analysis.</li>
+                <li>Billing information: Processed and secured by partnered payment gateways, we do not store your credit card information.</li>
+            </ul>
+
+            <h3 class="text-2xl font-black text-slate-900 mt-12 mb-6 uppercase tracking-wider text-sm text-primary">2. Data Usage</h3>
+            <p>Your data is solely used for the following purposes:</p>
+            <ul class="list-disc pl-6 space-y-2">
+                <li>Fulfill your analytical reporting requests.</li>
+                <li>Improve the accuracy of AI responses for your account specifically.</li>
+                <li>Send notifications about your account and important system updates.</li>
+            </ul>
+            <div class="bg-red-50 border-l-4 border-red-500 p-6 my-8">
+                <p class="text-red-700 font-bold mb-0">Save ý quan trọng: Chúng tôi tuyệt đối không sử dụng dữ liệu kinh doanh của khách hàng để huấn luyện các mô hình AI công khai.</p>
+            </div>
+
+            <h3 class="text-2xl font-black text-slate-900 mt-12 mb-6 uppercase tracking-wider text-sm text-primary">3. Security and Storage</h3>
+            <p>We apply enterprise-grade security standards:</p>
+            <ul class="list-disc pl-6 space-y-2">
+                <li><strong>End-to-End Encryption:</strong> Data is transmitted via HTTPS and encrypted at rest using AES-256 standard.</li>
+                <li><strong>Access Authorization:</strong> Only you have access to your data and analytical results.</li>
+                <li><strong>Data Deletion:</strong> You have the right to permanently delete files and chat history at any time.</li>
+            </ul>
+
+            <h3 class="text-2xl font-black text-slate-900 mt-12 mb-6 uppercase tracking-wider text-sm text-primary">4. Contact</h3>
+            <p>If you have any questions regarding this policy, please contact us via email: <a href="mailto:security@mia.ai" class="text-primary font-bold decoration-primary/30 underline-offset-4 underline">security@mia.ai</a></p>
+        </div>
+        
+        <div class="mt-24 pt-12 border-t border-slate-100 text-center">
+            <a href="{% url 'home' %}" class="inline-flex items-center text-slate-400 hover:text-primary transition-colors font-bold text-sm uppercase tracking-widest">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10 19l-7-7m0 0l7-7m-7 7h18" stroke-width="3"></path></svg>
+                Go Back trang chủ
+            </a>
+        </div>
+    </div>
+</div>
+    {% include 'partials/sales_chat_en.html' %}
+{% endblock %}

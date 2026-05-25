@@ -1,0 +1,261 @@
+{% extends 'management/base_admin_en.html' %}
+{% load static humanize %}
+
+{% block title %}Mia Control - System Permissions{% endblock %}
+
+{% block admin_content %}
+<div class="space-y-6 pb-16">
+    
+    <!-- Header Command Center - Compact -->
+    <div class="flex justify-between items-center bg-slate-900 p-8 rounded-[32px] text-white shadow-xl relative overflow-hidden">
+        <div class="relative z-10">
+            <h1 class="text-2xl font-black tracking-tight mb-1">System Permissions</h1>
+            <p class="text-slate-400 font-bold uppercase text-[8px] tracking-[4px]">Staff Roles & Privileges Management</p>
+        </div>
+        <div class="hidden md:flex items-center gap-6 relative z-10">
+            <div class="text-right border-r border-slate-800 pr-6">
+                <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">Active Staff</p>
+                <div class="flex items-center gap-1.5 mt-0.5 justify-end">
+                    <span class="w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse shadow-lg shadow-rose-500/50"></span>
+                    <span class="text-[9px] font-black text-rose-400 uppercase tracking-tight">Security Active</span>
+                </div>
+            </div>
+            <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50 min-w-[80px]">
+                <p class="text-[7px] font-black text-slate-500 uppercase mb-0.5">Access Level</p>
+                <p class="text-xs font-black text-white">Restricted</p>
+            </div>
+        </div>
+        <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-rose-600/10 rounded-full blur-[100px]"></div>
+    </div>
+
+    <!-- Compact Permissions Table -->
+    <div class="bg-white rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/30 overflow-hidden">
+        <div class="px-8 py-5 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
+            <h3 class="text-[10px] font-black text-slate-900 uppercase tracking-widest">System Staff Directory</h3>
+            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">RBAC Management</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50/20 text-[8px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50">
+                        <th class="px-8 py-3">Staff Member</th>
+                        <th class="px-6 py-3 text-center">Designation / Role</th>
+                        <th class="px-6 py-3 text-center">Status</th>
+                        <th class="px-8 py-3 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    {% for u in users %}
+                    <tr class="group hover:bg-slate-50/50 transition-all">
+                        <td class="px-8 py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black text-xs shadow-sm">
+                                    {{ u.username|first|upper }}
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <p class="font-black text-slate-900 text-[11px]">{{ u.username }}</p>
+                                        {% if u.is_superuser %}
+                                        <span class="px-1.5 py-0.5 bg-rose-50 text-rose-600 text-[7px] font-black rounded uppercase tracking-widest border border-rose-100">Founder</span>
+                                        {% endif %}
+                                    </div>
+                                    <p class="text-[9px] text-slate-400 font-bold tracking-tight">{{ u.email }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <form method="POST" class="flex items-center gap-2 justify-center">
+                                {% csrf_token %}
+                                <input type="hidden" name="user_id" value="{{ u.id }}">
+                                <input type="hidden" name="action" value="update_role">
+                                <select name="role_title" onchange="this.form.submit()" 
+                                        class="text-[9px] font-black px-3 py-1.5 bg-slate-50 border border-transparent focus:border-indigo-500 focus:bg-white rounded-lg w-36 transition-all outline-none cursor-pointer">
+                                    <option value="" {% if not u.admin_permission.role_title %}selected{% endif %}>No Role Assigned</option>
+                                    <option value="Writer" {% if u.admin_permission.role_title == 'Writer' %}selected{% endif %}>Writer</option>
+                                    <option value="Marketing" {% if u.admin_permission.role_title == 'Marketing' %}selected{% endif %}>Marketing</option>
+                                    <option value="Customer Service" {% if u.admin_permission.role_title == 'Customer Service' %}selected{% endif %}>Customer Service</option>
+                                    <option value="Operator" {% if u.admin_permission.role_title == 'Operator' %}selected{% endif %}>Operator</option>
+                                    <option value="Developer" {% if u.admin_permission.role_title == 'Developer' %}selected{% endif %}>Developer</option>
+                                </select>
+                            </form>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            {% if u.is_staff %}
+                            <span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-[7px] font-black rounded-lg uppercase tracking-widest border border-emerald-100">Active Staff</span>
+                            {% else %}
+                            <span class="px-2 py-0.5 bg-slate-50 text-slate-400 text-[7px] font-black rounded-lg uppercase tracking-widest border border-slate-100">User</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-8 py-4 text-right">
+                            <div class="flex justify-end gap-1.5 items-center">
+                                {% if u.is_staff and not u.is_superuser %}
+                                <button onclick="openPermissionModal('{{ u.id }}', '{{ u.username }}', {
+                                    'can_view_blog': {{ u.admin_permission.can_view_blog|yesno:'true,false' }},
+                                    'can_view_users': {{ u.admin_permission.can_view_users|yesno:'true,false' }},
+                                    'can_view_ai_logs': {{ u.admin_permission.can_view_ai_logs|yesno:'true,false' }},
+                                    'can_view_vouchers': {{ u.admin_permission.can_view_vouchers|yesno:'true,false' }},
+                                    'can_view_notifications': {{ u.admin_permission.can_view_notifications|yesno:'true,false' }},
+                                    'can_view_finance': {{ u.admin_permission.can_view_finance|yesno:'true,false' }},
+                                    'can_view_system': {{ u.admin_permission.can_view_system|yesno:'true,false' }}
+                                })" class="p-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-lg transition-all border border-indigo-100 shadow-sm" title="Manage Privileges">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                                </button>
+                                {% endif %}
+                                
+                                <form method="POST" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user_id" value="{{ u.id }}">
+                                    <input type="hidden" name="action" value="toggle_staff">
+                                    <button type="submit" class="p-1.5 text-slate-400 hover:text-slate-900 transition-colors" title="Toggle Staff Status">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                    </button>
+                                </form>
+                                <form method="POST" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user_id" value="{{ u.id }}">
+                                    <input type="hidden" name="action" value="toggle_superuser">
+                                    <button type="submit" class="p-1.5 text-slate-400 hover:text-rose-600 transition-colors" title="Toggle Admin Access">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- PRIVILEGE MODAL -->
+    <div id="permissionModal" class="fixed inset-0 z-[100] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div onclick="closePermissionModal()" class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" aria-hidden="true"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-[32px] text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-slate-100">
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="bulk_update_permissions">
+                    <input type="hidden" name="user_id" id="modal_user_id">
+                    
+                    <div class="bg-slate-900 px-8 py-6">
+                        <h3 class="text-xl font-black text-white" id="modal_username">Manage Privileges</h3>
+                        <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1">Granular Access Control</p>
+                    </div>
+
+                    <div class="p-8 space-y-4">
+                        <div class="grid gap-3">
+                            {# Content Management #}
+                            <label class="flex items-center p-4 rounded-2xl border border-slate-100 hover:bg-slate-50 cursor-pointer transition-all group">
+                                <div class="flex-1">
+                                    <p class="text-sm font-bold text-slate-800">Content Management</p>
+                                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Manage blog posts and analytics</p>
+                                </div>
+                                <div class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="can_view_blog" id="chk_can_view_blog" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                </div>
+                            </label>
+                            {# Customer Support #}
+                            <label class="flex items-center p-4 rounded-2xl border border-slate-100 hover:bg-slate-50 cursor-pointer transition-all group">
+                                <div class="flex-1">
+                                    <p class="text-sm font-bold text-slate-800">Customer Support</p>
+                                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Manage user accounts and tiers</p>
+                                </div>
+                                <div class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="can_view_users" id="chk_can_view_users" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                </div>
+                            </label>
+                            {# AI Logs #}
+                            <label class="flex items-center p-4 rounded-2xl border border-slate-100 hover:bg-slate-50 cursor-pointer transition-all group">
+                                <div class="flex-1">
+                                    <p class="text-sm font-bold text-slate-800">AI & API Logs</p>
+                                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Monitor AI usage and errors</p>
+                                </div>
+                                <div class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="can_view_ai_logs" id="chk_can_view_ai_logs" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                </div>
+                            </label>
+                            {# Vouchers #}
+                            <label class="flex items-center p-4 rounded-2xl border border-slate-100 hover:bg-slate-50 cursor-pointer transition-all group">
+                                <div class="flex-1">
+                                    <p class="text-sm font-bold text-slate-800">Promotions</p>
+                                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Manage discount codes and vouchers</p>
+                                </div>
+                                <div class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="can_view_vouchers" id="chk_can_view_vouchers" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                </div>
+                            </label>
+                            {# Notifications #}
+                            <label class="flex items-center p-4 rounded-2xl border border-slate-100 hover:bg-slate-50 cursor-pointer transition-all group">
+                                <div class="flex-1">
+                                    <p class="text-sm font-bold text-slate-800">Communications</p>
+                                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Send broadcast notifications</p>
+                                </div>
+                                <div class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="can_view_notifications" id="chk_can_view_notifications" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                </div>
+                            </label>
+                            {# Finance #}
+                            <label class="flex items-center p-4 rounded-2xl border border-slate-100 hover:bg-slate-50 cursor-pointer transition-all group">
+                                <div class="flex-1">
+                                    <p class="text-sm font-bold text-slate-800">Financial Data</p>
+                                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">View revenue and expenses</p>
+                                </div>
+                                <div class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="can_view_finance" id="chk_can_view_finance" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                </div>
+                            </label>
+                            {# System #}
+                            <label class="flex items-center p-4 rounded-2xl border border-slate-100 hover:bg-slate-50 cursor-pointer transition-all group">
+                                <div class="flex-1">
+                                    <p class="text-sm font-bold text-slate-800">Infrastructure</p>
+                                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Manage connectors and pipelines</p>
+                                </div>
+                                <div class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="can_view_system" id="chk_can_view_system" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="px-8 py-6 bg-slate-50 flex justify-end gap-3 border-t border-slate-100">
+                        <button type="button" onclick="closePermissionModal()" class="px-6 py-2.5 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-slate-800 transition-colors">Cancel</button>
+                        <button type="submit" class="px-8 py-2.5 bg-indigo-600 text-white text-[10px] font-black rounded-xl uppercase tracking-widest shadow-lg shadow-indigo-500/30 hover:bg-indigo-700 transition-all">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function openPermissionModal(userId, username, perms) {
+        document.getElementById('modal_user_id').value = userId;
+        document.getElementById('modal_username').innerText = 'Privileges: ' + username;
+        
+        // Set checkboxes
+        for (const [key, value] of Object.entries(perms)) {
+            const chk = document.getElementById('chk_' + key);
+            if (chk) chk.checked = value;
+        }
+        
+        document.getElementById('permissionModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closePermissionModal() {
+        document.getElementById('permissionModal').classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+</script>
+
+</div>
+{% endblock %}

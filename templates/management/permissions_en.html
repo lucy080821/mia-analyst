@@ -1,0 +1,114 @@
+{% extends 'management/base_admin_en.html' %}
+{% load static humanize %}
+
+{% block admin_content %}
+<div class="space-y-8">
+    <div class="flex justify-between items-center bg-slate-900 p-8 rounded-[32px] text-white shadow-2xl relative overflow-hidden">
+        <div class="relative z-10">
+            <h1 class="text-3xl font-black tracking-tight">System Permissions</h1>
+            <p class="text-slate-400 font-bold uppercase text-[10px] tracking-[4px] mt-2">Manage staff roles and access rights</p>
+        </div>
+        <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-rose-500/20 rounded-full blur-[80px]"></div>
+    </div>
+
+    <div class="bg-white p-8 rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/50">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                        <th class="pb-4">User</th>
+                        <th class="pb-4 text-center">Staff</th>
+                        <th class="pb-4 text-center">Superuser</th>
+                        <th class="pb-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    {% for u in users %}
+                    <tr class="group hover:bg-slate-50/50 transition-all">
+                        <td class="py-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold">
+                                    {{ u.username|first|upper }}
+                                </div>
+                                <div>
+                                    <p class="text-sm font-black text-slate-800">{{ u.username }}</p>
+                                    <div class="flex items-center gap-2 mt-0.5">
+                                        <p class="text-[10px] text-slate-400 font-bold">{{ u.email }}</p>
+                                        {% if u.admin_permission.role_title %}
+                                        <span class="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 text-[8px] font-black rounded uppercase tracking-wider border border-indigo-100">
+                                            {{ u.admin_permission.role_title }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Position Editor -->
+                                    <form method="POST" class="mt-2 flex items-center gap-2">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="user_id" value="{{ u.id }}">
+                                        <input type="hidden" name="action" value="update_role">
+                                        <input type="text" name="role_title" value="{{ u.admin_permission.role_title|default:'' }}" 
+                                               placeholder="Assign role (e.g. Writer...)" 
+                                               class="text-[9px] font-bold px-2 py-1 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:outline-none w-32 bg-slate-50/50">
+                                        <button type="submit" class="p-1 hover:text-indigo-600 text-slate-400 transition-colors">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            {% if u.is_staff and not u.is_superuser %}
+                            <div class="mt-4 flex flex-wrap gap-1.5">
+                                {% with p=u.admin_permission %}
+                                <form method="POST" class="inline">{% csrf_token %}<input type="hidden" name="user_id" value="{{ u.id }}"><input type="hidden" name="action" value="toggle_permission"><input type="hidden" name="permission_field" value="can_view_blog"><button type="submit" class="px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-tighter transition-all {% if p.can_view_blog %}bg-indigo-500 text-white shadow-sm{% else %}bg-slate-100 text-slate-400{% endif %}">Content</button></form>
+                                <form method="POST" class="inline">{% csrf_token %}<input type="hidden" name="user_id" value="{{ u.id }}"><input type="hidden" name="action" value="toggle_permission"><input type="hidden" name="permission_field" value="can_view_users"><button type="submit" class="px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-tighter transition-all {% if p.can_view_users %}bg-indigo-500 text-white shadow-sm{% else %}bg-slate-100 text-slate-400{% endif %}">Customers</button></form>
+                                <form method="POST" class="inline">{% csrf_token %}<input type="hidden" name="user_id" value="{{ u.id }}"><input type="hidden" name="action" value="toggle_permission"><input type="hidden" name="permission_field" value="can_view_ai_logs"><button type="submit" class="px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-tighter transition-all {% if p.can_view_ai_logs %}bg-indigo-500 text-white shadow-sm{% else %}bg-slate-100 text-slate-400{% endif %}">API Logs</button></form>
+                                <form method="POST" class="inline">{% csrf_token %}<input type="hidden" name="user_id" value="{{ u.id }}"><input type="hidden" name="action" value="toggle_permission"><input type="hidden" name="permission_field" value="can_view_vouchers"><button type="submit" class="px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-tighter transition-all {% if p.can_view_vouchers %}bg-indigo-500 text-white shadow-sm{% else %}bg-slate-100 text-slate-400{% endif %}">Vouchers</button></form>
+                                <form method="POST" class="inline">{% csrf_token %}<input type="hidden" name="user_id" value="{{ u.id }}"><input type="hidden" name="action" value="toggle_permission"><input type="hidden" name="permission_field" value="can_view_notifications"><button type="submit" class="px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-tighter transition-all {% if p.can_view_notifications %}bg-indigo-500 text-white shadow-sm{% else %}bg-slate-100 text-slate-400{% endif %}">Notifications</button></form>
+                                <form method="POST" class="inline">{% csrf_token %}<input type="hidden" name="user_id" value="{{ u.id }}"><input type="hidden" name="action" value="toggle_permission"><input type="hidden" name="permission_field" value="can_view_finance"><button type="submit" class="px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-tighter transition-all {% if p.can_view_finance %}bg-rose-500 text-white shadow-sm{% else %}bg-slate-100 text-slate-400{% endif %}">Finance</button></form>
+                                <form method="POST" class="inline">{% csrf_token %}<input type="hidden" name="user_id" value="{{ u.id }}"><input type="hidden" name="action" value="toggle_permission"><input type="hidden" name="permission_field" value="can_view_system"><button type="submit" class="px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-tighter transition-all {% if p.can_view_system %}bg-blue-500 text-white shadow-sm{% else %}bg-slate-100 text-slate-400{% endif %}">System</button></form>
+                                {% endwith %}
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td class="py-5 text-center">
+                            {% if u.is_staff %}
+                            <span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-[9px] font-black rounded-full uppercase">Staff</span>
+                            {% else %}
+                            <span class="px-3 py-1 bg-slate-100 text-slate-400 text-[9px] font-black rounded-full uppercase italic">None</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-5 text-center">
+                            {% if u.is_superuser %}
+                            <span class="px-3 py-1 bg-rose-100 text-rose-700 text-[9px] font-black rounded-full uppercase">Superuser</span>
+                            {% else %}
+                            <span class="px-3 py-1 bg-slate-100 text-slate-400 text-[9px] font-black rounded-full uppercase italic">None</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-5 text-right">
+                            <div class="flex justify-end gap-2">
+                                <form method="POST" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user_id" value="{{ u.id }}">
+                                    <input type="hidden" name="action" value="toggle_staff">
+                                    <button type="submit" class="px-4 py-2 bg-slate-900 text-white text-[10px] font-black rounded-xl hover:bg-indigo-600 transition-all uppercase tracking-tighter">
+                                        Toggle Staff
+                                    </button>
+                                </form>
+                                <form method="POST" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user_id" value="{{ u.id }}">
+                                    <input type="hidden" name="action" value="toggle_superuser">
+                                    <button type="submit" class="px-4 py-2 bg-rose-500 text-white text-[10px] font-black rounded-xl hover:bg-rose-600 transition-all uppercase tracking-tighter shadow-lg shadow-rose-500/20">
+                                        Toggle Admin
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
