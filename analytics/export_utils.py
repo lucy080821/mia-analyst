@@ -238,8 +238,8 @@ def generate_pdf_report(title, content):
         clean_title = sanitize_for_pdf(title)
         clean_content = sanitize_for_pdf(content)
         
-        # Prep font path for CSS (avoid backslashes in f-string)
-        css_font_path = FONT_PATH.replace('\\', '/')
+        # Prep font path for CSS (avoid backslashes in f-string and use file URI)
+        css_font_path = "file:///" + FONT_PATH.replace('\\', '/')
         
         print("DEBUG: Preparing HTML content...")
         html_content = f"""
