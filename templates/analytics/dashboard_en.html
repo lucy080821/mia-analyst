@@ -2716,10 +2716,10 @@ window.addEventListener('unhandledrejection', function(e) {
             
             let chipsHtml = data.suggested_questions.map(function(q) {
                 const safeQ = q.replace(/"/g, '&quot;');
-                return `<button type="button" data-question="${safeQ}" onclick="window.submitSuggestedQuestion(this)" class="marquee-chip"><span class="marquee-icon">✨</span><span class="text-left">${safeQ}</span></button>`;
+                return `<button type="button" data-question="${safeQ}" onclick="window.submitSuggestedQuestion(this)" class="inline-flex items-center px-3 py-2 bg-white border border-indigo-100 rounded-xl text-xs font-medium text-slate-700 hover:bg-indigo-50 hover:border-indigo-300 transition-all shadow-sm"><span class="mr-2">✨</span><span class="text-left">${safeQ}</span></button>`;
             }).join('');
             if (chipsHtml) {
-                chipsHtml = `<div class="marquee-container mt-4"><div class="marquee-content">${chipsHtml ? `<div class="mt-3 flex flex-col space-y-2 items-start">${chipsHtml}</div>` : ''}${chipsHtml ? `<div class="mt-3 flex flex-col space-y-2 items-start">${chipsHtml}</div>` : ''}</div></div>`;
+                chipsHtml = `<div class="mt-3 flex flex-col space-y-2 items-start">${chipsHtml}</div>`;
             }
 
             let cleanBtnHtml = "";
