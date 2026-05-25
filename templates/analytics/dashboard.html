@@ -3464,23 +3464,76 @@
                             const ctx = el.getContext('2d');
                             const chartData = config.obj.data;
                             const dataKeys = Object.keys(chartData[0]);
-                            let labelCol = config.obj.columns?.[0] || dataKeys[0];
-                            let valCol = config.obj.columns?.[1] || dataKeys[1];
-                            if (!dataKeys.includes(labelCol)) labelCol = dataKeys[0];
-                            if (!dataKeys.includes(valCol)) valCol = dataKeys.find(k => k !== labelCol) || dataKeys[1];
-                            if (!labelCol || !valCol) return;
+                            
+                            let isLongFormat = false;
+                            if (dataKeys.length >= 3) {
+                                const sampleVal = chartData[0][dataKeys[1]];
+                                if (typeof sampleVal === 'string' && isNaN(Number(sampleVal))) {
+                                    isLongFormat = true;
+                                }
+                            }
+                            
+                            let labels = [];
+                            let datasets = [];
+                            const colors = ['#6366f1', '#ec4899', '#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#ef4444', '#14b8a6'];
+                            
+                            if (isLongFormat) {
+                                const dimCol = dataKeys[0];
+                                const catCol = dataKeys[1];
+                                const metCol = dataKeys[2];
+                                const grouped = {};
+                                const categories = new Set();
+                                
+                                chartData.forEach(row => {
+                                    const dim = String(row[dimCol]).substring(0, 20);
+                                    const cat = String(row[catCol]);
+                                    const met = Number(row[metCol]) || 0;
+                                    if (!grouped[dim]) grouped[dim] = {};
+                                    grouped[dim][cat] = (grouped[dim][cat] || 0) + met;
+                                    categories.add(cat);
+                                });
+                                
+                                labels = Object.keys(grouped);
+                                const catArray = Array.from(categories);
+                                
+                                datasets = catArray.map((cat, i) => {
+                                    const c = colors[i % colors.length];
+                                    return {
+                                        label: cat,
+                                        data: labels.map(l => grouped[l][cat] || 0),
+                                        backgroundColor: config.obj.type === 'pie' ? colors : c + 'bb',
+                                        borderColor: config.obj.type === 'pie' ? '#fff' : c,
+                                        borderWidth: 1, borderRadius: 6, tension: 0.4
+                                    };
+                                });
+                            } else {
+                                let labelCol = config.obj.columns?.[0] || dataKeys[0];
+                                if (!dataKeys.includes(labelCol)) labelCol = dataKeys[0];
+                                let valCols = [];
+                                if (config.obj.columns && config.obj.columns.length > 1) {
+                                    valCols = config.obj.columns.slice(1).filter(k => dataKeys.includes(k));
+                                }
+                                if (valCols.length === 0) {
+                                    valCols = dataKeys.filter(k => k !== labelCol && !isNaN(Number(chartData[0]?.[k])));
+                                }
+                                if (valCols.length === 0) valCols = [dataKeys[1] || dataKeys[0]];
+                                
+                                labels = chartData.map(r => String(r[labelCol]).substring(0, 20));
+                                datasets = valCols.map((vc, i) => {
+                                    const c = colors[i % colors.length];
+                                    return {
+                                        label: vc,
+                                        data: chartData.map(r => Number(r[vc]) || 0),
+                                        backgroundColor: config.obj.type === 'pie' ? colors : c + 'bb',
+                                        borderColor: config.obj.type === 'pie' ? '#fff' : c,
+                                        borderWidth: 1, borderRadius: 6, tension: 0.4
+                                    };
+                                });
+                            }
                             
                             new Chart(ctx, { 
                                 type: config.obj.type || 'bar', 
-                                data: { 
-                                    labels: chartData.map(r => String(r[labelCol]).substring(0, 20)),
-                                    datasets: [{ 
-                                        label: config.obj.title, 
-                                        data: chartData.map(r => Number(r[valCol]) || 0), 
-                                        backgroundColor: config.obj.type === 'pie' ? ['#6366f1', '#ec4899', '#3b82f6', '#f59e0b', '#10b981'] : '#6366f1bb',
-                                        borderColor: '#6366f1', borderWidth: 1, borderRadius: 6, tension: 0.4
-                                    }] 
-                                }, 
+                                data: { labels: labels, datasets: datasets }, 
                                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 9 } } } } } 
                             });
                         });
