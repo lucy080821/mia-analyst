@@ -2354,7 +2354,17 @@
                 headers: { 'X-CSRFToken': '{{ csrf_token }}' },
                 body: formData
             });
-            const data = await response.json();
+            let data;
+            try {
+                data = await response.json();
+            } catch (jsonError) {
+                // Nếu không parse được JSON (tức là server trả về HTML do sập)
+                const errorText = await response.text();
+                showLoading(false);
+                if (uploadStatus) uploadStatus.innerHTML = '<span class="text-red-400">Lỗi Server</span>';
+                showModal("Máy chủ phản hồi lỗi (không phải JSON): " + errorText.substring(0, 100));
+                return;
+            }
             
             showLoading(false);
             if (response.ok) {
@@ -2369,8 +2379,8 @@
             }
         } catch (error) {
             showLoading(false);
-            if (uploadStatus) uploadStatus.innerHTML = '<span class="text-red-400">Lỗi kết nối</span>';
-            showModal("Có lỗi kết nối xảy ra trong quá trình tải lên.");
+            if (uploadStatus) uploadStatus.innerHTML = '<span class="text-red-400">Lỗi kết nối mạng</span>';
+            showModal("Lỗi mạng hoặc Fetch thất bại. Chi tiết: " + error.message);
         }
     };
 

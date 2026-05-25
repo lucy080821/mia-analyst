@@ -2156,7 +2156,17 @@ window.addEventListener('unhandledrejection', function(e) {
                 headers: { 'X-CSRFToken': '{{ csrf_token }}' },
                 body: formData
             });
-            const data = await response.json();
+            let data;
+            try {
+                data = await response.json();
+            } catch (jsonError) {
+                // Nếu không parse được JSON (tức là server trả về HTML do sập)
+                const errorText = await response.text();
+                showLoading(false);
+                if (uploadStatus) uploadStatus.innerHTML = '<span class="text-red-400">Server Error</span>';
+                showModal("Server crashed! Raw response: " + errorText.substring(0, 100));
+                return;
+            }
             
             showLoading(false);
             if (response.ok) {
@@ -2225,8 +2235,8 @@ window.addEventListener('unhandledrejection', function(e) {
             }
         } catch (error) {
             showLoading(false);
-            if (uploadStatus) uploadStatus.innerHTML = '<span class="text-red-400">Connection Error</span>';
-            showModal("Connection error occurred while uploading.");
+            if (uploadStatus) uploadStatus.innerHTML = '<span class="text-red-400">Network/CORS Error</span>';
+            showModal("Network error (Fetch failed). Error details: " + error.message);
         }
     }
 
