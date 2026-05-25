@@ -334,8 +334,9 @@ def ai_chat_api(request):
 
         ANALYST MINDSET (CRITICAL - NEVER IGNORE):
         - A great analyst NEVER returns empty hands. If the direct query for the user's request would yield 0 rows (e.g., a specific entity doesn't exist), you MUST pivot.
+        - A great analyst NEVER returns empty hands. If the direct query for the user's request would yield 0 rows (e.g., a specific entity doesn't exist), you MUST pivot.
         - PIVOT STRATEGY: Instead of querying for the missing entity, query the MOST RELEVANT existing data that can answer the SPIRIT of the question.
-        - Example: User asks "gợi ý voucher cho khách VIP" but no vouchers exist → Write SQL to fetch top customers by revenue, purchase frequency, and average order value. This data will be used to RECOMMEND what vouchers should be created.
+        - CHART STRATEGY: If the user asks to "vẽ biểu đồ" (draw a chart), you MUST generate a valid SQL query to fetch the UNDERLYING DATA required for that chart (e.g. GROUP BY date, category). DO NOT explain, just return the SQL.
         - Example: User asks "phân tích sản phẩm X" but product X doesn't exist → Fetch top products by sales instead.
         - Always prefer a query that returns USEFUL CONTEXT over a query guaranteed to return 0 rows.
         """
@@ -2133,7 +2134,11 @@ def get_onboarding_suggestions(request):
     lang = getattr(request, 'LANGUAGE_CODE', 'vi')
     is_en = lang.startswith('en')
     
-    datasets = UserDataset.objects.filter(user=request.user).order_by('-created_at')[:3]
+    table_name = request.GET.get('table_name')
+    if table_name and table_name != '__WORKSPACE__':
+        datasets = UserDataset.objects.filter(user=request.user, table_name=table_name)
+    else:
+        datasets = UserDataset.objects.filter(user=request.user).order_by('-created_at')[:3]
     
     if not datasets.exists():
         reply = "Currently, your data warehouse is empty. Start by uploading an Excel/CSV file or connecting your database so I can help you analyze!" if is_en else \

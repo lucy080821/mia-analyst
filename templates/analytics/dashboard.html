@@ -2878,7 +2878,12 @@
 
         const loadingId = appendBotLoading('Mia đang kiểm tra kho dữ liệu của bạn...');
         try {
-            const res = await fetch('{% url "onboarding_suggestions" %}');
+            let url = '{% url "onboarding_suggestions" %}';
+            const selectedTableInput = document.querySelector('input[name="datasource"]:checked');
+            if (selectedTableInput && selectedTableInput.value) {
+                url += '?table_name=' + encodeURIComponent(selectedTableInput.value);
+            }
+            const res = await fetch(url);
             const data = await res.json();
             removeElement(loadingId);
 

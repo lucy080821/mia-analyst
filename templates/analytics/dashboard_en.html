@@ -2657,7 +2657,12 @@ window.addEventListener('unhandledrejection', function(e) {
 
         const loadingId = appendBotLoading('Mia is scanning your workspace...');
         try {
-            const res = await fetch('{% url "onboarding_suggestions" %}');
+            let url = '{% url "onboarding_suggestions" %}';
+            const selectedTableInput = document.querySelector('input[name="datasource"]:checked');
+            if (selectedTableInput && selectedTableInput.value) {
+                url += '?table_name=' + encodeURIComponent(selectedTableInput.value);
+            }
+            const res = await fetch(url);
             const data = await res.json();
             removeElement(loadingId);
 
