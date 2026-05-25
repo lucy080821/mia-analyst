@@ -330,7 +330,7 @@ def ai_chat_api(request):
         - BUSINESS RULE: "Quản trị viên" (Admins/Staff) are defined in `auth_user` where `is_superuser=true` or `is_staff=true`. DO NOT just count `management_adminpermission` because some admins might not have a permission profile yet.
         - JOIN RULE: Use LEFT JOIN when joining a primary table (like users, customers, products) with a secondary table (logs, transactions, actions, or permission profiles like management_adminpermission) unless the user specifically asks for items WITH activity. This ensures no items are missing.
         - TYPE SAFETY: Ensure all branches of a CASE statement or UNION return the same data type. Do NOT mix numbers and strings in the same column (e.g., don't mix 1 and 'Churned'). Use explicit CASTs if necessary.
-        - Limit to 15 rows for trends.
+        - DATE FILTERING RULE: Date columns in this database are stored as text in standard SQL format 'YYYY-MM-DD HH:MM:SS.ffffff' (e.g., '2026-05-13 00:00:00.000000'). If the user specifies a date range, you MUST filter dates using the `DATE()` function or `LIKE`. Example: `DATE(update_date) BETWEEN '2026-04-08' AND '2026-05-13'`. DO NOT use 'DD/MM/YYYY' format in your queries.
 
         ANALYST MINDSET (CRITICAL - NEVER IGNORE):
         - A great analyst NEVER returns empty hands. If the direct query for the user's request would yield 0 rows (e.g., a specific entity doesn't exist), you MUST pivot.
@@ -372,7 +372,7 @@ def ai_chat_api(request):
             result_preview = []
             result_preview.append(" | ".join(columns))
             result_preview.append("-" * 60)
-            for row_dict in data[:20]:  # Show max 20 rows to AI
+            for row_dict in data[:300]:  # Show max 300 rows to AI for full chart rendering
                 result_preview.append(" | ".join(str(v) for v in row_dict.values()))
             result_text = "\n".join(result_preview)
             total_rows = len(data)
@@ -475,6 +475,7 @@ def ai_chat_api(request):
         2. Content: The 'html' field should be a polished executive summary.
         3. Dashboard: Provide a structured 'dashboard' object for all analytical requests.
         4. Visualization: Use 'metrics' and 'charts' for ALL data points.
+        5. MULTI-SERIES CHARTS (CRITICAL): If the user asks to compare multiple items over time (e.g. price of different products by date), you MUST pivot the `data` into WIDE FORMAT in the JSON. The `columns` array must be `["Date/X-axis", "Item1", "Item2", ...]`. The `data` array must be `[{"Date/X-axis": "...", "Item1": 10, "Item2": 20}]`. Do NOT use long format for multi-series charts.
         
         STORYTELLING & PRESENTATION RULES:
         - TONE: Professional, charismatic, and strategic. Use phrases like "Dựa trên dữ liệu chúng ta đang thấy...", "Một điểm đáng chú ý là...", "Từ góc nhìn chiến lược...".
