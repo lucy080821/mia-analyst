@@ -11,6 +11,26 @@ def notifications(request):
             'unread_notifications_count': unread_count
         }
     return {}
+
+def user_profile(request):
+    """Inject user profile (avatar, display_name) into every template context."""
+    if request.user.is_authenticated:
+        try:
+            profile = request.user.userprofile
+            full_name = f"{profile.first_name} {profile.last_name}".strip()
+            if not full_name:
+                full_name = request.user.get_full_name() or request.user.username
+            # Lấy 2 ký tự cuối của fullname để chào
+            display_name = full_name[-2:] if len(full_name) >= 2 else full_name
+            return {
+                'user_profile': profile,
+                'global_display_name': display_name,
+                'global_avatar_url': profile.avatar.url if profile.avatar else None,
+            }
+        except Exception:
+            pass
+    return {}
+
 def admin_permissions(request):
     if request.user.is_authenticated and request.user.is_staff:
         try:
@@ -20,3 +40,4 @@ def admin_permissions(request):
         except:
             return {}
     return {}
+

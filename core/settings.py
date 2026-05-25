@@ -87,6 +87,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'accounts.context_processors.notifications',
                 'accounts.context_processors.admin_permissions',
+                'accounts.context_processors.user_profile',
             ],
         },
     },

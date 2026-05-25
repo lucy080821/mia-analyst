@@ -181,8 +181,8 @@
                         </div>
 
                         <a href="{% url 'profile' %}" class="flex items-center space-x-2 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-all mr-2">
-                            {% if user.userprofile.avatar %}
-                                <img src="{{ user.userprofile.avatar.url }}" class="w-6 h-6 rounded-lg object-cover border border-gray-200">
+                            {% if global_avatar_url %}
+                                <img src="{{ global_avatar_url }}" class="w-6 h-6 rounded-lg object-cover border border-gray-200">
                             {% else %}
                                 <div class="w-6 h-6 bg-primary text-white text-[10px] font-black rounded-lg flex items-center justify-center">
                                     {{ user.username|first|upper }}
