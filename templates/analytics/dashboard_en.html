@@ -2128,6 +2128,14 @@ window.addEventListener('unhandledrejection', function(e) {
         });
     }
 
+    function showLoading(show = true, text = "Processing data...") {
+        const modal = document.getElementById('loading-modal');
+        const textEl = document.getElementById('loading-text');
+        if (textEl) textEl.innerText = text;
+        if (show) modal.classList.remove('hidden');
+        else modal.classList.add('hidden');
+    }
+
     window.handleFileUpload = async function(file, sheet_name = 0) {
         if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
             if (uploadStatus) uploadStatus.innerHTML = `<span class="text-red-400">${"{{ 'Invalid Format' }}"}</span>`;
