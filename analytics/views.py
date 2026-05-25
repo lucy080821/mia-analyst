@@ -1982,10 +1982,27 @@ def analyze_dataset(request):
             from .ai_utils import get_generative_model
             ai_model = get_generative_model()
             cols = list(df.columns)
-            prompt = f"Given these columns: {', '.join(cols)}. Suggest 3 strategic business questions for this data. Return JSON array."
+            sample_data = df.head(3).to_dict(orient='records')
+            
+            prompt = f"""Dựa vào các cột dữ liệu: {', '.join(cols)} và 3 dòng dữ liệu mẫu sau đây:
+            {sample_data}
+            
+            Hãy đóng vai một nhà phân tích chiến lược, đề xuất đúng 3 câu hỏi (tiếng Việt) hay nhất, thực tế nhất mà người dùng nên hỏi để phân tích sâu về bộ dữ liệu này.
+            TRẢ VỀ ĐÚNG ĐỊNH DẠNG JSON SAU:
+            {{"suggestions": ["Câu hỏi 1?", "Câu hỏi 2?", "Câu hỏi 3?"]}}
+            """
             ai_res = ai_model.generate_content(prompt, generation_config={"response_mime_type": "application/json"})
-            suggested_questions = json.loads(ai_res.text).get('suggestions', [])
-        except: pass
+            ai_json = json.loads(ai_res.text)
+            
+            if isinstance(ai_json, list):
+                suggested_questions = ai_json
+            elif isinstance(ai_json, dict):
+                suggested_questions = ai_json.get('suggestions', [])
+            else:
+                suggested_questions = []
+        except Exception as e:
+            print(f"DEBUG: analyze_dataset suggestion error: {e}")
+            pass
 
         return JsonResponse({
             "status": "success",
@@ -2091,14 +2108,19 @@ def get_onboarding_suggestions(request):
     for ds in datasets:
         try:
             with connection.cursor() as cursor:
-                cursor.execute(get_postgres_schema_query(ds.table_name))
-                cols = [r[0] for r in cursor.fetchall()]
-                schema_info.append(f"Table '{ds.name}' (columns: {', '.join(cols)})")
-        except:
+                try:
+                    description = connection.introspection.get_table_description(cursor, ds.table_name)
+                    cols = [col.name for col in description]
+                    schema_info.append(f"Table '{ds.name}' (columns: {', '.join(cols)})")
+                except Exception:
+                    pass
+        except Exception:
             continue
 
     if not schema_info:
-        return JsonResponse({"has_data": False, "suggestions": []})
+        reply = "Mia is ready to analyze. Ask me anything about your data!" if is_en else \
+                "Mia đã sẵn sàng phân tích. Hãy hỏi Mia bất kỳ điều gì về dữ liệu của bạn nhé!"
+        return JsonResponse({"has_data": True, "reply": reply, "suggestions": []})
 
     # Gọi AI để tạo gợi ý
     try:
