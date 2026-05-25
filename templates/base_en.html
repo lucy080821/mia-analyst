@@ -334,7 +334,8 @@
 
         async function markRead(id, btnElement) {
             try {
-                const response = await fetch(`/auth/api/notifications/${id}/read/`, {
+                const url = "{% url 'mark_notification_read' 0 %}".replace('0', id);
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'X-CSRFToken': '{{ csrf_token }}' }
                 });
@@ -354,7 +355,7 @@
 
         async function markAllRead() {
             try {
-                const response = await fetch(`/auth/api/notifications/read-all/`, {
+                const response = await fetch("{% url 'mark_all_notifications_read' %}", {
                     method: 'POST',
                     headers: { 'X-CSRFToken': '{{ csrf_token }}' }
                 });
