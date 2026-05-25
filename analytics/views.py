@@ -1984,12 +1984,16 @@ def analyze_dataset(request):
             cols = list(df.columns)
             sample_data = df.head(3).to_dict(orient='records')
             
+            lang = getattr(request, 'LANGUAGE_CODE', 'vi')
+            is_en = lang.startswith('en')
+            target_lang = "English" if is_en else "tiếng Việt"
+            
             prompt = f"""Dựa vào các cột dữ liệu: {', '.join(cols)} và 3 dòng dữ liệu mẫu sau đây:
             {sample_data}
             
-            Hãy đóng vai một nhà phân tích chiến lược, đề xuất đúng 3 câu hỏi (tiếng Việt) hay nhất, thực tế nhất mà người dùng nên hỏi để phân tích sâu về bộ dữ liệu này.
+            Hãy đóng vai một nhà phân tích chiến lược, đề xuất đúng 3 câu hỏi ({target_lang}) hay nhất, thực tế nhất mà người dùng nên hỏi để phân tích sâu về bộ dữ liệu này.
             TRẢ VỀ ĐÚNG ĐỊNH DẠNG JSON SAU:
-            {{"suggestions": ["Câu hỏi 1?", "Câu hỏi 2?", "Câu hỏi 3?"]}}
+            {{"suggestions": ["Question 1?", "Question 2?", "Question 3?"]}}
             """
             ai_res = ai_model.generate_content(prompt, generation_config={"response_mime_type": "application/json"})
             ai_json = json.loads(ai_res.text)
