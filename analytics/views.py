@@ -1973,15 +1973,19 @@ def analyze_dataset(request):
             needs_cleaning = True
             quality_summary = "; ".join(res['quality_alerts'])
             
-        # Suggested Questions (already generated in analyze_basic or we can call Gemini)
-        # For scanner, we use a lighter prompt
-        suggested_questions = res.get('top_products', []) # Just a fallback
-        
+        # Suggested Questions - bắt đầu bằng fallback có nghĩa
+        lang = getattr(request, 'LANGUAGE_CODE', 'vi')
+        is_en = lang.startswith('en')
+        suggested_questions = (
+            ["What are the total sales by category?", "Show me the monthly revenue trend?", "Which products have the highest profit margin?"]
+            if is_en else
+            ["Tổng doanh thu theo từng danh mục là bao nhiêu?", "Xu hướng doanh thu theo tháng như thế nào?", "Sản phẩm nào có lợi nhuận cao nhất?"]
+        )
+
         # Better suggested questions using Gemini
         try:
             from .ai_utils import get_generative_model
             ai_model = get_generative_model()
-            cols = list(df.columns)
             cols = list(df.columns)
             sample_rows = df.head(5).to_dict(orient='records')
             # Truncate long values to keep prompt short
@@ -2014,8 +2018,10 @@ Rules:
             else:
                 raw_suggestions = []
 
-            # Ensure each suggestion is a full string, not a single word
-            suggested_questions = [s for s in raw_suggestions if isinstance(s, str) and len(s.split()) >= 3]
+            # Đảm bảo mỗi gợi ý là câu đầy đủ (ít nhất 2 từ)
+            ai_suggested = [s for s in raw_suggestions if isinstance(s, str) and len(s.split()) >= 2]
+            if ai_suggested:
+                suggested_questions = ai_suggested
         except Exception as e:
             print(f"DEBUG: analyze_dataset suggestion error: {e}")
             pass
