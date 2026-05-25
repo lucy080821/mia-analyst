@@ -1982,28 +1982,40 @@ def analyze_dataset(request):
             from .ai_utils import get_generative_model
             ai_model = get_generative_model()
             cols = list(df.columns)
-            sample_data = df.head(3).to_dict(orient='records')
-            
+            cols = list(df.columns)
+            sample_rows = df.head(5).to_dict(orient='records')
+            # Truncate long values to keep prompt short
+            sample_clean = [{k: (str(v)[:50] if v is not None else '') for k, v in row.items()} for row in sample_rows]
+
             lang = getattr(request, 'LANGUAGE_CODE', 'vi')
             is_en = lang.startswith('en')
             target_lang = "English" if is_en else "tiếng Việt"
-            
-            prompt = f"""Dựa vào các cột dữ liệu: {', '.join(cols)} và 3 dòng dữ liệu mẫu sau đây:
-            {sample_data}
-            
-            Hãy đóng vai một nhà phân tích chiến lược, đề xuất đúng 3 câu hỏi ({target_lang}) hay nhất, thực tế nhất mà người dùng nên hỏi để phân tích sâu về bộ dữ liệu này.
-            TRẢ VỀ ĐÚNG ĐỊNH DẠNG JSON SAU:
-            {{"suggestions": ["Question 1?", "Question 2?", "Question 3?"]}}
-            """
+
+            prompt = f"""You are a strategic data analyst. Analyze the following dataset and suggest exactly 3 insightful business questions that a user should ask.
+
+Columns: {', '.join(cols)}
+Sample data (first 5 rows): {sample_clean}
+
+Rules:
+- Each question must be a FULL, meaningful sentence (at least 6 words).
+- Questions must be specific to this dataset's columns and values.
+- Language: {target_lang}
+- Return ONLY this exact JSON format (no extra text):
+{{"suggestions": ["Full question 1?", "Full question 2?", "Full question 3?"]}}"""
+
             ai_res = ai_model.generate_content(prompt, generation_config={"response_mime_type": "application/json"})
-            ai_json = json.loads(ai_res.text)
-            
-            if isinstance(ai_json, list):
-                suggested_questions = ai_json
-            elif isinstance(ai_json, dict):
-                suggested_questions = ai_json.get('suggestions', [])
+            raw_text = ai_res.text.strip()
+            ai_json = json.loads(raw_text)
+
+            if isinstance(ai_json, dict):
+                raw_suggestions = ai_json.get('suggestions', [])
+            elif isinstance(ai_json, list):
+                raw_suggestions = ai_json
             else:
-                suggested_questions = []
+                raw_suggestions = []
+
+            # Ensure each suggestion is a full string, not a single word
+            suggested_questions = [s for s in raw_suggestions if isinstance(s, str) and len(s.split()) >= 3]
         except Exception as e:
             print(f"DEBUG: analyze_dataset suggestion error: {e}")
             pass
@@ -2132,18 +2144,34 @@ def get_onboarding_suggestions(request):
         ai_model = get_generative_model()
         
         target_lang = "English" if is_en else "Vietnamese"
-        prompt = f"""You are a Strategic Data Analyst. Based on the following database schema, suggest exactly 3 high-impact business questions that a user should ask to gain valuable insights.
-        
-        {chr(10).join(schema_info)}
-        
-        Rules:
-        - Questions must be professional and strategic.
-        - Return ONLY a JSON object: {{"suggestions": ["Question 1?", "Question 2?", "Question 3?"]}}
-        - Language: {target_lang}.
-        """
-        
+
+        # Lấy thêm sample data từ dataset đầu tiên để AI có ngữ cảnh tốt hơn
+        sample_context = ""
+        try:
+            from .db_utils import get_sqlalchemy_engine
+            engine = get_sqlalchemy_engine()
+            first_ds = datasets[0]
+            sample_df = pd.read_sql(f'SELECT * FROM "{first_ds.table_name}" LIMIT 5', engine)
+            sample_rows = [{k: (str(v)[:50] if v is not None else '') for k, v in row.items()} for row in sample_df.to_dict(orient='records')]
+            sample_context = f"\nSample data from '{first_ds.name}':\n{sample_rows}"
+        except Exception:
+            pass
+
+        prompt = f"""You are a Strategic Data Analyst. Based on the following database schema and sample data, suggest exactly 3 high-impact business questions.
+
+{chr(10).join(schema_info)}{sample_context}
+
+Rules:
+- Each question must be a FULL sentence (at least 6 words), not a single word.
+- Questions must be specific to the columns and values visible in the schema/sample.
+- Language: {target_lang}
+- Return ONLY this exact JSON (no extra text):
+{{"suggestions": ["Full question 1?", "Full question 2?", "Full question 3?"]}}"""
+
         res = ai_model.generate_content(prompt, generation_config={"response_mime_type": "application/json"})
-        suggestions = json.loads(res.text).get("suggestions", [])
+        raw_suggestions = json.loads(res.text.strip()).get("suggestions", [])
+        # Filter out any single-word or too-short suggestions
+        suggestions = [s for s in raw_suggestions if isinstance(s, str) and len(s.split()) >= 3]
         
         reply = "Mia is ready to analyze. Here are some questions you might be interested in based on your current data:" if is_en else \
                 "Mia đã sẵn sàng phân tích. Dưới đây là một số câu hỏi bạn có thể quan tâm dựa trên dữ liệu hiện tại của mình:"
