@@ -276,6 +276,7 @@ QUY TẮC CODE (BẮT BUỘC):
 6. CHỈ dùng: pandas (as pd), numpy (as np), io, statistics.
 7. KHÔNG import thêm module nào khác. KHÔNG dùng os, sys, subprocess.
 8. KHÔNG print(). Code phải handle lỗi (try/except).
+9. QUAN TRỌNG VỀ NGÀY THÁNG: Khi xử lý cột thời gian, BẮT BUỘC dùng `pd.to_datetime(df['col'], dayfirst=True, errors='coerce')` để không bị lỗi với định dạng ngày DD/MM/YYYY của Việt Nam. Cần dropna() sau khi chuyển đổi.
 
 EXAMPLE CODE FORMAT (Vẽ biểu đồ / Bảng dữ liệu):
 ```python
@@ -352,7 +353,8 @@ result = {{
 7. ƯU TIÊN TUYỆT ĐỐI: Nếu người dùng yêu cầu rõ loại biểu đồ (ví dụ: "vẽ bar chart", "dùng biểu đồ cột", "vẽ line chart", "biểu đồ tròn") → BẮT BUỘC chọn đúng `type` đó (bar/line/pie).
 8. SỐ LƯỢNG BIỂU ĐỒ: Nếu user nói "3 chart" hoặc "4 chart", bạn PHẢI tạo ra ĐÚNG số lượng đó trong mảng `dashboards`.
 9. TRUNCATE DATA: Với các biểu đồ dạng "bar" hoặc "pie", nếu có quá 15 hạng mục, hãy tự động lấy TOP 15 hạng mục lớn nhất để biểu đồ không bị rối mắt.
-10. KHÔNG giải thích, KHÔNG markdown wrapper. CHỈ TRẢ VỀ CODE PYTHON.
+10. QUAN TRỌNG VỀ NGÀY THÁNG: Khi ép kiểu cột thời gian, BẮT BUỘC dùng `pd.to_datetime(df['col'], dayfirst=True, errors='coerce')` để hỗ trợ định dạng DD/MM/YYYY.
+11. KHÔNG giải thích, KHÔNG markdown wrapper. CHỈ TRẢ VỀ CODE PYTHON.
 """
     try:
         from .ai_utils import get_generative_model
