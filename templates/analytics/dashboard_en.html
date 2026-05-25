@@ -2170,6 +2170,30 @@ window.addEventListener('unhandledrejection', function(e) {
             
             showLoading(false);
             if (response.ok) {
+                // Tự động bypass Phase 2 (Confirm Upload) vì bản EN chưa có Modal
+                if (data.status === 'preview') {
+                    showLoading(true, "Finalizing Database...");
+                    const res2 = await fetch('{% url "confirm_upload" %}', {
+                        method: 'POST',
+                        headers: { 
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            temp_key: data.temp_key,
+                            filename: data.filename,
+                            apply_clean: true
+                        })
+                    });
+                    const finalData = await res2.json();
+                    showLoading(false);
+                    if (!res2.ok) {
+                        showModal("Error saving to database: " + finalData.error);
+                        return;
+                    }
+                    Object.assign(data, finalData); // Thêm data.table và data.rows vào object
+                }
+
                 if (uploadStatus) uploadStatus.innerHTML = `<span class="text-green-500">${"{{ 'Done!'|escapejs }}"}</span>`;
                 showModal("{{ 'Upload successful. Data is ready.'|escapejs }}");
 
