@@ -724,10 +724,11 @@ def confirm_upload(request):
         if not temp_key or not temp_key.startswith("temp_"):
             return JsonResponse({"error": "Invalid temp_key"}, status=400)
 
-        # Đọc data từ temp table
+        # Đọc data từ temp table (hỗ trợ cả SQLite và PostgreSQL)
         with connection.cursor() as cursor:
-            cursor.execute("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = %s)", [temp_key])
-            if not cursor.fetchone()[0]:
+            try:
+                cursor.execute(f'SELECT 1 FROM "{temp_key}" LIMIT 1')
+            except Exception:
                 return JsonResponse({"error": "Dữ liệu tạm đã hết hạn. Vui lòng upload lại."}, status=400)
 
         # Tạo tên bảng chính thức
