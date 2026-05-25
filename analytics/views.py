@@ -649,7 +649,11 @@ def upload_excel(request):
             for col in df_clean.columns:
                 original_dtype = str(df_raw.dtypes.get(col, df_clean[col].dtype))
                 # Try numeric
-                converted = pd.to_numeric(df_clean[col], errors='coerce')
+                if df_clean[col].dtype == object:
+                    temp_col = df_clean[col].astype(str).str.replace(',', '', regex=False).str.replace('$', '', regex=False)
+                else:
+                    temp_col = df_clean[col]
+                converted = pd.to_numeric(temp_col, errors='coerce')
                 if converted.notna().sum() > df_clean[col].notna().sum() * 0.7:
                     df_clean[col] = converted
                     new_dtype = str(df_clean[col].dtype)
