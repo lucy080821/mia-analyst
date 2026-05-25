@@ -263,14 +263,19 @@ def ai_chat_api(request):
                 return JsonResponse({"error": "Bảng không hợp lệ."}, status=403)
 
             with connection.cursor() as cursor:
-                # Check existence in PostgreSQL
-                cursor.execute("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = %s)", [table_name])
-                if not cursor.fetchone()[0]:
-                    return JsonResponse({"error": f"Table '{table_name}' not found."}, status=400)
+                # Check existence in a database-agnostic way
+                try:
+                    cursor.execute(f'SELECT 1 FROM "{table_name}" LIMIT 1')
+                except Exception:
+                    return JsonResponse({"error": f"Table '{table_name}' not found or not accessible."}, status=400)
                 
-                cursor.execute(get_postgres_schema_query(table_name))
-                cols = [f"{r[0]} {r[1]}" for r in cursor.fetchall()]
-                schema_context = f"Table `{table_name}`: {', '.join(cols)}"
+                # Fallback to get_table_description for SQLite compatibility
+                try:
+                    description = connection.introspection.get_table_description(cursor, table_name)
+                    cols = [f"{col.name} ({col.type_code})" for col in description]
+                    schema_context = f"Table `{table_name}`: {', '.join(cols)}"
+                except Exception:
+                    schema_context = f"Table `{table_name}`: columns could not be loaded."
 
         # ── RCA Intent Detection ──
         q_lower = question.lower()
