@@ -579,8 +579,16 @@ def ai_chat_api(request):
             err_json = json.loads(err_res.text)
             error_reply = err_json.get("reply")
         except:
-            error_reply = f"<h3>Đã có lỗi xảy ra</h3><p>Mia rất tiếc, đã có một lỗi kỹ thuật xảy ra trong quá trình xử lý: {str(e)}</p>"
-            
+            error_str = str(e)
+            if "403 Lightning dunning decision" in error_str or "Billing" in error_str:
+                error_reply = (
+                    "<h3>⚠️ Hết hạn thanh toán API (Billing)</h3>"
+                    "<p>Mia rất tiếc, hệ thống AI của Google đã tạm khóa API Key do chưa thanh toán. Bạn cần cập nhật thẻ tín dụng hoặc thanh toán trên Google Cloud Platform để Mia có thể phân tích tiếp nhé!</p>"
+                    f"<p class='text-xs text-slate-500 mt-2 font-mono'>Mã lỗi kỹ thuật: {error_str}</p>"
+                )
+            else:
+                error_reply = f"<h3>Đã có lỗi xảy ra</h3><p>Mia rất tiếc, đã có một lỗi kỹ thuật xảy ra trong quá trình xử lý: {error_str}</p>"
+
         return JsonResponse({
             "reply": error_reply,
             "error": str(e),
@@ -1973,14 +1981,25 @@ def analyze_dataset(request):
             needs_cleaning = True
             quality_summary = "; ".join(res['quality_alerts'])
             
-        # Suggested Questions - bắt đầu bằng fallback có nghĩa
+        # Suggested Questions - bắt đầu bằng fallback thông minh từ tên cột
+        cols = list(df.columns)
         lang = getattr(request, 'LANGUAGE_CODE', 'vi')
         is_en = lang.startswith('en')
-        suggested_questions = (
-            ["What are the total sales by category?", "Show me the monthly revenue trend?", "Which products have the highest profit margin?"]
-            if is_en else
-            ["Tổng doanh thu theo từng danh mục là bao nhiêu?", "Xu hướng doanh thu theo tháng như thế nào?", "Sản phẩm nào có lợi nhuận cao nhất?"]
-        )
+        
+        if len(cols) >= 2:
+            c1, c2 = cols[0], cols[1]
+            suggested_questions = (
+                [f"Can you summarize data by {c1}?", f"What is the relationship between {c1} and {c2}?", f"Show me the top records for {c1}"]
+                if is_en else
+                [f"Hãy tóm tắt dữ liệu theo '{c1}'?", f"Mối liên hệ giữa '{c1}' và '{c2}' là gì?", f"Hiển thị các dữ liệu nổi bật của '{c1}'?"]
+            )
+        else:
+            c1 = cols[0] if cols else "data"
+            suggested_questions = (
+                [f"Summarize the {c1} data", "Show me the trend of the data", "Are there any outliers in this dataset?"]
+                if is_en else
+                [f"Phân tích tổng quan dữ liệu '{c1}'", "Cho tôi xem xu hướng chung của dữ liệu", "Có bất thường nào trong tập dữ liệu này không?"]
+            )
 
         # Better suggested questions using Gemini
         try:
