@@ -20,8 +20,9 @@ def user_profile(request):
             full_name = f"{profile.first_name} {profile.last_name}".strip()
             if not full_name:
                 full_name = request.user.get_full_name() or request.user.username
-            # Lấy 2 ký tự cuối của fullname để chào
-            display_name = full_name[-2:] if len(full_name) >= 2 else full_name
+            # Lấy 2 từ cuối của fullname để chào
+            name_parts = full_name.split()
+            display_name = " ".join(name_parts[-2:]) if len(name_parts) >= 2 else full_name
             return {
                 'user_profile': profile,
                 'global_display_name': display_name,
