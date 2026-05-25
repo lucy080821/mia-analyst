@@ -21,3 +21,4 @@ dj-database-url
 duckdb
 sqlalchemy
 pymysql
+groq

@@ -1,95 +1,75 @@
 """
-AI Utility Module — Centralized model resolution for Gemini API.
-Eliminates 404 errors by dynamically selecting available models.
+AI Utility Module — Groq Wrapper.
+Mocking Google's GenerativeModel interface so we don't break any existing code.
 """
 import logging
+import json
 from django.conf import settings
+from groq import Groq
 
 logger = logging.getLogger(__name__)
 
-# Cache to avoid calling list_models on every request
-_cached_model = None
-_cache_timestamp = 0
+class DummyPart:
+    def __init__(self):
+        self.text = "ok"
 
+class DummyContent:
+    def __init__(self):
+        self.parts = [DummyPart()]
 
-def get_safe_model_name() -> str:
-    """
-    Returns a valid, available Gemini model name.
-    Uses settings.AI_MODEL_NAME as primary, falls back through AI_FALLBACK_MODELS.
-    Caches result for 10 minutes to avoid excessive API calls.
-    """
-    import time
-    import google.generativeai as genai
-    global _cached_model, _cache_timestamp
+class DummyCandidate:
+    def __init__(self):
+        self.content = DummyContent()
 
-    # Return cached model if fresh (< 10 minutes)
-    if _cached_model and (time.time() - _cache_timestamp) < 600:
-        return _cached_model
+class GroqResponseWrapper:
+    def __init__(self, text: str):
+        self.text = text
+        self.candidates = [DummyCandidate()]
 
-    genai.configure(api_key=settings.GEMINI_API_KEY)
+class GroqGenerativeModel:
+    def __init__(self, model_name: str = None):
+        self.client = Groq(api_key=settings.GROQ_API_KEY)
+        # Override gemini model names to groq model names
+        if not model_name or "gemini" in model_name.lower():
+            self.model_name = getattr(settings, 'GROQ_MODEL_NAME', 'llama-3.3-70b-versatile')
+        else:
+            self.model_name = model_name
 
-    # Build candidate list: primary model + fallbacks
-    candidates = [settings.AI_MODEL_NAME]
-    fallbacks = getattr(settings, 'AI_FALLBACK_MODELS', [])
-    for fb in fallbacks:
-        if fb not in candidates:
-            candidates.append(fb)
+    def generate_content(self, prompt, generation_config=None):
+        try:
+            # Handle if prompt is a list (e.g. [system_prompt, "USER QUESTION: ..."])
+            if isinstance(prompt, list):
+                prompt_text = "\n\n".join(str(p) for p in prompt)
+            else:
+                prompt_text = str(prompt)
 
-    # Normalize: ensure all candidates have "models/" prefix for comparison
-    def normalize(name):
-        return name if name.startswith('models/') else f'models/{name}'
+            messages = [{"role": "user", "content": prompt_text}]
+            
+            kwargs = {
+                "model": self.model_name,
+                "messages": messages,
+                "temperature": 0.2, # Good default for analytics
+            }
 
-    try:
-        available_models = [
-            m.name for m in genai.list_models()
-            if 'generateContent' in m.supported_generation_methods
-        ]
+            # Map Gemini JSON config to Groq
+            if generation_config and isinstance(generation_config, dict):
+                if generation_config.get("response_mime_type") == "application/json":
+                    kwargs["response_format"] = {"type": "json_object"}
+                    # Groq requires the word 'json' in the prompt when using json_object mode
+                    if "json" not in prompt_text.lower():
+                        messages[0]["content"] += "\nReturn JSON."
 
-        for candidate in candidates:
-            normalized = normalize(candidate)
-            if normalized in available_models:
-                _cached_model = candidate
-                _cache_timestamp = time.time()
-                logger.info(f"AI Model resolved: {candidate}")
-                return candidate
-
-        # If none of our candidates are available, pick first available model
-        if available_models:
-            # Prefer flash models for speed
-            for m in available_models:
-                if 'flash' in m.lower():
-                    model_name = m.replace('models/', '')
-                    _cached_model = model_name
-                    _cache_timestamp = time.time()
-                    logger.warning(f"No preferred model found, using: {model_name}")
-                    return model_name
-
-            # Last resort: first available model
-            model_name = available_models[0].replace('models/', '')
-            _cached_model = model_name
-            _cache_timestamp = time.time()
-            logger.warning(f"Using first available model: {model_name}")
-            return model_name
-
-    except Exception as e:
-        logger.error(f"Failed to list models: {e}")
-
-    # Ultimate fallback — return the configured model and hope for the best
-    return settings.AI_MODEL_NAME
-
+            chat_completion = self.client.chat.completions.create(**kwargs)
+            result_text = chat_completion.choices[0].message.content
+            return GroqResponseWrapper(result_text)
+            
+        except Exception as e:
+            logger.error(f"Groq API Error: {e}")
+            raise e
 
 def get_generative_model(model_name: str = None):
     """
-    Returns a configured GenerativeModel instance using a safe, available model.
-    If model_name is provided, sanitizes it first; otherwise auto-resolves.
+    Returns a configured GroqGenerativeModel instance which mimics Gemini.
     """
-    import google.generativeai as genai
-    genai.configure(api_key=settings.GEMINI_API_KEY)
+    return GroqGenerativeModel(model_name)
 
-    if model_name:
-        # Sanitize: fix common unicode dash issues
-        safe_name = model_name.replace('\u2013', '-').replace('\u2014', '-')
-    else:
-        safe_name = get_safe_model_name()
-
-    return genai.GenerativeModel(safe_name)

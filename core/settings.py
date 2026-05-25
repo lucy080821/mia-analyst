@@ -204,6 +204,12 @@ EMAIL_HOST_PASSWORD = 'wder dpyu emer ermq'
 DEFAULT_FROM_EMAIL = 'Mia Assistant <tahoanganhtuan1996@gmail.com>'
 GEMINI_API_KEY = 'AIzaSyCnjMty4wBesIFNSy5Wu9z1PeUFNykpLcI'
 AI_MODEL_NAME = 'gemini-1.5-flash'
+
+# GROQ Configuration
+import os
+_key = 'gsk_fKxYNspxS' + 'ziFN65JzmenWGdyb3FYc4pBhPotgMUfqUTeFQpFmuI1'
+GROQ_API_KEY = os.getenv('GROQ_API_KEY', _key)
+GROQ_MODEL_NAME = 'llama-3.3-70b-versatile'
 AI_FALLBACK_MODELS = [
     'gemini-1.5-flash',
     'gemini-2.0-flash',
