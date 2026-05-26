@@ -69,15 +69,7 @@ class GroqGenerativeModel:
 
 def get_generative_model(model_name: str = None):
     """
-    Returns a configured GenerativeModel. If the requested model is gemini,
-    it returns the real google.generativeai model. Otherwise it falls back to Groq.
+    Returns a configured GroqGenerativeModel instance which mimics Gemini.
     """
-    if not model_name or "gemini" in model_name.lower():
-        import google.generativeai as genai
-        from django.conf import settings
-        genai.configure(api_key=settings.GEMINI_API_KEY)
-        # Use gemini-1.5-flash as it is the most stable and widely available model name in v1beta
-        return genai.GenerativeModel("gemini-1.5-flash")
-    
     return GroqGenerativeModel(model_name)
 
