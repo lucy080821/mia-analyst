@@ -160,6 +160,7 @@ def ai_chat_api(request):
         question = body.get("message", "").strip()
         table_name = body.get("table", "")
         conversation_context = body.get("context", [])
+        requested_model = body.get("model", "gemini-1.5-pro")
 
         if table_name == '__WORKSPACE__':
             profile = getattr(request.user, 'userprofile', None)
@@ -185,7 +186,7 @@ def ai_chat_api(request):
         
         # 3. Cấu hình & Gọi AI: Sử dụng model resolver an toàn
         from .ai_utils import get_generative_model
-        ai_model = get_generative_model()
+        ai_model = get_generative_model(requested_model)
 
         # ── LLM GUARDRAIL CHECK ──
         try:
