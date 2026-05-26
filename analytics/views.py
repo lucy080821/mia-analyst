@@ -254,18 +254,6 @@ def ai_chat_api(request):
                 schema_context += "\n\nTABLE MAPPING (use these exact table names in SQL):\n" + "\n".join(mapping_hints)
         else:
             # Security check
-            user_owns = (
-                UserDataset.objects.filter(user=request.user, table_name=table_name).exists()
-                if request.user.is_authenticated else False
-            )
-            allowed_prefixes = ('uploaded_', 'shopee_orders_', 'temp_shopee_orders', 'pipeline_', 'dwh_', 'ds_')
-            if not user_owns and not any(table_name.startswith(p) for p in allowed_prefixes):
-                return JsonResponse({"error": "Bảng không hợp lệ."}, status=403)
-
-            with connection.cursor() as cursor:
-                # Check existence in a database-agnostic way
-                try:
-                    cursor.execute(f'SELECT 1 FROM "{table_name}" LIMIT 1')
                 except Exception:
                     return JsonResponse({"error": f"Table '{table_name}' not found or not accessible."}, status=400)
                 
@@ -333,7 +321,7 @@ def ai_chat_api(request):
         - BUSINESS RULE: "Quản trị viên" (Admins/Staff) are defined in `auth_user` where `is_superuser=true` or `is_staff=true`. DO NOT just count `management_adminpermission` because some admins might not have a permission profile yet.
         - JOIN RULE: Use LEFT JOIN when joining a primary table (like users, customers, products) with a secondary table (logs, transactions, actions, or permission profiles like management_adminpermission) unless the user specifically asks for items WITH activity. This ensures no items are missing.
         - TYPE SAFETY: Ensure all branches of a CASE statement or UNION return the same data type. Do NOT mix numbers and strings in the same column (e.g., don't mix 1 and 'Churned'). Use explicit CASTs if necessary.
-        - NUMERIC AGGREGATION RULE: Many columns in user-uploaded datasets containing metrics, indices, quantities, or prices (like `giá_vnđ`, `revenue`, `baltic_dry_index`, `pricecfrusdmt`) are often stored as TEXT because they might contain commas, spaces, or symbols. If you apply math aggregations (SUM, AVG, MIN, MAX) to ANY column that represents a numeric value, you MUST cast it to NUMERIC and handle empty strings. Example: `AVG(CAST(NULLIF(TRIM(REPLACE(REPLACE(CAST("baltic_dry_index" AS TEXT), ',', ''), '$', '')), '') AS NUMERIC))`. Otherwise, PostgreSQL will throw a type error like "invalid input syntax for type numeric" or "function avg(text) does not exist".
+        - NUMERIC AGGREGATION RULE: If a numeric column is stored as TEXT/VARCHAR (check the provided schema), you MUST cast it to NUMERIC and handle empty strings/symbols before aggregating: `AVG(CAST(NULLIF(TRIM(REPLACE(REPLACE(CAST("baltic_dry_index" AS TEXT), ',', ''), '$', '')), '') AS NUMERIC))`. IF THE COLUMN IS ALREADY NUMERIC in the schema (e.g., BIGINT, INTEGER, DOUBLE, NUMERIC), DO NOT apply TRIM, REPLACE, or string functions to it; just aggregate directly like `AVG("throughput_teumn")`. Applying TRIM to a BIGINT will cause a fatal error!
         - DATE FILTERING RULE: Date columns in this database are stored as text in standard ISO format 'YYYY-MM-DD HH:MM:SS.ffffff' (e.g., '2026-05-13 00:00:00.000000'). If the user specifies a date range, you MUST filter dates using standard string comparison (e.g., `update_date >= '2026-04-08' AND update_date <= '2026-05-13 23:59:59'`) or `LIKE`. DO NOT use database-specific date functions like `DATE()`, `TO_DATE()`, or `::date` because they will cause syntax errors. DO NOT use 'DD/MM/YYYY' format in your queries.
 
         ANALYST MINDSET (CRITICAL - NEVER IGNORE):
@@ -348,10 +336,15 @@ def ai_chat_api(request):
         sql_response = ai_model.generate_content(sql_prompt)
         sql = sql_response.text.strip()
         print(f"DEBUG: Generated SQL: {sql}")
-        # Clean any markdown artifacts
-        for marker in ['```sql', '```sqlite', '```', 'SQL:', 'sql:']:
-            sql = sql.replace(marker, '')
-        sql = sql.strip()
+        import re
+        sql_match = re.search(r"```(?:sql|sqlite)?\s*(.*?)\s*```", sql_response.text, re.DOTALL | re.IGNORECASE)
+        if sql_match:
+            sql = sql_match.group(1).strip()
+        else:
+            sql = sql_response.text.strip()
+            for marker in ['```sql', '```sqlite', '```', 'SQL:', 'sql:']:
+                sql = sql.replace(marker, '')
+            sql = sql.strip()
 
         # ── STEP 3: Execute SQL ──
         print(f"DEBUG CHAT: Executing SQL: {sql[:200]}")
