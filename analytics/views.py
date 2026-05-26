@@ -59,6 +59,17 @@ def get_readable_type(type_code):
     """Convert PostgreSQL type OID to a human-readable type name."""
     return PG_TYPE_MAP.get(type_code, f'TYPE_{type_code}')
 
+def _is_numeric_string(s):
+    """Check if a string value looks like a numeric value."""
+    if not s or s.strip() == '':
+        return False
+    s = s.strip().replace(',', '').replace('$', '').replace('%', '').replace(' ', '')
+    try:
+        float(s)
+        return True
+    except (ValueError, TypeError):
+        return False
+
 def serialize_for_json(obj):
     """Chuyển đổi datetime/date/decimal thành string cho JSON."""
     if isinstance(obj, (datetime, date)):
@@ -246,10 +257,27 @@ def ai_chat_api(request):
                     
                     if is_system or friendly_name:
                         description = connection.introspection.get_table_description(cursor, t_name)
-                        cols = [f"{col.name} ({get_readable_type(col.type_code)})" for col in description]
+                        
+                        # Smart type detection for user datasets: detect TEXT columns with numeric data
+                        col_descs = []
+                        for col in description:
+                            readable_type = get_readable_type(col.type_code)
+                            if not is_system and readable_type in ('TEXT', 'VARCHAR'):
+                                # Sample actual data to detect if it's really numeric
+                                try:
+                                    cursor.execute(f'SELECT "{col.name}" FROM "{t_name}" WHERE "{col.name}" IS NOT NULL AND "{col.name}" != \'\' LIMIT 5')
+                                    samples = [row[0] for row in cursor.fetchall()]
+                                    if samples:
+                                        numeric_count = sum(1 for s in samples if _is_numeric_string(str(s)))
+                                        if numeric_count >= len(samples) * 0.8:  # 80%+ are numeric
+                                            readable_type = 'TEXT→NUMERIC (CAST to NUMERIC before aggregation)'
+                                except Exception:
+                                    pass
+                            col_descs.append(f"{col.name} ({readable_type})")
+                        
                         label = "SYSTEM" if is_system else "USER_DATASET"
                         desc = f" ({friendly_name})" if friendly_name else ""
-                        all_tables_info.append(f"{label} Table `{t_name}`{desc}: {', '.join(cols)}")
+                        all_tables_info.append(f"{label} Table `{t_name}`{desc}: {', '.join(col_descs)}")
         except Exception as e:
             print(f"DEBUG: Dynamic discovery failed: {e}")
 
@@ -294,13 +322,41 @@ def ai_chat_api(request):
                 except Exception:
                     return JsonResponse({"error": f"Table '{table_name}' not found or not accessible."}, status=400)
                 
-                # Fallback to get_table_description for SQLite compatibility
+                # Get column descriptions with smart type detection
                 try:
                     description = connection.introspection.get_table_description(cursor, table_name)
-                    cols = [f"{col.name} ({get_readable_type(col.type_code)})" for col in description]
-                    schema_context = f"Table `{table_name}`: {', '.join(cols)}"
+                    col_descs = []
+                    for col in description:
+                        readable_type = get_readable_type(col.type_code)
+                        if readable_type in ('TEXT', 'VARCHAR'):
+                            # Check if TEXT column actually contains numeric data
+                            try:
+                                cursor.execute(f'SELECT "{col.name}" FROM "{table_name}" WHERE "{col.name}" IS NOT NULL AND "{col.name}" != \'\' LIMIT 5')
+                                samples = [row[0] for row in cursor.fetchall()]
+                                if samples:
+                                    numeric_count = sum(1 for s in samples if _is_numeric_string(str(s)))
+                                    if numeric_count >= len(samples) * 0.8:
+                                        readable_type = 'TEXT→NUMERIC (CAST to NUMERIC before aggregation)'
+                            except Exception:
+                                pass
+                        col_descs.append(f"{col.name} ({readable_type})")
+                    schema_context = f"Table `{table_name}`: {', '.join(col_descs)}"
                 except Exception:
                     schema_context = f"Table `{table_name}`: columns could not be loaded."
+                
+                # Add sample data rows so AI understands data shape
+                try:
+                    cursor.execute(f'SELECT * FROM "{table_name}" LIMIT 3')
+                    sample_cols = [d[0] for d in cursor.description]
+                    sample_rows = cursor.fetchall()
+                    if sample_rows:
+                        sample_text = "\nSAMPLE DATA (first 3 rows):\n"
+                        sample_text += " | ".join(sample_cols) + "\n"
+                        for row in sample_rows:
+                            sample_text += " | ".join(str(v)[:50] for v in row) + "\n"
+                        schema_context += sample_text
+                except Exception:
+                    pass
 
         # ── RCA Intent Detection ──
         q_lower = question.lower()
