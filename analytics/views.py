@@ -668,7 +668,7 @@ def upload_excel(request):
                 # Try datetime
                 if df_clean[col].dtype == object:
                     try:
-                        converted_dt = pd.to_datetime(df_clean[col], errors='coerce', infer_datetime_format=True)
+                        converted_dt = pd.to_datetime(df_clean[col], errors='coerce')
                         if converted_dt.notna().sum() > df_clean[col].notna().sum() * 0.7:
                             df_clean[col] = converted_dt
                             new_dtype = 'datetime'
@@ -807,7 +807,7 @@ def confirm_upload(request):
                         temp = df[col_name]
                     df[col_name] = pd.to_numeric(temp, errors='coerce')
                 elif target_type == 'date':
-                    df[col_name] = pd.to_datetime(df[col_name], errors='coerce', infer_datetime_format=True)
+                    df[col_name] = pd.to_datetime(df[col_name], errors='coerce')
                 elif target_type == 'text':
                     df[col_name] = df[col_name].astype(str)
                 
