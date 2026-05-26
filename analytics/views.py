@@ -750,7 +750,7 @@ def upload_excel(request):
 
         except Exception as e:
             import traceback
-            return JsonResponse({"error": str(e), "detail": traceback.format_exc()}, status=500)
+            return JsonResponse({"error": str(e), "detail": traceback.format_exc()}, status=400)
     return JsonResponse({"error": "Invalid request"}, status=400)
 
 
@@ -855,7 +855,7 @@ def confirm_upload(request):
 
     except Exception as e:
         import traceback
-        return JsonResponse({"error": str(e), "detail": traceback.format_exc()}, status=500)
+        return JsonResponse({"error": str(e), "detail": traceback.format_exc()}, status=400)
 
 
 # --- RECONSTRUCTED MISSING HANDLERS ---

@@ -21,7 +21,7 @@ def get_sqlalchemy_engine():
         # Encode password phòng trường hợp có ký tự đặc biệt
         safe_password = urllib.parse.quote_plus(password)
         
-        connection_string = f"postgresql://{user}:{safe_password}@{host}:{port}/{name}"
+        connection_string = f"postgresql://{user}:{safe_password}@{host}:{port}/{name}?sslmode=require"
         return create_engine(connection_string)
     
     else:
