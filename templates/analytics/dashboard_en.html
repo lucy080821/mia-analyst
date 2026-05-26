@@ -2364,7 +2364,9 @@ window.addEventListener('unhandledrejection', function(e) {
                 const finalData = await res.json();
                 showLoading(false);
                 if (res.ok) {
-                    if(typeof closeQualityModal === 'function') closeQualityModal(); else modal.classList.add('hidden');
+                    // Explicitly hide the quality review modal
+                    const qrModal = document.getElementById('quality-review-modal');
+                    if (qrModal) qrModal.classList.add('hidden');
                     showModal("Dataset has been successfully Transformed and Saved!");
                     finalizeUploadUI(finalData, file);
                 } else {

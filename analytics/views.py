@@ -34,6 +34,21 @@ from .connectors.base import get_cipher
 
 # --- RECONSTRUCTED UTILITIES ---
 
+# PostgreSQL OID to readable type name mapping
+PG_TYPE_MAP = {
+    16: 'BOOLEAN', 20: 'BIGINT', 21: 'SMALLINT', 23: 'INTEGER',
+    25: 'TEXT', 700: 'REAL', 701: 'DOUBLE PRECISION', 790: 'MONEY',
+    1042: 'CHAR', 1043: 'VARCHAR', 1082: 'DATE', 1083: 'TIME',
+    1114: 'TIMESTAMP', 1184: 'TIMESTAMPTZ', 1700: 'NUMERIC',
+    2950: 'UUID', 3802: 'JSONB', 114: 'JSON', 1015: 'VARCHAR[]',
+    1009: 'TEXT[]', 1016: 'BIGINT[]', 1005: 'SMALLINT[]',
+    1007: 'INTEGER[]', 17: 'BYTEA', 142: 'XML',
+}
+
+def get_readable_type(type_code):
+    """Convert PostgreSQL type OID to a human-readable type name."""
+    return PG_TYPE_MAP.get(type_code, f'TYPE_{type_code}')
+
 def serialize_for_json(obj):
     """Chuyển đổi datetime/date/decimal thành string cho JSON."""
     if isinstance(obj, (datetime, date)):
@@ -221,7 +236,7 @@ def ai_chat_api(request):
                     
                     if is_system or friendly_name:
                         description = connection.introspection.get_table_description(cursor, t_name)
-                        cols = [f"{col.name} ({col.type_code})" for col in description]
+                        cols = [f"{col.name} ({get_readable_type(col.type_code)})" for col in description]
                         label = "SYSTEM" if is_system else "USER_DATASET"
                         desc = f" ({friendly_name})" if friendly_name else ""
                         all_tables_info.append(f"{label} Table `{t_name}`{desc}: {', '.join(cols)}")
@@ -272,7 +287,7 @@ def ai_chat_api(request):
                 # Fallback to get_table_description for SQLite compatibility
                 try:
                     description = connection.introspection.get_table_description(cursor, table_name)
-                    cols = [f"{col.name} ({col.type_code})" for col in description]
+                    cols = [f"{col.name} ({get_readable_type(col.type_code)})" for col in description]
                     schema_context = f"Table `{table_name}`: {', '.join(cols)}"
                 except Exception:
                     schema_context = f"Table `{table_name}`: columns could not be loaded."
@@ -333,7 +348,10 @@ def ai_chat_api(request):
         - BUSINESS RULE: "Quản trị viên" (Admins/Staff) are defined in `auth_user` where `is_superuser=true` or `is_staff=true`. DO NOT just count `management_adminpermission` because some admins might not have a permission profile yet.
         - JOIN RULE: Use LEFT JOIN when joining a primary table (like users, customers, products) with a secondary table (logs, transactions, actions, or permission profiles like management_adminpermission) unless the user specifically asks for items WITH activity. This ensures no items are missing.
         - TYPE SAFETY: Ensure all branches of a CASE statement or UNION return the same data type. Do NOT mix numbers and strings in the same column (e.g., don't mix 1 and 'Churned'). Use explicit CASTs if necessary.
-        - NUMERIC AGGREGATION RULE: If a numeric column is stored as TEXT/VARCHAR (check the provided schema), you MUST cast it to NUMERIC and handle empty strings/symbols before aggregating: `AVG(CAST(NULLIF(TRIM(REPLACE(REPLACE(CAST("baltic_dry_index" AS TEXT), ',', ''), '$', '')), '') AS NUMERIC))`. IF THE COLUMN IS ALREADY NUMERIC in the schema (e.g., BIGINT, INTEGER, DOUBLE, NUMERIC), DO NOT apply TRIM, REPLACE, or string functions to it; just aggregate directly like `AVG("throughput_teumn")`. Applying TRIM to a BIGINT will cause a fatal error!
+        - NUMERIC AGGREGATION RULE: Look at the type shown in parentheses in the schema above.
+          * If a column type is BIGINT, INTEGER, SMALLINT, REAL, DOUBLE PRECISION, NUMERIC, or MONEY → it is already numeric. Just use it directly: AVG("column_name"). NEVER apply TRIM, REPLACE, or CAST to these columns.
+          * If a column type is TEXT or VARCHAR but contains numbers → cast it: AVG(CAST(NULLIF(TRIM("column_name"), '') AS NUMERIC)).
+          * CRITICAL: Applying TRIM() or REPLACE() to a BIGINT/INTEGER column causes a fatal PostgreSQL error. NEVER do this.
         - DATE FILTERING RULE: Date columns in this database are stored as text in standard ISO format 'YYYY-MM-DD HH:MM:SS.ffffff' (e.g., '2026-05-13 00:00:00.000000'). If the user specifies a date range, you MUST filter dates using standard string comparison (e.g., `update_date >= '2026-04-08' AND update_date <= '2026-05-13 23:59:59'`) or `LIKE`. DO NOT use database-specific date functions like `DATE()`, `TO_DATE()`, or `::date` because they will cause syntax errors. DO NOT use 'DD/MM/YYYY' format in your queries.
 
         ANALYST MINDSET (CRITICAL - NEVER IGNORE):
@@ -345,26 +363,58 @@ def ai_chat_api(request):
         - Always prefer a query that returns USEFUL CONTEXT over a query guaranteed to return 0 rows.
         """
 
-        sql_response = ai_model.generate_content(sql_prompt)
-        sql = sql_response.text.strip()
-        print(f"DEBUG: Generated SQL: {sql}")
-        import re
-        sql_match = re.search(r"```(?:sql|sqlite)?\s*(.*?)\s*```", sql_response.text, re.DOTALL | re.IGNORECASE)
-        if sql_match:
-            sql = sql_match.group(1).strip()
-        else:
-            sql = sql_response.text.strip()
+        def extract_sql(response_text):
+            """Extract pure SQL from AI response."""
+            text = response_text.strip()
+            sql_match = re.search(r"```(?:sql|sqlite)?\s*(.*?)\s*```", text, re.DOTALL | re.IGNORECASE)
+            if sql_match:
+                return sql_match.group(1).strip()
             for marker in ['```sql', '```sqlite', '```', 'SQL:', 'sql:']:
-                sql = sql.replace(marker, '')
-            sql = sql.strip()
+                text = text.replace(marker, '')
+            return text.strip()
 
-        # ── STEP 3: Execute SQL ──
+        sql_response = ai_model.generate_content(sql_prompt)
+        sql = extract_sql(sql_response.text)
+        print(f"DEBUG: Generated SQL: {sql}")
+
+        # ── STEP 3: Execute SQL (with retry on failure) ──
         print(f"DEBUG CHAT: Executing SQL: {sql[:200]}")
-        with connection.cursor() as cursor:
-            cursor.execute(sql)
-            columns = [col[0] for col in cursor.description] if cursor.description else []
-            rows = cursor.fetchall()
-            data = [dict(zip(columns, row)) for row in rows]
+        sql_error = None
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(sql)
+                columns = [col[0] for col in cursor.description] if cursor.description else []
+                rows = cursor.fetchall()
+                data = [dict(zip(columns, row)) for row in rows]
+        except Exception as first_err:
+            sql_error = str(first_err)
+            print(f"DEBUG CHAT: First SQL attempt failed: {sql_error}")
+            # ── RETRY: Ask AI to fix the SQL ──
+            retry_prompt = f"""The following PostgreSQL query failed:
+```sql
+{sql}
+```
+Error: {sql_error}
+
+Schema: {schema_context}
+
+Fix the SQL to avoid this error. Return ONLY the corrected SQL, no explanations.
+IMPORTANT: If the error mentions TRIM/REPLACE on a non-text column, remove those functions and use the column directly.
+"""
+            try:
+                retry_response = ai_model.generate_content(retry_prompt)
+                sql = extract_sql(retry_response.text)
+                print(f"DEBUG CHAT: Retry SQL: {sql[:200]}")
+                with connection.cursor() as cursor:
+                    cursor.execute(sql)
+                    columns = [col[0] for col in cursor.description] if cursor.description else []
+                    rows = cursor.fetchall()
+                    data = [dict(zip(columns, row)) for row in rows]
+                sql_error = None  # Retry succeeded
+            except Exception as retry_err:
+                print(f"DEBUG CHAT: Retry also failed: {retry_err}")
+                raise retry_err  # Let the outer except handle it
+
         print(f"DEBUG CHAT: SQL returned {len(data)} rows, columns={columns}")
         
         total_rows = len(data)
@@ -578,12 +628,18 @@ def ai_chat_api(request):
         
         # Try to explain the error professionally using AI
         try:
+            # Detect user's language from the question
+            import unicodedata
+            has_vietnamese = any(unicodedata.category(c) == 'Mn' for c in unicodedata.normalize('NFD', question))
+            user_lang = 'Vietnamese' if has_vietnamese else 'English'
+            
             error_explanation_prompt = f"""You are a Technical Support Specialist. The user asked "{question}", but an error occurred during SQL execution.
             Error: {str(e)}
             
-            Task: Explain this error to the user in a professional, helpful, and "storytelling" way in their language.
-            Avoid technical jargon where possible. Explain what might have gone wrong (e.g., "Có vẻ như đã có một sự nhầm lẫn nhỏ trong việc xử lý kiểu dữ liệu khi tính toán tỷ lệ rời bỏ (churn)...").
-            Gợi ý họ có thể thử đặt lại câu hỏi rõ ràng hơn hoặc kiểm tra lại các cột dữ liệu.
+            CRITICAL LANGUAGE RULE: The user's question is in {user_lang}. You MUST respond in {user_lang} ONLY.
+            
+            Task: Explain this error to the user in a professional, helpful, and "storytelling" way.
+            Avoid technical jargon where possible. Suggest they try rephrasing the question or checking the data columns.
             Return ONLY a JSON object: {{"reply": "html_content_here"}}
             """
             err_res = ai_model.generate_content(error_explanation_prompt, generation_config={"response_mime_type": "application/json"})
@@ -593,12 +649,12 @@ def ai_chat_api(request):
             error_str = str(e)
             if "403 Lightning dunning decision" in error_str or "Billing" in error_str:
                 error_reply = (
-                    "<h3>⚠️ Hết hạn thanh toán API (Billing)</h3>"
-                    "<p>Mia rất tiếc, hệ thống AI của Google đã tạm khóa API Key do chưa thanh toán. Bạn cần cập nhật thẻ tín dụng hoặc thanh toán trên Google Cloud Platform để Mia có thể phân tích tiếp nhé!</p>"
-                    f"<p class='text-xs text-slate-500 mt-2 font-mono'>Mã lỗi kỹ thuật: {error_str}</p>"
+                    "<h3>⚠️ API Billing Issue</h3>"
+                    "<p>Sorry, the Google AI API key has been temporarily locked due to billing. Please update your credit card or make a payment on Google Cloud Platform.</p>"
+                    f"<p class='text-xs text-slate-500 mt-2 font-mono'>Error: {error_str}</p>"
                 )
             else:
-                error_reply = f"<h3>Đã có lỗi xảy ra</h3><p>Mia rất tiếc, đã có một lỗi kỹ thuật xảy ra trong quá trình xử lý: {error_str}</p>"
+                error_reply = f"<h3>An error occurred</h3><p>Sorry, a technical error occurred while processing your request: {error_str}</p>"
 
         return JsonResponse({
             "reply": error_reply,
