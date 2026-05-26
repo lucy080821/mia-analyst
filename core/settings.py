@@ -202,7 +202,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'tahoanganhtuan1996@gmail.com'
 EMAIL_HOST_PASSWORD = 'wder dpyu emer ermq'
 DEFAULT_FROM_EMAIL = 'Mia Assistant <tahoanganhtuan1996@gmail.com>'
-GEMINI_API_KEY = 'AIzaSyBJBb6kAvwFBByvHm9gK2nC6JmyqqHrh0Q'
+GEMINI_API_KEY = 'AIzaSyCnjMty4wBesIFNSy5Wu9z1PeUFNykpLcI'
 AI_MODEL_NAME = 'gemini-1.5-flash'
 
 # GROQ Configuration
