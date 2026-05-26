@@ -22,9 +22,9 @@
                     <input type="text" id="fbName" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-sm bg-white/50" placeholder="Enter your name" required>
                 </div>
                 <div class="hidden">
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Gói dịch vụ đang quan tâm</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Service Package of Interest</label>
                     <select id="fbPackage" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-sm bg-white/50 appearance-none">
-                        <option value="Chưa xác định">-- Chọn gói --</option>
+                        <option value="Unspecified">-- Select package --</option>
                     </select>
                 </div>
                 <div>
@@ -2219,7 +2219,7 @@ window.addEventListener('unhandledrejection', function(e) {
         }
 
         if (uploadStatus) uploadStatus.innerHTML = `<span class="text-primary animate-pulse">${"{{ 'Processing...' }}"}</span>`;
-        showLoading(true, "Đang tải file lên...");
+        showLoading(true, "Uploading file...");
         
         const formData = new FormData();
         formData.append('file', file);
@@ -2235,11 +2235,11 @@ window.addEventListener('unhandledrejection', function(e) {
             try {
                 data = await response.json();
             } catch (jsonError) {
-                // Nếu không parse được JSON (tức là server trả về HTML do sập)
+                // If not JSON, server likely returned HTML error page
                 const errorText = await response.text();
                 showLoading(false);
-                if (uploadStatus) uploadStatus.innerHTML = '<span class="text-red-400">Lỗi Server</span>';
-                showModal("Máy chủ phản hồi lỗi (không phải JSON): " + errorText.substring(0, 100));
+                if (uploadStatus) uploadStatus.innerHTML = '<span class="text-red-400">Server Error</span>';
+                showModal("Server returned an error (not JSON): " + errorText.substring(0, 100));
                 return;
             }
             
@@ -2270,8 +2270,8 @@ window.addEventListener('unhandledrejection', function(e) {
             }
         } catch (error) {
             showLoading(false);
-            if (uploadStatus) uploadStatus.innerHTML = '<span class="text-red-400">Lỗi kết nối mạng</span>';
-            showModal("Lỗi mạng hoặc Fetch thất bại. Chi tiết: " + error.message);
+            if (uploadStatus) uploadStatus.innerHTML = '<span class="text-red-400">Connection Error</span>';
+            showModal("Network error or fetch failed. Details: " + error.message);
         }
     };
 
@@ -2290,17 +2290,23 @@ window.addEventListener('unhandledrejection', function(e) {
                 <div class="space-y-2">
                     <input type="text" class="col-rename-input w-full px-2 py-1 text-xs font-bold text-slate-800 bg-slate-50 border border-transparent rounded focus:border-blue-500 focus:bg-white outline-none transition-colors" value="${c.original_name}">
                     <select class="col-type-select w-full px-2 py-1 text-[11px] text-slate-600 bg-slate-50 border border-slate-200 rounded outline-none focus:border-blue-500">
-                        <option value="text" ${c.type === 'text' ? 'selected' : ''}>Văn bản (Text)</option>
-                        <option value="number" ${c.type === 'number' ? 'selected' : ''}>Số (Number)</option>
-                        <option value="date" ${c.type === 'date' ? 'selected' : ''}>Ngày tháng (Date)</option>
-                        <option value="category" ${c.type === 'category' ? 'selected' : ''}>Thể loại (Category)</option>
+                        <option value="text" ${c.type === 'text' ? 'selected' : ''}>Text</option>
+                        <option value="number" ${c.type === 'number' ? 'selected' : ''}>Number</option>
+                        <option value="float" ${c.type === 'float' ? 'selected' : ''}>Float</option>
+                        <option value="integer" ${c.type === 'integer' ? 'selected' : ''}>Integer</option>
+                        <option value="date" ${c.type === 'date' ? 'selected' : ''}>Date</option>
+                        <option value="datetime" ${c.type === 'datetime' ? 'selected' : ''}>Datetime</option>
+                        <option value="boolean" ${c.type === 'boolean' ? 'selected' : ''}>Boolean</option>
+                        <option value="binary" ${c.type === 'binary' ? 'selected' : ''}>Binary</option>
+                        <option value="json" ${c.type === 'json' ? 'selected' : ''}>JSON</option>
+                        <option value="category" ${c.type === 'category' ? 'selected' : ''}>Category</option>
                     </select>
                     <select class="col-null-select w-full px-2 py-1 text-[11px] text-slate-600 bg-slate-50 border border-slate-200 rounded outline-none focus:border-blue-500">
-                        <option value="keep">Giữ nguyên Nulls</option>
-                        <option value="drop">Xóa rows Null</option>
-                        <option value="fill">Điền "0" hoặc Rỗng</option>
+                        <option value="keep">Keep Nulls</option>
+                        <option value="drop">Drop Null rows</option>
+                        <option value="fill">Fill with "0" or Empty</option>
                     </select>
-                    ${c.null_count > 0 ? `<div class="text-[10px] text-amber-600 font-medium flex items-center"><svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>${c.null_count} nulls</div>` : '<div class="text-[10px] text-emerald-500 font-medium">Sạch (0 null)</div>'}
+                    ${c.null_count > 0 ? `<div class="text-[10px] text-amber-600 font-medium flex items-center"><svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>${c.null_count} nulls</div>` : '<div class="text-[10px] text-emerald-500 font-medium">Clean (0 nulls)</div>'}
                 </div>
             </th>
         `).join('');
@@ -2316,7 +2322,7 @@ window.addEventListener('unhandledrejection', function(e) {
 
         // Confirm Action
         document.getElementById('confirm-upload-btn').onclick = async () => {
-            showLoading(true, "Đang xử lý và import dữ liệu...");
+            showLoading(true, "Processing and importing data...");
             
             // Gather transformations
             const transformations = {
@@ -2338,7 +2344,7 @@ window.addEventListener('unhandledrejection', function(e) {
                     rename: rename,
                     type: type,
                     null_action: nullAction,
-                    fill_value: type === 'number' ? 0 : ''
+                    fill_value: ['number', 'float', 'integer'].includes(type) ? 0 : (type === 'boolean' ? false : '')
                 };
             });
 
@@ -2358,15 +2364,15 @@ window.addEventListener('unhandledrejection', function(e) {
                 const finalData = await res.json();
                 showLoading(false);
                 if (res.ok) {
-                    modal.classList.add('hidden');
-                    showModal("Dataset đã được Transform và Lưu thành công!");
+                    if(typeof closeQualityModal === 'function') closeQualityModal(); else modal.classList.add('hidden');
+                    showModal("Dataset has been successfully Transformed and Saved!");
                     finalizeUploadUI(finalData, file);
                 } else {
-                    showModal("Error: " + (finalData.error || "Có lỗi xảy ra"));
+                    showModal("Error: " + (finalData.error || "An error occurred"));
                 }
             } catch (e) {
                 showLoading(false);
-                showModal("Lỗi kết nối mạng khi lưu dataset.");
+                showModal("Network connection error when saving dataset.");
             }
         };
     }
@@ -2377,7 +2383,7 @@ window.addEventListener('unhandledrejection', function(e) {
 
     function finalizeUploadUI(data, file) {
         const uploadStatus = document.getElementById('upload-status');
-        if (uploadStatus) uploadStatus.innerHTML = `<span class="text-green-500">${"{{ 'Hoàn tất!'|escapejs }}"}</span>`;
+        if (uploadStatus) uploadStatus.innerHTML = `<span class="text-green-500">${"{{ 'Completed!'|escapejs }}"}</span>`;
 
         // Update Quick Stats
         const statRows = document.getElementById('stat-rows');
@@ -2438,7 +2444,7 @@ window.addEventListener('unhandledrejection', function(e) {
                     urlInput.value = '';
                 }, 2000);
 
-                showModal(`{{ "Thành công: "|escapejs }}${data.message}`);
+                showModal(`{{ "Success: "|escapejs }}${data.message}`);
 
                 // Update Quick Stats
                 document.getElementById('stat-rows').textContent = data.row_count.toLocaleString();
@@ -2464,7 +2470,7 @@ window.addEventListener('unhandledrejection', function(e) {
             } else {
                 btn.textContent = '{{ "Load"|escapejs }}';
                 btn.disabled = false;
-                showModal('{{ "Lỗi: "|escapejs }}' + data.error);
+                showModal('{{ "Error: "|escapejs }}' + data.error);
             }
         } catch (e) {
             btn.textContent = '{{ "Load"|escapejs }}';
@@ -2893,7 +2899,7 @@ window.addEventListener('unhandledrejection', function(e) {
     }
 
     async function cleanDataset(table_name) {
-        const loadingId = appendBotLoading('{{ "AI đang làm sạch dữ liệu giúp bạn, hãy chờ chút nhé!"|escapejs }}');
+        const loadingId = appendBotLoading('{{ "AI is cleaning your data, please wait a moment!"|escapejs }}');
         try {
             const response = await fetch('{% url "clean_dataset" %}', {
                 method: 'POST',
@@ -2912,7 +2918,7 @@ window.addEventListener('unhandledrejection', function(e) {
                     </div>`;
                 }
             } else {
-                showModal('{{ "Lỗi dọn dẹp: "|escapejs }}' + (data.error || 'Server error'));
+                showModal('{{ "Cleanup error: "|escapejs }}' + (data.error || 'Server error'));
             }
         } catch (e) {
             removeElement(loadingId);
@@ -6388,9 +6394,9 @@ window.addEventListener('unhandledrejection', function(e) {
                     <input type="text" id="fbName" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-sm bg-white/50" placeholder="Enter your name" required>
                 </div>
                 <div class="hidden">
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Gói dịch vụ đang quan tâm</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Service Package of Interest</label>
                     <select id="fbPackage" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-sm bg-white/50 appearance-none">
-                        <option value="Chưa xác định">-- Chọn gói --</option>
+                        <option value="Unspecified">-- Select package --</option>
                     </select>
                 </div>
                 <div>

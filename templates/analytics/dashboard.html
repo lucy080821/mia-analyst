@@ -2415,7 +2415,13 @@
                     <select class="col-type-select w-full px-2 py-1 text-[11px] text-slate-600 bg-slate-50 border border-slate-200 rounded outline-none focus:border-blue-500">
                         <option value="text" ${c.type === 'text' ? 'selected' : ''}>Văn bản (Text)</option>
                         <option value="number" ${c.type === 'number' ? 'selected' : ''}>Số (Number)</option>
+                        <option value="float" ${c.type === 'float' ? 'selected' : ''}>Số thập phân (Float)</option>
+                        <option value="integer" ${c.type === 'integer' ? 'selected' : ''}>Số nguyên (Integer)</option>
                         <option value="date" ${c.type === 'date' ? 'selected' : ''}>Ngày tháng (Date)</option>
+                        <option value="datetime" ${c.type === 'datetime' ? 'selected' : ''}>Ngày giờ (Datetime)</option>
+                        <option value="boolean" ${c.type === 'boolean' ? 'selected' : ''}>Đúng/Sai (Boolean)</option>
+                        <option value="binary" ${c.type === 'binary' ? 'selected' : ''}>Nhị phân (Binary)</option>
+                        <option value="json" ${c.type === 'json' ? 'selected' : ''}>JSON</option>
                         <option value="category" ${c.type === 'category' ? 'selected' : ''}>Thể loại (Category)</option>
                     </select>
                     <select class="col-null-select w-full px-2 py-1 text-[11px] text-slate-600 bg-slate-50 border border-slate-200 rounded outline-none focus:border-blue-500">
@@ -2461,7 +2467,7 @@
                     rename: rename,
                     type: type,
                     null_action: nullAction,
-                    fill_value: type === 'number' ? 0 : ''
+                    fill_value: ['number', 'float', 'integer'].includes(type) ? 0 : (type === 'boolean' ? false : '')
                 };
             });
 
@@ -2481,7 +2487,7 @@
                 const finalData = await res.json();
                 showLoading(false);
                 if (res.ok) {
-                    modal.classList.add('hidden');
+                    if(typeof closeQualityModal === 'function') closeQualityModal(); else modal.classList.add('hidden');
                     showModal("Dataset đã được Transform và Lưu thành công!");
                     finalizeUploadUI(finalData, file);
                 } else {

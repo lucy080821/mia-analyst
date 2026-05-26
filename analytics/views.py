@@ -321,7 +321,10 @@ def ai_chat_api(request):
         User question: {question}
 
         Rules:
-        - Return ONLY the SQL statement.
+        - If the user's question requires querying data from the catalog, return ONLY the SQL statement.
+        - If the user provides a database connection string (like postgresql://...) or asks to connect to an external database, DO NOT generate SQL. Instead, politely inform them that they need to use the "Data Sources" or "Connect Database" feature in the dashboard to add their external database first, and that you cannot connect to databases directly through the chat.
+        - If the user's question is conversational, informational, or unrelated to the database catalog (e.g., saying hello, asking "cái nào"), DO NOT generate SQL. Instead, return a polite conversational response answering their question directly in text.
+        - If you generate SQL, you MUST return ONLY the SQL statement. No explanations.
         - You are an Intelligent Universal Analyst. You have full access to the database catalog above.
         - Select the most appropriate table(s) to answer the question based on their names and columns.
         - TABLE NAMES: Use ONLY the exact technical table names provided in the catalog above (e.g., `ds_...` or `management_...`). NEVER invent, simplify, or assume table names like `platformexpense`.
@@ -799,16 +802,22 @@ def confirm_upload(request):
                     
                 # Ép kiểu dữ liệu (Cast)
                 target_type = config.get('type')
-                if target_type == 'number':
+                if target_type in ['number', 'float', 'integer']:
                     # Làm sạch dấu phẩy/tiền tệ trước khi cast
                     if df[col_name].dtype == object:
                         temp = df[col_name].astype(str).str.replace(',', '', regex=False).str.replace('$', '', regex=False)
                     else:
                         temp = df[col_name]
                     df[col_name] = pd.to_numeric(temp, errors='coerce')
-                elif target_type == 'date':
+                    if target_type == 'integer':
+                        df[col_name] = df[col_name].round().astype('Int64')
+                elif target_type in ['date', 'datetime']:
                     df[col_name] = pd.to_datetime(df[col_name], errors='coerce')
-                elif target_type == 'text':
+                elif target_type == 'boolean':
+                    df[col_name] = df[col_name].astype(str).str.lower().map({'true': True, 'false': False, '1': True, '0': False, 'yes': True, 'no': False})
+                elif target_type == 'binary':
+                    df[col_name] = df[col_name].astype(str).apply(lambda x: x.encode('utf-8') if pd.notnull(x) else None)
+                elif target_type == 'text' or target_type == 'json':
                     df[col_name] = df[col_name].astype(str)
                 
                 # Đổi tên cột (Rename)
