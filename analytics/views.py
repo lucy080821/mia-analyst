@@ -611,13 +611,18 @@ def upload_excel(request):
             except (ValueError, TypeError):
                 sheet_name = 0
 
-            # Read file
+            sheet_names = []
             if file.name.endswith(('.xlsx', '.xls')):
                 xf = pd.ExcelFile(file)
                 sheet_names = xf.sheet_names
+                if 'sheet_name' not in request.POST and len(sheet_names) > 1:
+                    return JsonResponse({
+                        "status": "multiple_sheets",
+                        "sheets": sheet_names,
+                        "filename": file.name
+                    })
                 df_raw = xf.parse(sheet_name)
             else:
-                sheet_names = []
                 df_raw = pd.read_csv(file)
 
             # ── Auto-clean (Hướng A) ──
@@ -672,15 +677,33 @@ def upload_excel(request):
                     except Exception:
                         pass
 
-            # 5. Phân tích null
+            # 5. Phân tích null và lấy danh sách cột
             null_report = {}
+            column_info = []
             for col in df_clean.columns:
                 null_count = int(df_clean[col].isna().sum())
-                if null_count > 0:
-                    null_report[col] = {
-                        'count': null_count,
-                        'pct': round(null_count / len(df_clean) * 100, 1) if len(df_clean) > 0 else 0
-                    }
+                null_report[col] = {
+                    'count': null_count,
+                    'pct': round(null_count / len(df_clean) * 100, 1) if len(df_clean) > 0 else 0
+                }
+                
+                # Determine generic type for UI
+                dt = str(df_clean[col].dtype)
+                generic_type = 'text'
+                if 'int' in dt or 'float' in dt:
+                    generic_type = 'number'
+                elif 'datetime' in dt:
+                    generic_type = 'date'
+                elif 'bool' in dt:
+                    generic_type = 'category'
+                
+                column_info.append({
+                    "name": col,
+                    "original_name": [k for k, v in renamed_cols.items() if v == col][0] if col in renamed_cols.values() else col,
+                    "type": generic_type,
+                    "null_count": null_count,
+                    "null_pct": null_report[col]['pct']
+                })
 
             # 6. Duplicate rows
             dup_count = int(df_clean.duplicated().sum())
@@ -719,7 +742,9 @@ def upload_excel(request):
                 "null_report": null_report,
                 "duplicate_count": dup_count,
                 # Preview
+                # Preview and Columns
                 "columns": list(df_clean.columns),
+                "column_info": column_info,
                 "preview": preview_data,
             })
 
@@ -739,26 +764,76 @@ def confirm_upload(request):
         body = json.loads(request.body)
         temp_key = body.get("temp_key")
         filename = body.get("filename", "Dataset")
-        apply_clean = body.get("apply_clean", True)  # True = dùng bản đã clean, False = dùng bản gốc
+        apply_clean = body.get("apply_clean", True)
+        transformations = body.get("transformations", {})
 
         if not temp_key or not temp_key.startswith("temp_"):
             return JsonResponse({"error": "Invalid temp_key"}, status=400)
 
-        # Đọc data từ temp table (hỗ trợ cả SQLite và PostgreSQL)
-        with connection.cursor() as cursor:
-            try:
-                cursor.execute(f'SELECT 1 FROM "{temp_key}" LIMIT 1')
-            except Exception:
-                return JsonResponse({"error": "Dữ liệu tạm đã hết hạn. Vui lòng upload lại."}, status=400)
+        # Đọc data từ temp table bằng Pandas để áp dụng transformations
+        engine = get_sqlalchemy_engine()
+        try:
+            df = pd.read_sql_table(temp_key, engine)
+        except Exception:
+            return JsonResponse({"error": "Dữ liệu tạm đã hết hạn. Vui lòng upload lại."}, status=400)
+
+        # --- Áp dụng Transformations ---
+        if transformations:
+            # 1. Xử lý từng cột (đổi tên, ép kiểu, xử lý null)
+            cols_config = transformations.get('columns', {})
+            
+            # Xóa các cột mà user bỏ chọn (ẩn/xóa) nếu có
+            # Tạm thời chưa có tính năng drop column từ UI, nhưng chuẩn bị sẵn
+            
+            for col_name, config in cols_config.items():
+                if col_name not in df.columns:
+                    continue
+                
+                # Xử lý null
+                null_action = config.get('null_action')
+                if null_action == 'drop':
+                    df.dropna(subset=[col_name], inplace=True)
+                elif null_action == 'fill':
+                    fill_val = config.get('fill_value', '')
+                    df[col_name] = df[col_name].fillna(fill_val)
+                    
+                # Ép kiểu dữ liệu (Cast)
+                target_type = config.get('type')
+                if target_type == 'number':
+                    # Làm sạch dấu phẩy/tiền tệ trước khi cast
+                    if df[col_name].dtype == object:
+                        temp = df[col_name].astype(str).str.replace(',', '', regex=False).str.replace('$', '', regex=False)
+                    else:
+                        temp = df[col_name]
+                    df[col_name] = pd.to_numeric(temp, errors='coerce')
+                elif target_type == 'date':
+                    df[col_name] = pd.to_datetime(df[col_name], errors='coerce', infer_datetime_format=True)
+                elif target_type == 'text':
+                    df[col_name] = df[col_name].astype(str)
+                
+                # Đổi tên cột (Rename)
+                new_name = config.get('rename')
+                if new_name and new_name.strip() and new_name != col_name:
+                    # Chuẩn hóa tên mới
+                    clean_new = str(new_name).strip().lower().replace(' ', '_').replace('-', '_').replace('(', '').replace(')', '').replace('/', '_').replace('.', '_')
+                    df.rename(columns={col_name: clean_new}, inplace=True)
+            
+            # 2. Xử lý toàn cục (Global)
+            global_conf = transformations.get('global', {})
+            if global_conf.get('drop_null_rows'):
+                df.dropna(how='all', inplace=True)
+            if global_conf.get('drop_empty_cols'):
+                df.dropna(axis=1, how='all', inplace=True)
 
         # Tạo tên bảng chính thức
         final_table = f"uploaded_{uuid.uuid4().hex[:12]}"
+        
+        # Lưu vào DB chính
+        df.to_sql(final_table, engine, if_exists='replace', index=False)
+        row_count = len(df)
 
+        # Xóa bảng temp
         with connection.cursor() as cursor:
-            cursor.execute(f'CREATE TABLE "{final_table}" AS SELECT * FROM "{temp_key}"')
-            cursor.execute(f'SELECT COUNT(*) FROM "{final_table}"')
-            row_count = cursor.fetchone()[0]
-            # Xóa bảng temp
             cursor.execute(f'DROP TABLE IF EXISTS "{temp_key}"')
 
         # Lưu vào UserDataset
