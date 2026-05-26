@@ -45,6 +45,16 @@ PG_TYPE_MAP = {
     1007: 'INTEGER[]', 17: 'BYTEA', 142: 'XML',
 }
 
+def extract_sql_from_response(response_text):
+    """Extract pure SQL from AI response text, stripping markdown fences."""
+    text = response_text.strip()
+    sql_match = re.search(r"```(?:sql|sqlite)?\s*(.*?)\s*```", text, re.DOTALL | re.IGNORECASE)
+    if sql_match:
+        return sql_match.group(1).strip()
+    for marker in ['```sql', '```sqlite', '```', 'SQL:', 'sql:']:
+        text = text.replace(marker, '')
+    return text.strip()
+
 def get_readable_type(type_code):
     """Convert PostgreSQL type OID to a human-readable type name."""
     return PG_TYPE_MAP.get(type_code, f'TYPE_{type_code}')
@@ -363,18 +373,8 @@ def ai_chat_api(request):
         - Always prefer a query that returns USEFUL CONTEXT over a query guaranteed to return 0 rows.
         """
 
-        def extract_sql(response_text):
-            """Extract pure SQL from AI response."""
-            text = response_text.strip()
-            sql_match = re.search(r"```(?:sql|sqlite)?\s*(.*?)\s*```", text, re.DOTALL | re.IGNORECASE)
-            if sql_match:
-                return sql_match.group(1).strip()
-            for marker in ['```sql', '```sqlite', '```', 'SQL:', 'sql:']:
-                text = text.replace(marker, '')
-            return text.strip()
-
         sql_response = ai_model.generate_content(sql_prompt)
-        sql = extract_sql(sql_response.text)
+        sql = extract_sql_from_response(sql_response.text)
         print(f"DEBUG: Generated SQL: {sql}")
 
         # ── STEP 3: Execute SQL (with retry on failure) ──
@@ -403,7 +403,7 @@ IMPORTANT: If the error mentions TRIM/REPLACE on a non-text column, remove those
 """
             try:
                 retry_response = ai_model.generate_content(retry_prompt)
-                sql = extract_sql(retry_response.text)
+                sql = extract_sql_from_response(retry_response.text)
                 print(f"DEBUG CHAT: Retry SQL: {sql[:200]}")
                 with connection.cursor() as cursor:
                     cursor.execute(sql)
@@ -898,8 +898,38 @@ def confirm_upload(request):
         # Tạo tên bảng chính thức
         final_table = f"uploaded_{uuid.uuid4().hex[:12]}"
         
-        # Lưu vào DB chính
-        df.to_sql(final_table, engine, if_exists='replace', index=False)
+        # Build explicit SQLAlchemy dtype mapping from user's transformations
+        # This ensures user's type choices are actually persisted to PostgreSQL
+        from sqlalchemy import types as sa_types
+        dtype_map = {}
+        if transformations:
+            cols_config = transformations.get('columns', {})
+            for col_name, config in cols_config.items():
+                # Handle renamed columns
+                actual_col = col_name
+                new_name = config.get('rename')
+                if new_name and new_name.strip() and new_name != col_name:
+                    actual_col = str(new_name).strip().lower().replace(' ', '_').replace('-', '_').replace('(', '').replace(')', '').replace('/', '_').replace('.', '_')
+                
+                if actual_col not in df.columns:
+                    continue
+                    
+                target_type = config.get('type')
+                if target_type == 'integer':
+                    dtype_map[actual_col] = sa_types.BigInteger()
+                elif target_type in ['number', 'float']:
+                    dtype_map[actual_col] = sa_types.Float()
+                elif target_type in ['date', 'datetime']:
+                    dtype_map[actual_col] = sa_types.DateTime()
+                elif target_type == 'boolean':
+                    dtype_map[actual_col] = sa_types.Boolean()
+                elif target_type == 'text':
+                    dtype_map[actual_col] = sa_types.Text()
+                elif target_type == 'json':
+                    dtype_map[actual_col] = sa_types.Text()
+        
+        # Lưu vào DB chính với explicit dtype
+        df.to_sql(final_table, engine, if_exists='replace', index=False, dtype=dtype_map if dtype_map else None)
         row_count = len(df)
 
         # Xóa bảng temp
