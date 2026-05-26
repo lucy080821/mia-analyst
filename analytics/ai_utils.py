@@ -76,8 +76,8 @@ def get_generative_model(model_name: str = None):
         import google.generativeai as genai
         from django.conf import settings
         genai.configure(api_key=settings.GEMINI_API_KEY)
-        # Use gemini-1.5-flash for speed and much better SQL reasoning than Groq
-        return genai.GenerativeModel("gemini-1.5-flash")
+        # Use gemini-pro (Gemini 1.0) which is guaranteed to be available on all keys and SDK versions
+        return genai.GenerativeModel("gemini-pro")
         
     return GroqGenerativeModel(model_name)
 
