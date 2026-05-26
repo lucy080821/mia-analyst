@@ -2063,6 +2063,21 @@ def analyze_dataset(request):
             needs_cleaning = True
             quality_summary = "; ".join(res['quality_alerts'])
             
+            # Translate if requested by English dashboard
+            if body.get('lang') == 'en':
+                replacements = {
+                    "Cột": "Column",
+                    "cẩn thận khi tính trung bình": "be careful when calculating average",
+                    "giá trị = 0 — kết quả có thể bị lệch": "values = 0 — results may be skewed",
+                    "Có": "Has",
+                    "giá trị âm — có thể là hoàn trả/điều chỉnh": "negative values — possibly refunds/adjustments",
+                    "định danh — KHÔNG tính SUM/AVG": "identifier — DO NOT calculate SUM/AVG",
+                    "Dataset rỗng — không có dữ liệu để phân tích.": "Empty dataset — no data to analyze.",
+                    "có tổng = 0 — dữ liệu chưa được điền hoặc sai định dạng": "has sum = 0 — missing data or wrong format"
+                }
+                for vn, en_str in replacements.items():
+                    quality_summary = quality_summary.replace(vn, en_str)
+            
         # Suggested Questions - bắt đầu bằng fallback thông minh từ tên cột
         cols = list(df.columns)
         lang = getattr(request, 'LANGUAGE_CODE', 'vi')
