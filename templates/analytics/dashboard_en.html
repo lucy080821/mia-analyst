@@ -2795,55 +2795,30 @@ window.addEventListener('unhandledrejection', function(e) {
 
     async function initOnboardingSuggestions() {
         const history = document.querySelectorAll('#chat-messages > div[data-role]');
-        if (history.length > 0) return; // History is empty now since static welcome is removed
+        if (history.length > 0) return;
 
-        const loadingId = appendBotLoading('Mia is scanning your workspace...');
-        try {
-            let url = '{% url "onboarding_suggestions" %}';
-            const selectedTableInput = document.querySelector('input[name="datasource"]:checked');
-            if (selectedTableInput && selectedTableInput.value) {
-                url += '?table_name=' + encodeURIComponent(selectedTableInput.value);
-            }
-            const res = await fetch(url);
-            const data = await res.json();
-            removeElement(loadingId);
+        let greetingHtml = "";
+        {% if is_first_login %}
+        greetingHtml = "Hi {% if global_display_name %}<span class='text-primary font-bold'>{{ global_display_name|escapejs }}</span>{% endif %}! ";
+        {% else %}
+        greetingHtml = "Welcome back {% if global_display_name %}<span class='text-primary font-bold'>{{ global_display_name|escapejs }}</span>{% endif %}! ";
+        {% endif %}
 
-            let chipsHtml = "";
-            if (data.has_data && data.suggestions.length > 0) {
-                chipsHtml = data.suggestions.map(function(q) {
-                    const safeQ = q.replace(/"/g, '&quot;');
-                    return `<button type="button" data-question="${safeQ}" onclick="window.submitSuggestedQuestion(this)" class="inline-block bg-white text-primary border border-primary/20 hover:bg-primary hover:text-white px-3 py-2 rounded-full text-[11px] font-bold shadow-sm transition-all text-left leading-tight break-words max-w-full"><span class="mr-1 opacity-70">✨</span>${safeQ}</button>`;
-                }).join('');
-            }
-            
-            let greetingHtml = "";
-            {% if is_first_login %}
-            greetingHtml = "Hi {% if global_display_name %}<span class='text-primary font-bold'>{{ global_display_name|escapejs }}</span>{% endif %}! ";
-            {% else %}
-            greetingHtml = "Welcome back {% if global_display_name %}<span class='text-primary font-bold'>{{ global_display_name|escapejs }}</span>{% endif %}! ";
-            {% endif %}
-
-            const html = `
-                <div class="flex items-start max-w-[95%] md:max-w-[65%] animate-report">
-                    <div class="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-200/50">
-                        <span class="text-sm">🤖</span>
-                    </div>
-                    <div class="ml-3 flex-grow">
-                        <div class="bubble-bot p-4 rounded-[20px] rounded-tl-none shadow-sm border border-indigo-100 bg-gradient-to-b from-white to-blue-50/30 text-slate-700 text-sm">
-                            <p class="m-0">${greetingHtml}${data.reply_en || data.reply}</p>
-                            ${chipsHtml ? `<div class="mt-3 flex flex-col space-y-2 items-start">${chipsHtml}</div>` : ''}
-                        </div>
+        const html = `
+            <div class="flex items-start max-w-[95%] md:max-w-[65%] animate-report">
+                <div class="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-200/50">
+                    <span class="text-sm">🤖</span>
+                </div>
+                <div class="ml-3 flex-grow">
+                    <div class="bubble-bot p-4 rounded-[20px] rounded-tl-none shadow-sm border border-indigo-100 bg-gradient-to-b from-white to-blue-50/30 text-slate-700 text-sm">
+                        <p class="m-0">${greetingHtml}Mia is ready to analyze. Please upload an Excel/CSV file or select a dataset from the left sidebar to begin.</p>
                     </div>
                 </div>
-            `;
-            chatMessages.insertAdjacentHTML('beforeend', html);
-            scrollToBottom();
-        } catch (e) {
-            removeElement(loadingId);
-            console.error("Onboarding failed:", e);
-        }
+            </div>
+        `;
+        document.getElementById('chat-messages').insertAdjacentHTML('beforeend', html);
+        scrollToBottom();
     }
-
 
     window.runDatasetAnalysis = async function(table_name, file_name) {
         const loadingId = appendBotLoading('{{ "AI is analyzing your dataset, please wait a moment..."|escapejs }}');
