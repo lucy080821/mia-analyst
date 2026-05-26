@@ -254,6 +254,18 @@ def ai_chat_api(request):
                 schema_context += "\n\nTABLE MAPPING (use these exact table names in SQL):\n" + "\n".join(mapping_hints)
         else:
             # Security check
+            user_owns = (
+                UserDataset.objects.filter(user=request.user, table_name=table_name).exists()
+                if request.user.is_authenticated else False
+            )
+            allowed_prefixes = ('uploaded_', 'shopee_orders_', 'temp_shopee_orders', 'pipeline_', 'dwh_', 'ds_')
+            if not user_owns and not any(table_name.startswith(p) for p in allowed_prefixes):
+                return JsonResponse({"error": "Bảng không hợp lệ."}, status=403)
+
+            with connection.cursor() as cursor:
+                # Check existence in a database-agnostic way
+                try:
+                    cursor.execute(f'SELECT 1 FROM "{table_name}" LIMIT 1')
                 except Exception:
                     return JsonResponse({"error": f"Table '{table_name}' not found or not accessible."}, status=400)
                 
