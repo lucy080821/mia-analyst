@@ -27,7 +27,7 @@ services:
       - DEBUG=True
       - DATABASE_URL=postgres://mia_user:mia_password@db:5432/mia_db
       - SECRET_KEY=django-insecure-1q-#6kay=ly@!0z$$m)=tab^&ti85=hp06g#q#0r81zc)-)+m(x
-      - GEMINI_API_KEY=AIzaSyC2JTSDHK-y68cRlMNgA_zr43h34Vzl0lQ
+      - GEMINI_API_KEY=AIzaSyBJBb6kAvwFBByvHm9gK2nC6JmyqqHrh0Q
     depends_on:
       - db
 
