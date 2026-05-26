@@ -1056,6 +1056,81 @@ window.addEventListener('unhandledrejection', function(e) {
     </div>
 </div>
 
+<!-- Sheet Selection Modal -->
+<div id="sheet-selection-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-[1200] flex items-center justify-center p-4">
+    <div class="bg-white rounded-[24px] p-8 max-w-sm w-full shadow-2xl border border-gray-100 animate-msg">
+        <div class="text-center mb-6">
+            <h3 class="text-lg font-black text-slate-900 mb-2">Select Data Sheet</h3>
+            <p class="text-sm text-slate-500 leading-relaxed">This Excel file has multiple sheets. Please select the sheet you want to analyze.</p>
+        </div>
+        <select id="sheet-selector" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm mb-6 outline-none focus:ring-2 focus:ring-primary"></select>
+        <div class="flex space-x-3">
+            <button onclick="document.getElementById('sheet-selection-modal').classList.add('hidden')" class="flex-1 py-3 bg-slate-100 text-slate-600 text-xs font-black rounded-xl hover:bg-slate-200 transition-all">Cancel</button>
+            <button id="confirm-sheet-btn" class="flex-1 py-3 bg-primary text-white text-xs font-black rounded-xl hover:opacity-90 transition-all shadow-lg">Continue</button>
+        </div>
+    </div>
+</div>
+
+<!-- Transform Data Modal -->
+<div id="quality-review-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md hidden z-[1200] flex items-center justify-center p-4">
+    <div class="bg-white rounded-[24px] max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl animate-msg border border-slate-100">
+        <!-- Header -->
+        <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-white">
+            <div>
+                <h3 class="text-xl font-black text-slate-900 flex items-center">
+                    <span class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center mr-3">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+                    </span>
+                    Transform Data
+                </h3>
+                <p class="text-xs text-slate-500 mt-1" id="quality-filename">Filename.xlsx</p>
+            </div>
+            <button onclick="closeQualityModal()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="px-6 py-3 bg-slate-50 border-b border-slate-100 flex items-center space-x-6">
+            <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" id="global-drop-null-rows" checked class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+                <span class="text-xs font-bold text-slate-700">Delete completely empty rows</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" id="global-drop-empty-cols" checked class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+                <span class="text-xs font-bold text-slate-700">Delete completely empty columns</span>
+            </label>
+            <div class="text-[10px] text-slate-500 ml-auto bg-white px-3 py-1 rounded-full border border-slate-200 shadow-sm"><span id="quality-rows">0</span> dòng | <span id="quality-cols">0</span> cột</div>
+        </div>
+
+        <!-- Content -->
+        <div class="flex-grow overflow-auto bg-slate-50 p-6 custom-scrollbar">
+            <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-visible inline-block min-w-full">
+                <table class="w-full text-xs text-left" id="transform-table">
+                    <thead class="bg-slate-100 border-b border-slate-200">
+                        <tr id="quality-preview-head">
+                            <!-- Dynamic Headers -->
+                        </tr>
+                    </thead>
+                    <tbody id="quality-preview-body" class="divide-y divide-slate-100">
+                        <!-- Dynamic Rows -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="p-5 bg-white border-t border-slate-100 flex items-center justify-between">
+            <p class="text-xs text-slate-500">Preview first 10 rows. Changes will be applied to all data.</p>
+            <div class="flex space-x-3">
+                <button onclick="closeQualityModal()" class="px-6 py-2.5 text-xs font-bold text-slate-500 hover:bg-slate-50 rounded-xl transition-colors">Cancel</button>
+                <button id="confirm-upload-btn" class="px-8 py-2.5 bg-blue-600 text-white text-xs font-black rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20">Confirm & Import Data</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <!-- Google Sheets Import Modal -->
 <div id="gsheet-import-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-[700] flex items-center justify-center p-4">
     <div class="bg-white rounded-[24px] p-8 max-w-md w-full shadow-2xl border border-gray-100 animate-msg">
@@ -2138,13 +2213,13 @@ window.addEventListener('unhandledrejection', function(e) {
 
     window.handleFileUpload = async function(file, sheet_name = 0) {
         if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
-            if (uploadStatus) uploadStatus.innerHTML = `<span class="text-red-400">${"{{ 'Invalid Format' }}"}</span>`;
-            showModal("{{ 'Please select a .xlsx, .xls, or .csv file.' }}");
+            if (uploadStatus) uploadStatus.innerHTML = `<span class="text-red-400">${"{{ 'Sai định dạng' }}"}</span>`;
+            showModal("{{ 'Please select a .xlsx, .xls or .csv file.' }}");
             return;
         }
 
         if (uploadStatus) uploadStatus.innerHTML = `<span class="text-primary animate-pulse">${"{{ 'Processing...' }}"}</span>`;
-        showLoading(true, "Uploading File...");
+        showLoading(true, "Đang tải file lên...");
         
         const formData = new FormData();
         formData.append('file', file);
@@ -2163,104 +2238,171 @@ window.addEventListener('unhandledrejection', function(e) {
                 // Nếu không parse được JSON (tức là server trả về HTML do sập)
                 const errorText = await response.text();
                 showLoading(false);
-                if (uploadStatus) uploadStatus.innerHTML = '<span class="text-red-400">Server Error</span>';
-                showModal("Server crashed! Raw response: " + errorText.substring(0, 100));
+                if (uploadStatus) uploadStatus.innerHTML = '<span class="text-red-400">Lỗi Server</span>';
+                showModal("Máy chủ phản hồi lỗi (không phải JSON): " + errorText.substring(0, 100));
                 return;
             }
             
             showLoading(false);
             if (response.ok) {
-                // Tự động bypass Phase 2 (Confirm Upload) vì bản EN chưa có Modal
+                if (data.status === 'multiple_sheets') {
+                    const selector = document.getElementById('sheet-selector');
+                    selector.innerHTML = data.sheets.map(s => `<option value="${s}">${s}</option>`).join('');
+                    
+                    const sheetModal = document.getElementById('sheet-selection-modal');
+                    sheetModal.classList.remove('hidden');
+                    
+                    document.getElementById('confirm-sheet-btn').onclick = () => {
+                        sheetModal.classList.add('hidden');
+                        const selectedSheet = selector.value;
+                        handleFileUpload(file, selectedSheet);
+                    };
+                    return;
+                }
                 if (data.status === 'preview') {
-                    showLoading(true, "Finalizing Database...");
-                    const res2 = await fetch('{% url "confirm_upload" %}', {
-                        method: 'POST',
-                        headers: { 
-                            'X-CSRFToken': '{{ csrf_token }}',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            temp_key: data.temp_key,
-                            filename: data.filename,
-                            apply_clean: true
-                        })
-                    });
-                    const finalData = await res2.json();
-                    showLoading(false);
-                    if (!res2.ok) {
-                        showModal("Error saving to database: " + finalData.error);
-                        return;
-                    }
-                    Object.assign(data, finalData); // Thêm data.table và data.rows vào object
+                    showQualityReview(data, file);
+                    return;
                 }
-
-                if (uploadStatus) uploadStatus.innerHTML = `<span class="text-green-500">${"{{ 'Done!'|escapejs }}"}</span>`;
-                showModal("{{ 'Upload successful. Data is ready.'|escapejs }}");
-
-                // Update Quick Stats (if elements exist)
-                const statRows = document.getElementById('stat-rows');
-                if (statRows) statRows.textContent = data.rows.toLocaleString();
-                const statCols = document.getElementById('stat-cols');
-                if (statCols) statCols.textContent = data.columns.length;
-                const statSheets = document.getElementById('stat-sheets');
-                if (statSheets) statSheets.textContent = data.sheet_count || 1;
-
-                // Handle Sheets Display & Selection
-                const sheetNamesList = document.getElementById('sheet-names-list');
-                const sheetSelectorContainer = document.getElementById('sheet-selector-container');
-                const sheetSelector = document.getElementById('sheet-selector');
-                
-                if (sheetNamesList && sheetSelectorContainer && sheetSelector) {
-                    if (data.sheet_names && data.sheet_names.length > 0) {
-                        sheetNamesList.textContent = 'Sheets: ' + data.sheet_names.join(', ');
-                        
-                        const userTier = "{{ request.user.userprofile.tier|default:'FREE' }}";
-                        if ((userTier === 'PLUS' || userTier === 'PREMIUM') && data.sheet_names.length > 1) {
-                            sheetSelectorContainer.classList.remove('hidden');
-                            sheetSelector.innerHTML = data.sheet_names.map((name, idx) => 
-                                `<option value="${idx}" ${idx == data.current_sheet ? 'selected' : ''}>${name}</option>`
-                            ).join('');
-                            
-                            sheetSelector.onchange = function() {
-                                handleFileUpload(file, sheetSelector.value).then(function() {
-                                    showModal(`Đã chuyển sang sheet: ${data.sheet_names[sheetSelector.value]}`);
-                                });
-                            };
-                        } else {
-                            sheetSelectorContainer.classList.add('hidden');
-                        }
-                    } else {
-                        sheetNamesList.textContent = '';
-                        sheetSelectorContainer.classList.add('hidden');
-                    }
-                }
-
-                // Remove existing radio for same file if re-uploading sheet
-                const safeFileName = file.name.replace(/"/g, '\\"');
-                const existingRadio = document.querySelector(`input[name="datasource"][data-filename="${safeFileName}"]`);
-                if (existingRadio) {
-                    existingRadio.closest('label').remove();
-                }
-
-                const newHtml = `
-                    <label class="flex items-center p-3 bg-white border border-green-500 rounded-xl cursor-pointer hover:border-green-600 transition-all shadow-sm">
-                        <input type="radio" name="datasource" value="${data.table}" data-filename="${file.name.replace(/"/g, '&quot;')}" class="w-4 h-4 text-green-500 border-slate-300 focus:ring-green-500" checked>
-                        <div class="ml-3 overflow-hidden">
-                            <span class="block text-[11px] font-bold text-slate-900 truncate">${file.name}</span>
-                            <span class="block text-[9px] text-green-500 mt-1">${data.rows} dòng | Excel</span>
-                        </div>
-                    </label>
-                `;
-                tableList.insertAdjacentHTML('beforeend', newHtml);
-                runDatasetAnalysis(data.table, file.name);
+                finalizeUploadUI(data, file);
             } else {
-                if (uploadStatus) uploadStatus.innerHTML = `<span class="text-red-400">Failed</span>`;
+                if (uploadStatus) uploadStatus.innerHTML = `<span class="text-red-400">Thất bại</span>`;
                 showModal(`Error: ${data.error || 'Server error'}`);
             }
         } catch (error) {
             showLoading(false);
-            if (uploadStatus) uploadStatus.innerHTML = '<span class="text-red-400">Network/CORS Error</span>';
-            showModal("Network error (Fetch failed). Error details: " + error.message);
+            if (uploadStatus) uploadStatus.innerHTML = '<span class="text-red-400">Lỗi kết nối mạng</span>';
+            showModal("Lỗi mạng hoặc Fetch thất bại. Chi tiết: " + error.message);
+        }
+    };
+
+    function showQualityReview(report, file) {
+        const modal = document.getElementById('quality-review-modal');
+        document.getElementById('quality-filename').textContent = report.filename;
+        document.getElementById('quality-rows').textContent = report.rows_clean;
+        document.getElementById('quality-cols').textContent = report.cols_clean;
+        
+        const headRow = document.getElementById('quality-preview-head');
+        const body = document.getElementById('quality-preview-body');
+        
+        // Build Headers with Dropdowns
+        headRow.innerHTML = report.column_info.map(c => `
+            <th class="px-4 py-3 bg-white border-b border-r border-slate-100 min-w-[150px] align-top" data-col="${c.name}">
+                <div class="space-y-2">
+                    <input type="text" class="col-rename-input w-full px-2 py-1 text-xs font-bold text-slate-800 bg-slate-50 border border-transparent rounded focus:border-blue-500 focus:bg-white outline-none transition-colors" value="${c.original_name}">
+                    <select class="col-type-select w-full px-2 py-1 text-[11px] text-slate-600 bg-slate-50 border border-slate-200 rounded outline-none focus:border-blue-500">
+                        <option value="text" ${c.type === 'text' ? 'selected' : ''}>Văn bản (Text)</option>
+                        <option value="number" ${c.type === 'number' ? 'selected' : ''}>Số (Number)</option>
+                        <option value="date" ${c.type === 'date' ? 'selected' : ''}>Ngày tháng (Date)</option>
+                        <option value="category" ${c.type === 'category' ? 'selected' : ''}>Thể loại (Category)</option>
+                    </select>
+                    <select class="col-null-select w-full px-2 py-1 text-[11px] text-slate-600 bg-slate-50 border border-slate-200 rounded outline-none focus:border-blue-500">
+                        <option value="keep">Giữ nguyên Nulls</option>
+                        <option value="drop">Xóa rows Null</option>
+                        <option value="fill">Điền "0" hoặc Rỗng</option>
+                    </select>
+                    ${c.null_count > 0 ? `<div class="text-[10px] text-amber-600 font-medium flex items-center"><svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>${c.null_count} nulls</div>` : '<div class="text-[10px] text-emerald-500 font-medium">Sạch (0 null)</div>'}
+                </div>
+            </th>
+        `).join('');
+
+        // Build Rows
+        body.innerHTML = report.preview.map(row => `
+            <tr class="hover:bg-slate-50 transition-colors">
+                ${report.column_info.map(c => `<td class="px-4 py-2 border-r border-slate-100 text-slate-600 truncate max-w-[150px]">${row[c.name] !== null ? row[c.name] : '<span class="text-slate-300 italic">null</span>'}</td>`).join('')}
+            </tr>
+        `).join('');
+
+        modal.classList.remove('hidden');
+
+        // Confirm Action
+        document.getElementById('confirm-upload-btn').onclick = async () => {
+            showLoading(true, "Đang xử lý và import dữ liệu...");
+            
+            // Gather transformations
+            const transformations = {
+                columns: {},
+                global: {
+                    drop_null_rows: document.getElementById('global-drop-null-rows').checked,
+                    drop_empty_cols: document.getElementById('global-drop-empty-cols').checked
+                }
+            };
+            
+            const headers = headRow.querySelectorAll('th');
+            headers.forEach(th => {
+                const colName = th.getAttribute('data-col');
+                const rename = th.querySelector('.col-rename-input').value;
+                const type = th.querySelector('.col-type-select').value;
+                const nullAction = th.querySelector('.col-null-select').value;
+                
+                transformations.columns[colName] = {
+                    rename: rename,
+                    type: type,
+                    null_action: nullAction,
+                    fill_value: type === 'number' ? 0 : ''
+                };
+            });
+
+            try {
+                const res = await fetch('{% url "confirm_upload" %}', {
+                    method: 'POST',
+                    headers: { 
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        temp_key: report.temp_key,
+                        filename: report.filename,
+                        transformations: transformations
+                    })
+                });
+                const finalData = await res.json();
+                showLoading(false);
+                if (res.ok) {
+                    modal.classList.add('hidden');
+                    showModal("Dataset đã được Transform và Lưu thành công!");
+                    finalizeUploadUI(finalData, file);
+                } else {
+                    showModal("Error: " + (finalData.error || "Có lỗi xảy ra"));
+                }
+            } catch (e) {
+                showLoading(false);
+                showModal("Lỗi kết nối mạng khi lưu dataset.");
+            }
+        };
+    }
+
+    window.closeQualityModal = function() {
+        document.getElementById('quality-review-modal').classList.add('hidden');
+    };
+
+    function finalizeUploadUI(data, file) {
+        const uploadStatus = document.getElementById('upload-status');
+        if (uploadStatus) uploadStatus.innerHTML = `<span class="text-green-500">${"{{ 'Hoàn tất!'|escapejs }}"}</span>`;
+
+        // Update Quick Stats
+        const statRows = document.getElementById('stat-rows');
+        if (statRows) statRows.textContent = data.rows.toLocaleString();
+        const statCols = document.getElementById('stat-cols');
+        if (statCols) statCols.textContent = data.columns ? data.columns.length : '-';
+
+        // Add to list
+        const tableList = document.getElementById('table-list');
+        if (tableList) {
+            const safeFileName = file.name.replace(/"/g, '\\"');
+            const existingRadio = document.querySelector(`input[name="datasource"][data-filename="${safeFileName}"]`);
+            if (existingRadio) existingRadio.closest('label').remove();
+
+            const newHtml = `
+                <label class="flex items-center p-3 bg-white border border-green-500 rounded-xl cursor-pointer hover:border-green-600 transition-all shadow-sm">
+                    <input type="radio" name="datasource" value="${data.table}" data-filename="${file.name.replace(/"/g, '&quot;')}" class="w-4 h-4 text-green-500 border-slate-300 focus:ring-green-500" checked>
+                    <div class="ml-3 overflow-hidden">
+                        <span class="block text-[11px] font-bold text-slate-900 truncate">${file.name}</span>
+                        <span class="block text-[9px] text-green-500 mt-1">${data.rows} rows | Excel (Cleaned)</span>
+                    </div>
+                </label>
+            `;
+            tableList.insertAdjacentHTML('beforeend', newHtml);
+            if (typeof runDatasetAnalysis === 'function') runDatasetAnalysis(data.table, file.name);
         }
     }
 
