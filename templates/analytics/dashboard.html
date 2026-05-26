@@ -2487,7 +2487,10 @@
                 const finalData = await res.json();
                 showLoading(false);
                 if (res.ok) {
-                    if(typeof closeQualityModal === 'function') closeQualityModal(); else modal.classList.add('hidden');
+                    // Explicitly hide the quality review modal
+                    const qrModal = document.getElementById('quality-review-modal');
+                    if (qrModal) qrModal.classList.add('hidden');
+                    // Show success message using global modal
                     showModal("Dataset đã được Transform và Lưu thành công!");
                     finalizeUploadUI(finalData, file);
                 } else {
