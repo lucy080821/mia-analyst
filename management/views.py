@@ -278,7 +278,7 @@ def super_ai_chat_api(request):
         # 2. Xây dựng Prompt chiến lược với Chỉ thị "Thông minh chọn lọc"
         lang_target = "English" if any(word in question.lower() for word in ["hi", "hello", "what", "how", "report", "analyze"]) else "Vietnamese"
 
-        system_prompt = f"""You are the CFO & Strategic Growth Advisor for Mia Analyst.
+        system_prompt = f"""You are the CFO & Strategic Growth Advisor for Mia SCM.
         BACKGROUND KNOWLEDGE (INTERNAL DATA):
         - USERS: Total {total_users} (New today: {new_users_today}). Breakdown: {free_users} Free, {plus_users} Plus, {premium_users} Premium.
         - FINANCE: Revenue {total_revenue} VND, Expenses {total_expenses} VND, Net Profit {net_profit} VND.

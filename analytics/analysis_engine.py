@@ -102,7 +102,7 @@ def determine_analysis_method(
     ml_safe_cols = json.dumps(numeric_cols_for_ml, ensure_ascii=False)
     date_col_hint = f"Cột ngày tốt nhất: {date_cols[0]}" if date_cols else "Không tìm thấy cột ngày"
 
-    prompt = f"""Bạn là AI phân tích dữ liệu. Chọn PHƯƠNG PHÁP PHÂN TÍCH phù hợp nhất cho câu hỏi.
+    prompt = f"""Bạn là Chuyên gia phân tích chuỗi cung ứng (Supply Chain Analyst AI). Chọn PHƯƠNG PHÁP PHÂN TÍCH phù hợp nhất cho câu hỏi.
 
 THÔNG TIN CHI TIẾT TỪNG CỘT (đã phân tích):
 {col_profile_str}

@@ -52,6 +52,16 @@ def execute_query(sql, params=None):
     Executes a raw SQL query using Django's database connection and returns results as a list of dicts.
     """
     from django.db import connection
+    
+    # SECURITY: Enforce SELECT only for AI generated queries
+    sql_upper = sql.upper().strip()
+    forbidden_keywords = ['INSERT', 'UPDATE', 'DELETE', 'DROP', 'ALTER', 'TRUNCATE', 'GRANT', 'REVOKE', 'REPLACE', 'CREATE']
+    if not sql_upper.startswith('SELECT') and not sql_upper.startswith('WITH'):
+        raise ValueError("Security Error: Only SELECT queries are allowed.")
+    for keyword in forbidden_keywords:
+        if f" {keyword} " in f" {sql_upper} ":
+            raise ValueError(f"Security Error: The keyword '{keyword}' is forbidden.")
+
     with connection.cursor() as cursor:
         cursor.execute(sql, params)
         if cursor.description:

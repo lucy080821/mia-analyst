@@ -115,20 +115,67 @@ class ShopeeCredentials(models.Model):
     def __str__(self):
         return f"Shopee Shop {self.shop_id} ({self.user.username})"
 
-class ShopeeOrder(models.Model):
+class Supplier(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    shop_id = models.BigIntegerField()
+    name = models.CharField(max_length=255)
+    contact_info = models.TextField(null=True, blank=True)
+    lead_time_days = models.IntegerField(default=0, help_text="Thời gian giao hàng trung bình (ngày)")
+    rating = models.DecimalField(max_digits=3, decimal_places=2, default=5.0, help_text="Điểm đánh giá chất lượng (1-5)")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Supplier: {self.name}"
+
+class InventoryItem(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    sku = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=255)
+    supplier = models.ForeignKey(Supplier, on_delete=models.SET_NULL, null=True, blank=True)
+    category = models.CharField(max_length=100, null=True, blank=True)
+    
+    # Stock info
+    current_stock = models.IntegerField(default=0)
+    safety_stock = models.IntegerField(default=0, help_text="Tồn kho an toàn tối thiểu")
+    reorder_point = models.IntegerField(default=0, help_text="Điểm đặt hàng lại")
+    
+    # Cost & Price
+    unit_cost = models.DecimalField(max_digits=20, decimal_places=2, default=0)
+    unit_price = models.DecimalField(max_digits=20, decimal_places=2, default=0)
+    
+    last_restock_date = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"SKU: {self.sku} - {self.name}"
+
+class SCMOrder(models.Model):
+    PLATFORM_CHOICES = [
+        ('shopee', 'Shopee'),
+        ('tiktok', 'TikTok Shop'),
+        ('lazada', 'Lazada'),
+        ('tiki', 'Tiki'),
+        ('other', 'Khác'),
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    platform_source = models.CharField(max_length=50, choices=PLATFORM_CHOICES, default='shopee')
+    shop_id = models.BigIntegerField(null=True, blank=True)
     order_sn = models.CharField(max_length=50, unique=True)
     order_status = models.CharField(max_length=50)
     create_time = models.DateTimeField()
     pay_time = models.DateTimeField(null=True, blank=True)
+    
+    # Delivery info
+    estimated_delivery_time = models.DateTimeField(null=True, blank=True)
+    actual_delivery_time = models.DateTimeField(null=True, blank=True)
     
     # Financial fields (Flat for EDA)
     total_amount = models.DecimalField(max_digits=20, decimal_places=2, default=0)
     actual_shipping_fee = models.DecimalField(max_digits=20, decimal_places=2, default=0)
     estimated_shipping_fee = models.DecimalField(max_digits=20, decimal_places=2, default=0)
     
-    # Escrow Fields
+    # Escrow Fields (Generic)
     escrow_amount = models.DecimalField(max_digits=20, decimal_places=2, default=0)
     service_fee = models.DecimalField(max_digits=20, decimal_places=2, default=0)
     seller_transaction_fee = models.DecimalField(max_digits=20, decimal_places=2, default=0)
@@ -136,9 +183,9 @@ class ShopeeOrder(models.Model):
     
     # Rebates & Vouchers
     seller_rebate = models.DecimalField(max_digits=20, decimal_places=2, default=0)
-    shopee_rebate = models.DecimalField(max_digits=20, decimal_places=2, default=0)
+    platform_rebate = models.DecimalField(max_digits=20, decimal_places=2, default=0)
     voucher_seller = models.DecimalField(max_digits=20, decimal_places=2, default=0)
-    voucher_shopee = models.DecimalField(max_digits=20, decimal_places=2, default=0)
+    voucher_platform = models.DecimalField(max_digits=20, decimal_places=2, default=0)
     
     buyer_username = models.CharField(max_length=255, null=True, blank=True)
     payment_method = models.CharField(max_length=100, null=True, blank=True)
@@ -147,12 +194,12 @@ class ShopeeOrder(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['user', 'shop_id']),
+            models.Index(fields=['user', 'platform_source', 'shop_id']),
             models.Index(fields=['create_time']),
         ]
 
     def __str__(self):
-        return f"Order {self.order_sn} - {self.user.username}"
+        return f"Order {self.order_sn} ({self.get_platform_source_display()})"
 
 class VisitorSession(models.Model):
     session_key = models.CharField(max_length=100, unique=True)

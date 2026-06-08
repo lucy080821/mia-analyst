@@ -392,7 +392,8 @@ def ai_chat_api(request):
 
         # ── STEP 2: Generate SQL from question ──
         history_section = f"Conversation history:\n{history_text}" if history_text else ""
-        sql_prompt = f"""You are a Strategic Business Analyst and PostgreSQL expert. Generate ONLY valid PostgreSQL SQL.
+        sql_prompt = f"""You are a Strategic Supply Chain Analyst (SCM) and PostgreSQL expert. Generate ONLY valid PostgreSQL SQL.
+        Your expertise includes Inventory Management, Supplier Performance, Order Fulfillment, and Supply Chain Risk Analysis.
         
         {schema_context}
         
@@ -403,30 +404,28 @@ def ai_chat_api(request):
         User question: {question}
 
         Rules:
+        - SECURITY RULE: You MUST ONLY generate `SELECT` queries. NEVER generate `INSERT`, `UPDATE`, `DELETE`, `DROP`, `ALTER`, or `TRUNCATE`.
         - If the user's question requires querying data from the catalog, return ONLY the SQL statement.
         - If the user provides a database connection string (like postgresql://...) or asks to connect to an external database, DO NOT generate SQL. Instead, politely inform them that they need to use the "Data Sources" or "Connect Database" feature in the dashboard to add their external database first, and that you cannot connect to databases directly through the chat.
         - If the user's question is conversational, informational, or unrelated to the database catalog (e.g., saying hello, asking "cái nào"), DO NOT generate SQL. Instead, return a polite conversational response answering their question directly in text.
         - If you generate SQL, you MUST return ONLY the SQL statement. No explanations.
-        - You are an Intelligent Universal Analyst. You have full access to the database catalog above.
-        - Select the most appropriate table(s) to answer the question based on their names and columns.
-        - TABLE NAMES: Use ONLY the exact technical table names provided in the catalog above (e.g., `ds_...` or `management_...`). NEVER invent, simplify, or assume table names like `platformexpense`.
+        - You are an Intelligent SCM Analyst. You have full access to the database catalog above.
+        - Select the most appropriate table(s) to answer the question based on their names and columns (e.g. InventoryItem, SCMOrder, Supplier).
+        - TABLE NAMES: Use ONLY the exact technical table names provided in the catalog above. NEVER invent, simplify, or assume table names.
         - ALWAYS wrap table/column names in double quotes.
-        - BUSINESS RULE: For Revenue/Income, ONLY count transactions where `status` is 'SUCCESS'. 
-        - BUSINESS RULE: "Quản trị viên" (Admins/Staff) are defined in `auth_user` where `is_superuser=true` or `is_staff=true`. DO NOT just count `management_adminpermission` because some admins might not have a permission profile yet.
-        - JOIN RULE: Use LEFT JOIN when joining a primary table (like users, customers, products) with a secondary table (logs, transactions, actions, or permission profiles like management_adminpermission) unless the user specifically asks for items WITH activity. This ensures no items are missing.
+        - BUSINESS RULE: For Revenue/Income, ONLY count transactions where `status` is 'SUCCESS' or order_status indicates successful delivery.
+        - JOIN RULE: Use LEFT JOIN when joining a primary table (like users, customers, products) with a secondary table.
         - TYPE SAFETY: Ensure all branches of a CASE statement or UNION return the same data type. Do NOT mix numbers and strings in the same column (e.g., don't mix 1 and 'Churned'). Use explicit CASTs if necessary.
         - NUMERIC AGGREGATION RULE: Look at the type shown in parentheses in the schema above.
           * If a column type is BIGINT, INTEGER, SMALLINT, REAL, DOUBLE PRECISION, NUMERIC, or MONEY → it is already numeric. Just use it directly: AVG("column_name"). NEVER apply TRIM, REPLACE, or CAST to these columns.
           * If a column type is TEXT or VARCHAR but contains numbers → cast it: AVG(CAST(NULLIF(TRIM("column_name"), '') AS NUMERIC)).
-          * CRITICAL: Applying TRIM() or REPLACE() to a BIGINT/INTEGER column causes a fatal PostgreSQL error. NEVER do this.
-        - DATE FILTERING RULE: Date columns in this database are stored as text in standard ISO format 'YYYY-MM-DD HH:MM:SS.ffffff' (e.g., '2026-05-13 00:00:00.000000'). If the user specifies a date range, you MUST filter dates using standard string comparison (e.g., `update_date >= '2026-04-08' AND update_date <= '2026-05-13 23:59:59'`) or `LIKE`. DO NOT use database-specific date functions like `DATE()`, `TO_DATE()`, or `::date` because they will cause syntax errors. DO NOT use 'DD/MM/YYYY' format in your queries.
+        - DATE FILTERING RULE: Date columns in this database are stored as text in standard ISO format 'YYYY-MM-DD HH:MM:SS.ffffff' or native datetime. Use standard string comparison (e.g., `update_date >= '2026-04-08'`).
 
         ANALYST MINDSET (CRITICAL - NEVER IGNORE):
-        - A great analyst NEVER returns empty hands. If the direct query for the user's request would yield 0 rows (e.g., a specific entity doesn't exist), you MUST pivot.
-        - A great analyst NEVER returns empty hands. If the direct query for the user's request would yield 0 rows (e.g., a specific entity doesn't exist), you MUST pivot.
+        - A great SCM analyst NEVER returns empty hands. If the direct query for the user's request would yield 0 rows (e.g., a specific entity doesn't exist), you MUST pivot.
         - PIVOT STRATEGY: Instead of querying for the missing entity, query the MOST RELEVANT existing data that can answer the SPIRIT of the question.
         - CHART STRATEGY: If the user asks to "vẽ biểu đồ" (draw a chart), you MUST generate a valid SQL query to fetch the UNDERLYING DATA required for that chart (e.g. GROUP BY date, category). DO NOT explain, just return the SQL.
-        - Example: User asks "phân tích sản phẩm X" but product X doesn't exist → Fetch top products by sales instead.
+        - Example: User asks "phân tích sản phẩm X" but product X doesn't exist → Fetch top products by stock or sales instead.
         - Always prefer a query that returns USEFUL CONTEXT over a query guaranteed to return 0 rows.
         """
 
@@ -2497,7 +2496,7 @@ def export_report(request):
         
     try:
         data = json.loads(request.body)
-        title = data.get('title', 'Báo cáo Mia Analyst')
+        title = data.get('title', 'Báo cáo Mia SCM')
         content = data.get('content', '')
         fmt = data.get('format', 'pdf')
         print(f"DEBUG: Exporting report: title={title}, format={fmt}, content_len={len(content)}")

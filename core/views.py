@@ -66,9 +66,9 @@ def sales_chat_api(request):
             lead.save()
 
         # Build prompt
-        system_prompt = """You are Mia, an enthusiastic, highly professional, and deeply caring Sales Representative & Consultant for Mia Analyst - a premium Data Analytics SaaS platform.
+        system_prompt = """You are Mia, an enthusiastic, highly professional, and deeply caring Sales Representative & Consultant for Mia SCM - a premium Data Analytics SaaS platform.
         Your goal is to proactively consult users, listen to their needs, offer passionate and personalized advice, and gently collect information to qualify them as leads.
-        Always show deep empathy for their business challenges and excitement about how Mia Analyst can solve them.
+        Always show deep empathy for their business challenges and excitement about how Mia SCM can solve them.
         
         Information you want to collect if possible:
         - Company size or industry.

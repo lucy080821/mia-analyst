@@ -6,6 +6,7 @@ import logging
 import json
 from django.conf import settings
 from groq import Groq
+import openai
 
 logger = logging.getLogger(__name__)
 
@@ -67,16 +68,56 @@ class GroqGenerativeModel:
             logger.error(f"Groq API Error: {e}")
             raise e
 
+class OpenAIGenerativeModel:
+    def __init__(self, model_name: str = "gpt-4o-mini"):
+        openai.api_key = getattr(settings, 'OPENAI_API_KEY', '')
+        self.model_name = model_name
+
+    def generate_content(self, prompt, generation_config=None):
+        try:
+            if isinstance(prompt, list):
+                prompt_text = "\n\n".join(str(p) for p in prompt)
+            else:
+                prompt_text = str(prompt)
+
+            messages = [{"role": "user", "content": prompt_text}]
+            
+            kwargs = {
+                "model": self.model_name,
+                "messages": messages,
+                "temperature": 0.2,
+            }
+
+            if generation_config and isinstance(generation_config, dict):
+                if generation_config.get("response_mime_type") == "application/json":
+                    kwargs["response_format"] = {"type": "json_object"}
+                    if "json" not in prompt_text.lower():
+                        messages[0]["content"] += "\nReturn JSON."
+
+            response = openai.chat.completions.create(**kwargs)
+            result_text = response.choices[0].message.content
+            return GroqResponseWrapper(result_text)
+            
+        except Exception as e:
+            logger.error(f"OpenAI API Error: {e}")
+            raise e
+
 def get_generative_model(model_name: str = None):
     """
-    Returns a configured GenerativeModel. If the requested model is gemini,
-    it returns the real google.generativeai model. Otherwise it falls back to Groq.
+    Returns a configured GenerativeModel.
+    - If model_name has 'gpt', uses OpenAI (e.g. gpt-4o-mini).
+    - If model_name has 'gemini', uses Google Generative AI fallback.
+    - Otherwise uses Groq.
     """
-    if not model_name or "gemini" in model_name.lower():
+    if not model_name:
+        model_name = "gpt-4o-mini" # Default to GPT-4o-mini for SCM pivot
+        
+    if "gpt" in model_name.lower():
+        return OpenAIGenerativeModel(model_name)
+    elif "gemini" in model_name.lower():
         import google.generativeai as genai
         from django.conf import settings
         genai.configure(api_key=settings.GEMINI_API_KEY)
-        # Use gemini-pro (Gemini 1.0) which is guaranteed to be available on all keys and SDK versions
         return genai.GenerativeModel("gemini-pro")
         
     return GroqGenerativeModel(model_name)

@@ -156,7 +156,7 @@ class ShopeeSyncEngine:
         """Fetches and saves orders for the last N days."""
         from django.utils import timezone
         from datetime import timedelta
-        from .models import ShopeeOrder
+        from .models import SCMOrder
         
         access_token = self.get_valid_access_token()
         shop_id = self.creds.shop_id
@@ -203,9 +203,10 @@ class ShopeeSyncEngine:
                 order_income = escrow.get('order_income', {})
                 
                 # Update or create order record
-                ShopeeOrder.objects.update_or_create(
+                SCMOrder.objects.update_or_create(
                     order_sn=order_sn,
                     defaults={
+                        'platform_source': 'shopee',
                         'user': self.user,
                         'shop_id': shop_id,
                         'order_status': detail['order_status'],
@@ -219,9 +220,9 @@ class ShopeeSyncEngine:
                         'seller_transaction_fee': order_income.get('seller_transaction_fee', 0),
                         'commission_fee': order_income.get('commission_fee', 0),
                         'seller_rebate': order_income.get('seller_rebate', 0),
-                        'shopee_rebate': order_income.get('shopee_rebate', 0),
+                        'platform_rebate': order_income.get('shopee_rebate', 0),
                         'voucher_seller': order_income.get('voucher_seller', 0),
-                        'voucher_shopee': order_income.get('voucher_shopee', 0),
+                        'voucher_platform': order_income.get('voucher_shopee', 0),
                         'buyer_username': detail.get('buyer_username'),
                         'payment_method': detail.get('payment_method'),
                     }

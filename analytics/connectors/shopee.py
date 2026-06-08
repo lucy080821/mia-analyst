@@ -32,7 +32,7 @@ class ShopeeConnector(BaseApiConnector):
         or refactor the engine to return DataFrames. For now, we query the local DB.
         """
         try:
-            from analytics.models import ShopeeOrder
+            from analytics.models import SCMOrder
             from django.utils import timezone
             from datetime import timedelta
             
@@ -41,7 +41,8 @@ class ShopeeConnector(BaseApiConnector):
             
             # Extract to DataFrame from our local DB cache
             cutoff_date = timezone.now() - timedelta(days=days)
-            orders = ShopeeOrder.objects.filter(
+            orders = SCMOrder.objects.filter(
+                platform_source='shopee',
                 user=self.credential.user, 
                 shop_id=self.shop_id,
                 create_time__gte=cutoff_date
