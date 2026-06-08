@@ -181,10 +181,7 @@ def ai_chat_api(request):
             ])
 
         # ── STEP 1: Build schema context ──
-        import google.generativeai as genai
-        genai.configure(api_key=settings.gpt_API_KEY)
-        
-        # 3. Cấu hình & Gọi AI: Sử dụng model resolver an toàn
+        # Cấu hình & Gọi AI: Sử dụng model resolver an toàn
         from .ai_utils import get_generative_model
         ai_model = get_generative_model(requested_model)
 
@@ -1392,7 +1389,6 @@ Format:
 If no relationships are found, return []."""
 
     try:
-        genai.configure(api_key=settings.gpt_API_KEY)
         ai_model = get_generative_model()
         response = ai_model.generate_content(prompt)
         text = response.text.strip()

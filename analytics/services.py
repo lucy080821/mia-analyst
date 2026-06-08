@@ -524,8 +524,6 @@ class TieredAnalyticsService:
             else:
                 lang_instruction = "\nHÃY LUÔN TRẢ LỜI BẰNG NGÔN NGỮ PHÙ HỢP VỚI NGỮ CẢNH."
 
-            genai.configure(api_key=settings.gpt_API_KEY)
-            
             # Sử dụng model resolver an toàn — loại bỏ hoàn toàn lỗi 404
             from .ai_utils import get_generative_model
             model = get_generative_model()
