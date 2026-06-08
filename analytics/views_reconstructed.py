@@ -84,9 +84,9 @@ def ai_chat_api(request):
             cursor.execute(f"PRAGMA table_info('{table_name}')")
             column_info = [{"name": col[1], "type": col[2]} for col in cursor.fetchall()]
 
-        # Gemini SQL Gen
+        # GPT-4o SQL Gen
         import google.generativeai as genai
-        genai.configure(api_key=settings.GEMINI_API_KEY)
+        genai.configure(api_key=settings.gpt_API_KEY)
         model = genai.GenerativeModel(settings.AI_MODEL_NAME)
         
         prompt = f"""Bạn là SQL Expert cho SQLite.

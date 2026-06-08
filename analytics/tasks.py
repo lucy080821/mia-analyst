@@ -55,7 +55,7 @@ def generate_automation_chart(df, title: str):
 def run_automation_tasks():
     # Load inside to avoid AppRegistryNotReady early load issues
     from .models import AutomationTask, TelegramSettings
-    from .analysis_engine import analyze_gsheet_with_gemini
+    from .analysis_engine import analyze_gsheet_with_gpt
     import pandas as pd
     import calendar
     
@@ -127,7 +127,7 @@ def run_automation_tasks():
 def execute_single_automation_task(task_id):
     """Executes a single automation task by ID."""
     from .models import AutomationTask, TelegramSettings, AutomationLog
-    from .analysis_engine import analyze_gsheet_with_gemini
+    from .analysis_engine import analyze_gsheet_with_gpt
     from .db_utils import execute_query, get_postgres_schema_query
     from .ai_utils import get_generative_model
     import pandas as pd
@@ -158,7 +158,7 @@ def execute_single_automation_task(task_id):
                 if response.status_code == 200:
                     df = pd.read_csv(io.BytesIO(response.content))
                     df_for_chart = df
-                    insight = analyze_gsheet_with_gemini(df, task.analysis_prompt, "")
+                    insight = analyze_gsheet_with_gpt(df, task.analysis_prompt, "")
         
         # 2. HANDLE SINGLE DATASET or ENTIRE PIPELINE
         else:

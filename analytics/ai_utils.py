@@ -30,8 +30,8 @@ class GroqResponseWrapper:
 class GroqGenerativeModel:
     def __init__(self, model_name: str = None):
         self.client = Groq(api_key=settings.GROQ_API_KEY)
-        # Override gemini model names to groq model names
-        if not model_name or "gemini" in model_name.lower():
+        # Override gpt model names to groq model names
+        if not model_name or "gpt" in model_name.lower():
             self.model_name = getattr(settings, 'GROQ_MODEL_NAME', 'llama-3.3-70b-versatile')
         else:
             self.model_name = model_name
@@ -52,7 +52,7 @@ class GroqGenerativeModel:
                 "temperature": 0.2, # Good default for analytics
             }
 
-            # Map Gemini JSON config to Groq
+            # Map GPT-4o JSON config to Groq
             if generation_config and isinstance(generation_config, dict):
                 if generation_config.get("response_mime_type") == "application/json":
                     kwargs["response_format"] = {"type": "json_object"}
@@ -106,19 +106,15 @@ def get_generative_model(model_name: str = None):
     """
     Returns a configured GenerativeModel.
     - If model_name has 'gpt', uses OpenAI (e.g. gpt-4o-mini).
-    - If model_name has 'gemini', uses Google Generative AI fallback.
     - Otherwise uses Groq.
     """
     if not model_name:
         model_name = "gpt-4o-mini" # Default to GPT-4o-mini for SCM pivot
         
-    if "gpt" in model_name.lower():
+    if "gpt" in model_name.lower() or "gemini" in model_name.lower():
+        # Force any gemini requested model to gpt-4o-mini to avoid breaking if frontend still sends it
+        if "gemini" in model_name.lower():
+            model_name = "gpt-4o-mini"
         return OpenAIGenerativeModel(model_name)
-    elif "gemini" in model_name.lower():
-        import google.generativeai as genai
-        from django.conf import settings
-        genai.configure(api_key=settings.GEMINI_API_KEY)
-        return genai.GenerativeModel("gemini-pro")
         
     return GroqGenerativeModel(model_name)
-

@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('title', models.CharField(max_length=255, verbose_name='Tên khoản chi')),
-                ('category', models.CharField(choices=[('SERVER', 'Chi phí Server / Hosting'), ('AI_API', 'Chi phí AI API (Gemini, OpenAI...)'), ('DOMAIN', 'Tên miền / SSL'), ('MARKETING', 'Marketing / Quảng cáo'), ('TOOLS', 'Công cụ / Phần mềm'), ('SALARY', 'Lương / Nhân sự'), ('TAX', 'Thuế / Phí pháp lý'), ('OTHER', 'Chi phí khác')], default='OTHER', max_length=20, verbose_name='Danh mục')),
+                ('category', models.CharField(choices=[('SERVER', 'Chi phí Server / Hosting'), ('AI_API', 'Chi phí AI API (GPT-4o, OpenAI...)'), ('DOMAIN', 'Tên miền / SSL'), ('MARKETING', 'Marketing / Quảng cáo'), ('TOOLS', 'Công cụ / Phần mềm'), ('SALARY', 'Lương / Nhân sự'), ('TAX', 'Thuế / Phí pháp lý'), ('OTHER', 'Chi phí khác')], default='OTHER', max_length=20, verbose_name='Danh mục')),
                 ('amount', models.DecimalField(decimal_places=0, max_digits=14, verbose_name='Số tiền (VNĐ)')),
                 ('note', models.TextField(blank=True, verbose_name='Ghi chú')),
                 ('expense_date', models.DateField(verbose_name='Ngày chi')),

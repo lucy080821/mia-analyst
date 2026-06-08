@@ -160,7 +160,7 @@ def ai_chat_api(request):
         question = body.get("message", "").strip()
         table_name = body.get("table", "")
         conversation_context = body.get("context", [])
-        requested_model = body.get("model", "gemini-1.5-pro")
+        requested_model = body.get("model", "gpt-4o")
 
         if table_name == '__WORKSPACE__':
             profile = getattr(request.user, 'userprofile', None)
@@ -182,7 +182,7 @@ def ai_chat_api(request):
 
         # ── STEP 1: Build schema context ──
         import google.generativeai as genai
-        genai.configure(api_key=settings.GEMINI_API_KEY)
+        genai.configure(api_key=settings.gpt_API_KEY)
         
         # 3. Cấu hình & Gọi AI: Sử dụng model resolver an toàn
         from .ai_utils import get_generative_model
@@ -1392,7 +1392,7 @@ Format:
 If no relationships are found, return []."""
 
     try:
-        genai.configure(api_key=settings.GEMINI_API_KEY)
+        genai.configure(api_key=settings.gpt_API_KEY)
         ai_model = get_generative_model()
         response = ai_model.generate_content(prompt)
         text = response.text.strip()
@@ -2254,7 +2254,7 @@ def analyze_dataset(request):
                 [f"Phân tích tổng quan dữ liệu '{c1}'", "Cho tôi xem xu hướng chung của dữ liệu", "Có bất thường nào trong tập dữ liệu này không?"]
             )
 
-        # Better suggested questions using Gemini
+        # Better suggested questions using GPT-4o
         try:
             from .ai_utils import get_generative_model
             ai_model = get_generative_model()

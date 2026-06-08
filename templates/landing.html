@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ "Mia AI Data Analytics - Nền tảng Phân tích Dữ liệu AI Tối ưu cho Doanh nghiệp" }}</title>
+    <title>{{ "Mia SCM - Trợ lý Chuỗi cung ứng - Nền tảng Phân tích Dữ liệu AI Tối ưu cho Doanh nghiệp" }}</title>
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
     <!-- Fonts -->
@@ -109,7 +109,7 @@
                 <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/30 shrink-0">
                     <span class="text-white font-bold text-xl">M</span>
                 </div>
-                <a href="/" class="text-xl sm:text-2xl font-extrabold tracking-tight text-dark notranslate">Mia <span class="text-primary hidden sm:inline">AI Data Analytics</span></a>
+                <a href="/" class="text-xl sm:text-2xl font-extrabold tracking-tight text-dark notranslate">Mia <span class="text-primary hidden sm:inline">AI Supply Chain Co-pilot</span></a>
             </div>
             
             <div class="hidden xl:flex items-center space-x-10 text-sm font-semibold tracking-wide">
@@ -188,11 +188,11 @@
                 </div>
                 
                 <h1 class="text-4xl sm:text-7xl md:text-8xl font-black text-white leading-tight break-words">
-                    {{ "Biến dữ liệu" }} <br class="hidden sm:block"> {{ "thành" }} <span class="text-gradient">{{ "Quyền năng." }}</span>
+                    {{ "Tối ưu hóa" }} <br class="hidden sm:block"> {{ "Chuỗi cung ứng" }} <span class="text-gradient">{{ "bằng AI." }}</span>
                 </h1>
                 
                 <p class="text-xl text-gray-300 max-w-xl leading-relaxed min-h-[120px] lg:min-h-[90px]" id="hero-subtitle-container">
-                    <span id="hero-subtitle-text" class="hidden">{{ "Nền tảng AI thế hệ mới giúp bạn kết nối, phân tích và tối ưu hóa dữ liệu Excel, CSV & SQL chỉ bằng ngôn ngữ tự nhiên. Không cần Code, không cần kiến thức kỹ thuật sâu." }}</span>
+                    <span id="hero-subtitle-text" class="hidden">{{ "Mia SCM giúp bạn kiểm soát Tồn kho theo thời gian thực, đánh giá hiệu suất Nhà cung cấp và ngăn ngừa rủi ro đứt gãy vận tải mà không cần hệ thống ERP cồng kềnh." }}</span>
                     <span id="hero-subtitle-typewriter"></span><span class="animate-pulse border-r-2 border-primary/70 inline-block h-5 ml-1 -mb-0.5"></span>
                 </p>
                 
@@ -301,7 +301,7 @@
         <div class="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
             <div class="text-center max-w-3xl mx-auto mb-16">
                 <h2 class="text-sm font-bold text-red-500 uppercase tracking-[0.3em] mb-4">{{ "Thực trạng" }}</h2>
-                <h3 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6">{{ "Khó khăn khi phân tích dữ liệu" }} <br><span class="text-red-500">{{ "Thủ công." }}</span></h3>
+                <h3 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6">{{ "Khó khăn trong Chuỗi cung ứng" }} <br><span class="text-red-500">{{ "Thủ công." }}</span></h3>
             </div>
 
             <div class="flex flex-col md:flex-row gap-12 items-center">
@@ -365,17 +365,17 @@
                 <div class="w-full md:w-1/2 space-y-8 lg:pl-12">
                     <div class="bg-gray-50 p-8 rounded-3xl border border-gray-100 hover:border-red-200 hover:shadow-lg transition-all">
                         <p class="text-gray-600 leading-relaxed text-lg">
-                            <strong class="text-gray-800">{{ "Bơi trong biển dữ liệu:" }}</strong> {{ "Có quá nhiều số liệu từ ERP, CRM, Excel rải rác. Bạn tốn hàng giờ chỉ để tổng hợp dữ liệu thay vì phân tích chúng." }}
+                            <strong class="text-gray-800">{{ "Cháy hàng & Tồn kho quá hạn:" }}</strong> {{ "Tiền vốn bị giam, mất doanh thu do không nắm bắt được xu hướng tiêu thụ thực tế và chu kỳ bổ sung hàng hóa." }}
                         </p>
                     </div>
                     <div class="bg-gray-50 p-8 rounded-3xl border border-gray-100 hover:border-orange-200 hover:shadow-lg transition-all">
                         <p class="text-gray-600 leading-relaxed text-lg">
-                            <strong class="text-gray-800">{{ "Lặp lại vòng lặp nhàm chán:" }}</strong> {{ "Vlookup, Pivot Table, vẽ biểu đồ lặp đi lặp lại mỗi tuần. Công việc thủ công dễ dẫn đến sai sót và bỏ lỡ Insight quan trọng." }}
+                            <strong class="text-gray-800">{{ "Dự báo nhu cầu sai lệch:" }}</strong> {{ "Sử dụng Excel thủ công để dự báo Demand Forecasting dẫn đến sai sót, gây thiếu hụt hàng hóa (Out of stock) hoặc tồn kho quá mức." }}
                         </p>
                     </div>
                     <div class="bg-gray-50 p-8 rounded-3xl border border-gray-100 hover:border-rose-200 hover:shadow-lg transition-all">
                         <p class="text-gray-600 leading-relaxed text-lg">
-                            <strong class="text-gray-800">{{ "Chi phí cơ hội khổng lồ:" }}</strong> {{ "Mỗi lần cần số liệu mới lại phải chờ đợi Data Team vài ngày. Khi có báo cáo thì thời điểm vàng để quyết định đã trôi qua." }}
+                            <strong class="text-gray-800">{{ "Nhà cung cấp trễ hẹn & Phí ẩn:" }}</strong> {{ "Thiếu hệ thống đánh giá tự động hiệu suất nhà cung cấp (Lead time, OTIF) và chi phí vận tải (Logistics) khiến chuỗi cung ứng dễ đứt gãy." }}
                         </p>
                     </div>
                 </div>
@@ -395,7 +395,7 @@
                     <h3 class="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-8 leading-tight">{{ "Sứ mệnh dân chủ hóa" }} <br> <span class="text-primary italic">{{ "Dữ liệu thông minh." }}</span></h3>
                     <div class="space-y-6 text-gray-600 text-lg leading-relaxed">
                         <p>Trong quá khứ, việc khai thác hàng triệu dòng dữ liệu là 'đặc quyền' của những chuyên gia lập trình và hệ thống máy chủ đắt đỏ. Các phòng ban kinh doanh, kế toán thường xuyên chìm ngập trong những bảng tính Excel vô tận, khao khát tìm ra lời giải cho bài toán tăng trưởng nhưng lại bị cản bước bởi rào cản kỹ thuật.</p>
-                        <p><span class="text-primary font-bold">Mia AI Data Analytics</span> ra đời để viết lại câu chuyện đó. Bằng việc đưa sức mạnh của Trí tuệ Nhân tạo tạo sinh (Generative AI) vào sâu trong lõi kiến trúc dữ liệu, <span class="text-primary font-bold">Mia</span> không chỉ là một công cụ, mà là một 'người cộng sự' thực thụ. AI của chúng tôi tự động hóa việc dọn dẹp số liệu, thấu hiểu câu hỏi bằng ngôn ngữ tự nhiên và cung cấp các dự báo chiến lược sắc sảo. Giờ đây, chỉ với vài dòng trò chuyện, quyền năng làm chủ dữ liệu đã hoàn toàn được trao lại cho bất kỳ ai, giúp doanh nghiệp bứt phá mạnh mẽ.</p>
+                        <p><span class="text-primary font-bold">Mia SCM - Trợ lý Chuỗi cung ứng</span> ra đời để viết lại câu chuyện đó. Bằng việc đưa sức mạnh của Trí tuệ Nhân tạo tạo sinh (Generative AI) vào sâu trong lõi kiến trúc dữ liệu, <span class="text-primary font-bold">Mia</span> không chỉ là một công cụ, mà là một 'người cộng sự' thực thụ. AI của chúng tôi tự động hóa việc dọn dẹp số liệu, thấu hiểu câu hỏi bằng ngôn ngữ tự nhiên và cung cấp các dự báo chiến lược sắc sảo. Giờ đây, chỉ với vài dòng trò chuyện, quyền năng làm chủ dữ liệu đã hoàn toàn được trao lại cho bất kỳ ai, giúp doanh nghiệp bứt phá mạnh mẽ.</p>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -412,7 +412,7 @@
                     <div class="space-y-6">
                         <div class="p-8 bg-dark text-white rounded-3xl shadow-2xl">
                             <h4 class="font-bold text-xl mb-3">{{ "Công nghệ AI" }}</h4>
-                            <p class="text-sm opacity-80">{{ "Vận hành bởi Gemini 1.5 Pro & 2.5 Flash cùng Machine Learning chuyên sâu." }}</p>
+                            <p class="text-sm opacity-80">{{ "Vận hành bởi GPT-4o & 2.5 Flash cùng Machine Learning chuyên sâu." }}</p>
                         </div>
                         <div class="p-8 bg-gray-50 rounded-3xl border border-gray-100 shadow-sm">
                             <h4 class="font-bold text-xl mb-3">{{ "Sáng tạo" }}</h4>
@@ -454,24 +454,24 @@
                     <div class="p-4 sm:p-8 bg-gray-50/50 flex-1 flex flex-col">
                         <div class="flex items-center space-x-2 mb-6 sm:mb-8">
                             <div class="w-2 h-2 bg-primary rounded-full shrink-0"></div>
-                            <h4 class="font-bold text-gray-700 tracking-wider text-xs sm:text-sm uppercase leading-tight">Phân tích Doanh thu & Bán hàng</h4>
+                            <h4 class="font-bold text-gray-700 tracking-wider text-xs sm:text-sm uppercase leading-tight">Quản lý Tồn kho & Vận hành</h4>
                         </div>
 
                         <!-- Metrics -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
                             <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm text-left">
-                                <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 sm:mb-2">Tổng Doanh Thu</div>
-                                <div class="text-2xl sm:text-3xl font-black text-gray-800">28.5 Tỷ</div>
+                                <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 sm:mb-2">Tỉ lệ Giao đúng hạn (OTIF)</div>
+                                <div class="text-2xl sm:text-3xl font-black text-gray-800">96.5%</div>
                             </div>
                             <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm text-left">
-                                <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 sm:mb-2">Tỉ lệ Giữ chân KH</div>
-                                <div class="text-2xl sm:text-3xl font-black text-gray-800">94.2%</div>
+                                <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 sm:mb-2">Hàng Tồn Kho Cảnh Báo</div>
+                                <div class="text-2xl sm:text-3xl font-black text-gray-800">12 SKUs</div>
                             </div>
                         </div>
 
                         <!-- Charts Area -->
                         <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm mb-20 sm:mb-28 text-left h-64 sm:h-64 relative overflow-hidden">
-                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-6 relative z-10">Tăng trưởng Doanh thu theo Quý</div>
+                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-6 relative z-10">Biến động chi phí Vận tải & Lưu kho</div>
                             <!-- Grid Lines -->
                             <div class="absolute inset-x-6 top-16 bottom-6 flex flex-col justify-between pointer-events-none z-0">
                                 <div class="border-b border-gray-100 w-full h-0"></div>
@@ -502,7 +502,7 @@
                                     <span class="text-[10px] font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent uppercase tracking-wider">Mia Insight</span>
                                 </div>
                                 <p class="text-xs text-gray-600 leading-relaxed">
-                                    <strong>Doanh thu Q4</strong> tăng vọt <span class="text-green-500 font-bold">15%</span> so với Q3, động lực chính nhờ tỉ lệ giữ chân khách hàng đạt 94.2%.
+                                    <strong>Doanh thu Q4</strong> tăng vọt <span class="text-green-500 font-bold">15%</span> so với Q3, động lực chính nhờ tỉ lệ giữ chân khách hàng đạt 12 SKUs.
                                 </p>
                             </div>
                         </div>
@@ -565,7 +565,7 @@
                             <div class="flex items-center space-x-2 sm:space-x-3">
                                 <div class="flex items-center space-x-1 bg-gray-50 border border-gray-200 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold text-gray-600 shrink-0">
                                     <svg class="w-3 h-3 text-gray-400 hidden sm:block" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zM8 11l-3-3 1.4-1.4L8 8.2l4.6-4.6L14 5l-6 6z"></path></svg>
-                                    <span>Gemini 1.5 Flash</span>
+                                    <span>GPT-4o-mini</span>
                                 </div>
                                 <button class="text-gray-400 hover:text-gray-600 hidden sm:block"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg></button>
                             </div>
@@ -602,7 +602,7 @@
                     <p class="text-gray-400 text-sm leading-relaxed mb-6">{{ "Hỏi Mia bất cứ điều gì về dữ liệu của bạn. 'Tại sao doanh thu tháng này giảm?' - Mia sẽ phân tích và trả lời ngay lập tức." }}</p>
                     <ul class="text-xs space-y-3 text-gray-500 font-bold uppercase tracking-wider">
                         <li class="flex items-center"><span class="w-1.5 h-1.5 bg-primary rounded-full mr-2"></span> {{ "Ngôn ngữ tự nhiên" }}</li>
-                        <li class="flex items-center"><span class="w-1.5 h-1.5 bg-primary rounded-full mr-2"></span> {{ "Gemini 1.5 Pro" }}</li>
+                        <li class="flex items-center"><span class="w-1.5 h-1.5 bg-primary rounded-full mr-2"></span> {{ "GPT-4o" }}</li>
                         <li class="flex items-center"><span class="w-1.5 h-1.5 bg-primary rounded-full mr-2"></span> {{ "Phân tích thời gian thực" }}</li>
                     </ul>
                 </div>
@@ -641,7 +641,7 @@
                         <svg class="w-8 h-8 text-amber-500 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                     </div>
                     <h4 class="text-white text-xl font-bold mb-4">{{ "Data Pipeline" }}</h4>
-                    <p class="text-gray-400 text-sm leading-relaxed mb-6">{{ "Gộp dữ liệu từ nhiều nguồn (Excel, SQL, Google Sheets), tự động làm sạch và xử lý dữ liệu thô thành thông tin có cấu trúc." }}</p>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-6">{{ "Gộp dữ liệu từ nhiều nguồn (Excel, SQL, Google Sheets), tự động làm sạch và xử lý dữ liệu thô Chuỗi cung ứng thông tin có cấu trúc." }}</p>
                     <ul class="text-xs space-y-3 text-gray-500 font-bold uppercase tracking-wider">
                         <li class="flex items-center"><span class="w-1.5 h-1.5 bg-amber-500 rounded-full mr-2"></span> {{ "Kết nối đa nguồn" }}</li>
                         <li class="flex items-center"><span class="w-1.5 h-1.5 bg-amber-500 rounded-full mr-2"></span> {{ "Tự động làm sạch" }}</li>
@@ -752,9 +752,9 @@
                     <div class="text-sm font-bold opacity-60 uppercase tracking-widest mb-6">Basic Package</div>
                     <p class="text-gray-500 text-sm mb-8">{{ "Dành cho trải nghiệm AI Chat Engine cơ bản." }}</p>
                     <ul class="space-y-4 mb-10 text-sm flex-1">
-                        <li class="flex items-center text-gray-600"><svg class="w-4 h-4 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg> {{ "20 câu hỏi phân tích / tháng" }}</li>
+                        <li class="flex items-center text-gray-600"><svg class="w-4 h-4 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg> {{ "Quản lý tối đa 500 SKU / Đơn hàng" }}</li>
                         <li class="flex items-center text-gray-600"><svg class="w-4 h-4 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg> {{ "AI Chat Engine cơ bản" }}</li>
-                        <li class="flex items-center text-gray-600"><svg class="w-4 h-4 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg> {{ "Phân tích 1 File Excel/CSV" }}</li>
+                        <li class="flex items-center text-gray-600"><svg class="w-4 h-4 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg> {{ "Quản lý 1 Kho hàng cơ bản" }}</li>
                         <li class="flex items-center text-gray-600"><svg class="w-4 h-4 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg> {{ "Xuất báo cáo định dạng Text" }}</li>
                         <li class="flex items-center text-indigo-600 font-bold"><svg class="w-4 h-4 text-indigo-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg> {{ "Dashboard Builder (3 widget)" }}</li>
                         <li class="flex items-center text-indigo-600 font-bold"><svg class="w-4 h-4 text-indigo-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg> {{ "Join & Pipeline (3 lần/tháng)" }}</li>
@@ -782,10 +782,10 @@
                     <div class="text-5xl font-black mb-2 text-primary">499,000đ <span class="text-sm font-medium text-gray-400">{{ "/tháng" }}</span></div>
                     <p class="text-gray-500 text-sm mb-8 mt-4">{{ "Trợ lý AI chiến lược toàn diện cho doanh nghiệp." }}</p>
                     <ul class="space-y-4 mb-10 text-sm flex-1">
-                        <li class="flex items-center text-gray-700 font-bold"><svg class="w-4 h-4 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg> {{ "Không giới hạn câu hỏi phân tích (Gemini 1.5 Pro)" }}</li>
+                        <li class="flex items-center text-gray-700 font-bold"><svg class="w-4 h-4 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg> {{ "Quản lý không giới hạn SKU & Đơn hàng" }}</li>
                         <li class="flex items-center text-gray-700 font-bold"><svg class="w-4 h-4 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg> {{ "Dự báo AI & Machine Learning chuyên sâu" }}</li>
-                        <li class="flex items-center text-gray-700 font-bold"><svg class="w-4 h-4 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg> {{ "Đồng bộ Google Sheets Real-time" }}</li>
-                        <li class="flex items-center text-gray-700 font-bold"><svg class="w-4 h-4 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg> {{ "Kết nối trực tiếp Google Looker Studio" }}</li>
+                        <li class="flex items-center text-gray-700 font-bold"><svg class="w-4 h-4 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg> {{ "Dự báo nhu cầu (Demand Forecasting) bằng AI" }}</li>
+                        <li class="flex items-center text-gray-700 font-bold"><svg class="w-4 h-4 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg> {{ "Quản lý hiệu suất Nhà cung cấp & Vận tải" }}</li>
                         <li class="flex items-center text-gray-700 font-bold"><svg class="w-4 h-4 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg> {{ "Tự động báo cáo qua Telegram/Email" }}</li>
                         <li class="flex items-center text-gray-700 font-bold"><svg class="w-4 h-4 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg> {{ "Xuất báo cáo (PDF/Word/Excel) chuyên nghiệp" }}</li>
                         <li class="flex items-center text-indigo-700 font-bold"><svg class="w-4 h-4 text-indigo-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"></path></svg> {{ "Dashboard & Pipeline Không giới hạn" }}</li>
@@ -871,7 +871,7 @@
                         <span class="text-primary group-open:rotate-180 transition-transform">▼</span>
                     </summary>
                     <div class="mt-4 text-gray-500 leading-relaxed pt-4 border-t border-gray-100">
-                        <p>{{ "Hoàn toàn được! Mia AI Data Analytics được thiết kế để phục vụ những người không am hiểu kỹ thuật. Bạn chỉ cần hỏi bằng ngôn ngữ tự nhiên như đang nói chuyện với một trợ lý, Mia sẽ tự động xử lý mọi phép toán phức tạp thay bạn." }}</p>
+                        <p>{{ "Hoàn toàn được! Mia SCM - Trợ lý Chuỗi cung ứng được thiết kế để phục vụ những người không am hiểu kỹ thuật. Bạn chỉ cần hỏi bằng ngôn ngữ tự nhiên như đang nói chuyện với một trợ lý, Mia sẽ tự động xử lý mọi phép toán phức tạp thay bạn." }}</p>
                     </div>
                 </details>
 
@@ -887,7 +887,7 @@
 
                 <details class="group bg-white rounded-2xl border border-gray-200 p-6 transition-all open:ring-1 open:ring-primary/20 shadow-sm">
                     <summary class="flex justify-between items-center font-bold text-lg cursor-pointer list-none">
-                        <span>{{ "Tôi có thể sử dụng Mia AI Data Analytics trên điện thoại di động không?" }}</span>
+                        <span>{{ "Tôi có thể sử dụng Mia SCM - Trợ lý Chuỗi cung ứng trên điện thoại di động không?" }}</span>
                         <span class="text-primary group-open:rotate-180 transition-transform">▼</span>
                     </summary>
                     <div class="mt-4 text-gray-500 leading-relaxed pt-4 border-t border-gray-100">
@@ -897,11 +897,11 @@
 
                 <details class="group bg-white rounded-2xl border border-gray-200 p-6 transition-all open:ring-1 open:ring-primary/20 shadow-sm">
                     <summary class="flex justify-between items-center font-bold text-lg cursor-pointer list-none">
-                        <span>{{ "Mia AI Data Analytics có hỗ trợ nhiều ngôn ngữ không?" }}</span>
+                        <span>{{ "Mia SCM - Trợ lý Chuỗi cung ứng có hỗ trợ nhiều ngôn ngữ không?" }}</span>
                         <span class="text-primary group-open:rotate-180 transition-transform">▼</span>
                     </summary>
                     <div class="mt-4 text-gray-500 leading-relaxed pt-4 border-t border-gray-100">
-                        <p>{{ "Hoàn toàn có! Mia AI Data Analytics là một hệ thống đa ngôn ngữ thực thụ. Toàn bộ giao diện có thể được dịch tự động sang hơn 100 ngôn ngữ khác nhau qua Google Widget. Đặc biệt, bộ não AI của Mia có khả năng nhận diện và phản hồi trực tiếp bằng chính ngôn ngữ bạn đang nhắn (Tiếng Anh, Tiếng Trung, Tiếng Thổ Nhĩ Kỳ...) một cách tự nhiên và chính xác." }}</p>
+                        <p>{{ "Hoàn toàn có! Mia SCM - Trợ lý Chuỗi cung ứng là một hệ thống đa ngôn ngữ thực thụ. Toàn bộ giao diện có thể được dịch tự động sang hơn 100 ngôn ngữ khác nhau qua Google Widget. Đặc biệt, bộ não AI của Mia có khả năng nhận diện và phản hồi trực tiếp bằng chính ngôn ngữ bạn đang nhắn (Tiếng Anh, Tiếng Trung, Tiếng Thổ Nhĩ Kỳ...) một cách tự nhiên và chính xác." }}</p>
                     </div>
                 </details>
              </div>
@@ -917,15 +917,15 @@
                         <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                             <span class="text-white font-bold">M</span>
                         </div>
-                        <span class="text-2xl font-black notranslate">Mia AI Data Analytics</span>
+                        <span class="text-2xl font-black notranslate">Mia SCM - Trợ lý Chuỗi cung ứng</span>
                     </div>
-                    <p class="text-gray-400 text-sm leading-relaxed">{{ "Nền tảng Phân tích Dữ liệu thế hệ mới, vận hành bởi Gemini AI. Chúng tôi tin rằng mọi doanh nghiệp — dù nhỏ hay lớn — đều xứng đáng được tiếp cận sức mạnh của Big Data mà không cần bất kỳ kiến thức lập trình nào." }}</p>
+                    <p class="text-gray-400 text-sm leading-relaxed">{{ "Nền tảng Phân tích Dữ liệu thế hệ mới, vận hành bởi GPT-4o AI. Chúng tôi tin rằng mọi doanh nghiệp — dù nhỏ hay lớn — đều xứng đáng được tiếp cận sức mạnh của Big Data mà không cần bất kỳ kiến thức lập trình nào." }}</p>
                     <div class="flex flex-wrap gap-2 pt-2">
                         <span class="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 rounded-full px-3 py-1">
                             <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
                             {{ "Bảo mật Sandbox" }}
                         </span>
-                        <span class="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 rounded-full px-3 py-1">⚡ Gemini AI</span>
+                        <span class="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 rounded-full px-3 py-1">⚡ GPT-4o AI</span>
                         <span class="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-blue-400 bg-blue-400/10 border border-blue-400/20 rounded-full px-3 py-1">🇻🇳 {{ "Made in Vietnam" }}</span>
                     </div>
                 </div>
@@ -952,7 +952,7 @@
                 </div>
             </div>
             <div class="pt-8 border-t border-white/5 text-center text-gray-600 text-[10px] uppercase font-bold tracking-widest">
-                &copy; 2026 <span class="notranslate">Mia AI Data Analytics Global</span>. {{ "Tất cả quyền được bảo lưu." }}
+                &copy; 2026 <span class="notranslate">Mia SCM - Trợ lý Chuỗi cung ứng Global</span>. {{ "Tất cả quyền được bảo lưu." }}
             </div>
         </div>
     </footer>

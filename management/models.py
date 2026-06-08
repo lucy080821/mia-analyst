@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 class PlatformExpense(models.Model):
     CATEGORY_CHOICES = [
         ('SERVER', 'Chi phí Server / Hosting'),
-        ('AI_API', 'Chi phí AI API (Gemini, OpenAI...)'),
+        ('AI_API', 'Chi phí AI API (GPT-4o, OpenAI...)'),
         ('DOMAIN', 'Tên miền / SSL'),
         ('MARKETING', 'Marketing / Quảng cáo'),
         ('TOOLS', 'Công cụ / Phần mềm'),

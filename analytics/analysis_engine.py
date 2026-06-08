@@ -28,7 +28,7 @@ def determine_analysis_method(
     model_name: str = None
 ) -> Dict[str, Any]:
     """
-    Gọi Gemini để quyết định phương pháp phân tích phù hợp.
+    Gọi GPT-4o để quyết định phương pháp phân tích phù hợp.
     Gửi column profiles đầy đủ (role, min/max/mean, warnings) thay vì chỉ tên cột.
     Returns: {"method": "sql"|"python"|"ml_cluster"|"ml_forecast"|"ml_anomaly", "params": {...}}
     """
@@ -218,7 +218,7 @@ def generate_python_code(
     df: pd.DataFrame = None,
     model_name: str = None
 ) -> str:
-    """Gemini sinh code Python/Pandas để phân tích, có context về role của từng cột."""
+    """GPT-4o sinh code Python/Pandas để phân tích, có context về role của từng cột."""
 
     tier_note = ""
     if tier == "FREE":
@@ -797,7 +797,7 @@ def execute_ml_anomaly(df: pd.DataFrame, features: list = None, contamination: f
 # ============================================================
 
 def format_ml_result_for_insight(ml_result: Dict[str, Any], question: str) -> str:
-    """Tạo summary text từ kết quả ML để gửi cho Gemini phân tích insight."""
+    """Tạo summary text từ kết quả ML để gửi cho GPT-4o phân tích insight."""
     method = ml_result.get("method", "")
     
     if method == "ml_cluster":
@@ -831,7 +831,7 @@ def format_ml_result_for_insight(ml_result: Dict[str, Any], question: str) -> st
     
     return str(ml_result)
 
-def analyze_gsheet_with_gemini(df: pd.DataFrame, user_prompt: str, api_key: str) -> str:
+def analyze_gsheet_with_gpt(df: pd.DataFrame, user_prompt: str, api_key: str) -> str:
     """
     Decoupled function to run automated AI analysis on a dataframe (GSheet data).
     Used by background tasks without requiring HTTP request context.

@@ -511,7 +511,7 @@ class TieredAnalyticsService:
 
     @staticmethod
     def get_ai_insight(summary: str, quality_alerts: List[str] = None, user_question: str = "") -> str:
-        """Gọi Gemini AI để lấy nhận xét chiến lược từ tóm tắt dữ liệu toàn diện."""
+        """Gọi GPT-4o AI để lấy nhận xét chiến lược từ tóm tắt dữ liệu toàn diện."""
         try:
             quality_context = ""
             if quality_alerts:
@@ -524,7 +524,7 @@ class TieredAnalyticsService:
             else:
                 lang_instruction = "\nHÃY LUÔN TRẢ LỜI BẰNG NGÔN NGỮ PHÙ HỢP VỚI NGỮ CẢNH."
 
-            genai.configure(api_key=settings.GEMINI_API_KEY)
+            genai.configure(api_key=settings.gpt_API_KEY)
             
             # Sử dụng model resolver an toàn — loại bỏ hoàn toàn lỗi 404
             from .ai_utils import get_generative_model
